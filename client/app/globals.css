@@ -17,8 +17,4 @@ body,
   font-size: 0.875rem;
   background-color: #6b7280;
   color: #111827;
-
-  @apply text-sm
-  @apply bg-white
-  @apply dark:bg-black
 }
