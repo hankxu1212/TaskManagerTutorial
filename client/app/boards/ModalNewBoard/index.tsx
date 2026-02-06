@@ -8,15 +8,15 @@ type Props = {
   onClose: () => void;
 };
 
-const ModalNewProject = ({ isOpen, onClose }: Props) => {
+const ModalNewBoard = ({ isOpen, onClose }: Props) => {
   const [createProject, { isLoading }] = useCreateProjectMutation();
-  const [projectName, setProjectName] = useState("");
+  const [boardName, setBoardName] = useState("");
   const [description, setDescription] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
   const handleSubmit = async () => {
-    if (!projectName || !startDate || !endDate) return;
+    if (!boardName || !startDate || !endDate) return;
 
     const formattedStartDate = formatISO(new Date(startDate), {
       representation: "complete",
@@ -26,7 +26,7 @@ const ModalNewProject = ({ isOpen, onClose }: Props) => {
     });
 
     await createProject({
-      name: projectName,
+      name: boardName,
       description,
       startDate: formattedStartDate,
       endDate: formattedEndDate,
@@ -34,14 +34,14 @@ const ModalNewProject = ({ isOpen, onClose }: Props) => {
   };
 
   const isFormValid = () => {
-    return projectName && description && startDate && endDate;
+    return boardName && description && startDate && endDate;
   };
 
   const inputStyles =
     "w-full rounded border border-gray-300 p-2 shadow-sm dark:border-dark-tertiary dark:bg-dark-tertiary dark:text-white dark:focus:outline-none";
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} name="Create New Project">
+    <Modal isOpen={isOpen} onClose={onClose} name="Create New Board">
       <form
         className="mt-4 space-y-6"
         onSubmit={(e) => {
@@ -52,9 +52,9 @@ const ModalNewProject = ({ isOpen, onClose }: Props) => {
         <input
           type="text"
           className={inputStyles}
-          placeholder="Project Name"
-          value={projectName}
-          onChange={(e) => setProjectName(e.target.value)}
+          placeholder="Board Name"
+          value={boardName}
+          onChange={(e) => setBoardName(e.target.value)}
         />
         <textarea
           className={inputStyles}
@@ -83,11 +83,11 @@ const ModalNewProject = ({ isOpen, onClose }: Props) => {
           }`}
           disabled={!isFormValid() || isLoading}
         >
-          {isLoading ? "Creating..." : "Create Project"}
+          {isLoading ? "Creating..." : "Create Board"}
         </button>
       </form>
     </Modal>
   );
 };
 
-export default ModalNewProject;
+export default ModalNewBoard;

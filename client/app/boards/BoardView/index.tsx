@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useGetTasksQuery, useUpdateTaskStatusMutation } from "@/state/api";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -6,6 +7,7 @@ import { EllipsisVertical, MessageSquareMore, Plus } from "lucide-react";
 import { format } from "date-fns";
 import Image from "next/image";
 import type { DropTargetMonitor, DragSourceMonitor } from "react-dnd";
+import TaskDetailModal from "@/components/TaskDetailModal";
 
 type BoardProps = {
   id: string;
@@ -21,6 +23,20 @@ const BoardView = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
     error,
   } = useGetTasksQuery({ projectId: Number(id) });
   const [updateTaskStatus] = useUpdateTaskStatusMutation();
+
+  // Modal state management for task detail modal
+  const [isTaskDetailModalOpen, setIsTaskDetailModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<TaskType | null>(null);
+
+  const handleTaskClick = (task: TaskType) => {
+    setSelectedTask(task);
+    setIsTaskDetailModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsTaskDetailModalOpen(false);
+    setSelectedTask(null);
+  };
 
   const moveTask = (taskId: number, toStatus: string) => {
     updateTaskStatus({ taskId, status: toStatus });
@@ -39,9 +55,15 @@ const BoardView = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
             tasks={tasks || []}
             moveTask={moveTask}
             setIsModalNewTaskOpen={setIsModalNewTaskOpen}
+            onTaskClick={handleTaskClick}
           />
         ))}
       </div>
+      <TaskDetailModal
+        isOpen={isTaskDetailModalOpen}
+        onClose={handleCloseModal}
+        task={selectedTask}
+      />
     </DndProvider>
   );
 };
@@ -51,6 +73,7 @@ type TaskColumnProps = {
   tasks: TaskType[];
   moveTask: (taskId: number, toStatus: string) => void;
   setIsModalNewTaskOpen: (isOpen: boolean) => void;
+  onTaskClick: (task: TaskType) => void;
 };
 
 const TaskColumn = ({
@@ -58,6 +81,7 @@ const TaskColumn = ({
   tasks,
   moveTask,
   setIsModalNewTaskOpen,
+  onTaskClick,
 }: TaskColumnProps) => {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: "task",
@@ -81,32 +105,31 @@ const TaskColumn = ({
       ref={(instance) => {
         drop(instance);
       }}
-      className={`sl:py-4 rounded-lg py-2 xl:px-2 ${isOver ? "bg-blue-100 dark:bg-neutral-950" : ""}`}
-    >c
-      <div className="mb-3 flex w-full">
+      className={`rounded-lg py-1 xl:px-1 ${isOver ? "bg-blue-100 dark:bg-neutral-950" : ""}`}
+    >
+      <div className="mb-2 flex w-full">
         <div
-          className={`w-2 !bg-[${statusColor[status]}] rounded-s-lg`}
+          className={`w-1.5 !bg-[${statusColor[status]}] rounded-s-lg`}
           style={{ backgroundColor: statusColor[status] }}
         />
-        <div className="flex w-full items-center justify-between rounded-e-lg bg-white px-5 py-4 dark:bg-dark-secondary">
-          <h3 className="flex items-center text-lg font-semibold dark:text-white">
+        <div className="flex w-full items-center justify-between rounded-e-lg bg-white px-3 py-2 dark:bg-dark-secondary">
+          <h3 className="flex items-center text-sm font-semibold dark:text-white">
             {status}{" "}
             <span
-              className="ml-2 inline-block rounded-full bg-gray-200 p-1 text-center text-sm leading-none dark:bg-dark-tertiary"
-              style={{ width: "1.5rem", height: "1.5rem" }}
+              className="ml-1.5 inline-block rounded-full bg-gray-200 px-1.5 py-0.5 text-center text-xs leading-none dark:bg-dark-tertiary"
             >
               {tasksCount}
             </span>
           </h3>
           <div className="flex items-center gap-1">
-            <button className="flex h-6 w-5 items-center justify-center dark:text-neutral-500">
-              <EllipsisVertical size={26} />
+            <button className="flex h-5 w-4 items-center justify-center dark:text-neutral-500">
+              <EllipsisVertical size={18} />
             </button>
             <button
-              className="flex h-6 w-6 items-center justify-center rounded bg-gray-200 dark:bg-dark-tertiary dark:text-white"
+              className="flex h-5 w-5 items-center justify-center rounded bg-gray-200 dark:bg-dark-tertiary dark:text-white"
               onClick={() => setIsModalNewTaskOpen(true)}
             >
-              <Plus size={16} />
+              <Plus size={14} />
             </button>
           </div>
         </div>
@@ -115,7 +138,7 @@ const TaskColumn = ({
       {tasks
         .filter((task) => task.status === status)
         .map((task) => (
-          <Task key={task.id} task={task} />
+          <Task key={task.id} task={task} onClick={onTaskClick} />
         ))}
     </div>
   );
@@ -123,6 +146,7 @@ const TaskColumn = ({
 
 type TaskProps = {
   task: TaskType;
+  onClick?: (task: TaskType) => void;
 };
 
 const PriorityTag = ({ priority }: { priority: TaskType["priority"] }) => (
@@ -143,7 +167,7 @@ const PriorityTag = ({ priority }: { priority: TaskType["priority"] }) => (
   </div>
 );
 
-const Task = ({ task }: TaskProps) => {
+const Task = ({ task, onClick }: TaskProps) => {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "task",
     item: { id: task.id },
@@ -163,47 +187,41 @@ const Task = ({ task }: TaskProps) => {
 
   const numberOfComments = (task.comments && task.comments.length) || 0;
 
+  const handleClick = () => {
+    if (!isDragging && onClick) {
+      onClick(task);
+    }
+  };
+
   return (
     <div
       ref={(instance) => {
         drag(instance);
       }}
-      className={`mb-4 rounded-md bg-white shadow dark:bg-dark-secondary ${
+      className={`mb-2 rounded-md bg-white shadow dark:bg-dark-secondary cursor-pointer ${
         isDragging ? "opacity-50" : "opacity-100"
       }`}
+      onClick={handleClick}
     >
-      {task.attachments && task.attachments.length > 0 && (
-        <Image
-          src={`https://ninghuax-tm-demo-bucket-us-west-2.s3.us-east-1.amazonaws.com/${task.attachments[0].fileURL}`}
-          alt={task.attachments[0].fileName}
-          width={400}
-          height={200}
-          className="h-auto w-full rounded-t-md"
-        />
-      )}
-      <div className="p-4 md:p-6">
+      <div className="p-2 md:p-3">
         <div className="flex items-start justify-between">
-          <div className="flex flex-1 flex-wrap items-center gap-2">
+          <div className="flex flex-1 flex-wrap items-center gap-1">
             {task.priority && <PriorityTag priority={task.priority} />}
-            <div className="flex gap-2">
+            <div className="flex gap-1">
               {taskTagsSplit.map((tag) => (
                 <div
                   key={tag}
-                  className="rounded-full bg-blue-100 px-2 py-1 text-xs"
+                  className="rounded-full bg-blue-100 px-1.5 py-0.5 text-xs"
                 >
-                  {" "}
                   {tag}
                 </div>
               ))}
             </div>
           </div>
-          <button className="flex h-6 w-4 shrink-0 items-center justify-center dark:text-neutral-500">
-            <EllipsisVertical size={26} />
-          </button>
         </div>
 
-        <div className="my-3 flex justify-between">
-          <h4 className="text-md font-bold dark:text-white">{task.title}</h4>
+        <div className="my-1.5 flex justify-between">
+          <h4 className="text-sm font-bold dark:text-white">{task.title}</h4>
           {typeof task.points === "number" && (
             <div className="text-xs font-semibold dark:text-white">
               {task.points} pts
@@ -215,22 +233,19 @@ const Task = ({ task }: TaskProps) => {
           {formattedStartDate && <span>{formattedStartDate} - </span>}
           {formattedDueDate && <span>{formattedDueDate}</span>}
         </div>
-        <p className="text-sm text-gray-600 dark:text-neutral-500">
-          {task.description}
-        </p>
-        <div className="mt-4 border-t border-gray-200 dark:border-stroke-dark" />
+        <div className="mt-2 border-t border-gray-200 dark:border-stroke-dark" />
 
         {/* Users */}
-        <div className="mt-3 flex items-center justify-between">
-          <div className="flex -space-x-1.5 overflow-hidden">
+        <div className="mt-2 flex items-center justify-between">
+          <div className="flex -space-x-1 overflow-hidden">
             {task.assignee && (
               <Image
                 key={`assignee-${task.assignee.userId}`}
                 src={`https://ninghuax-tm-demo-bucket-us-west-2.s3.us-east-1.amazonaws.com/${task.assignee.profilePictureUrl!}`}
                 alt={task.assignee.username}
-                width={30}
-                height={30}
-                className="h-8 w-8 rounded-full border-2 border-white object-cover dark:border-dark-secondary"
+                width={24}
+                height={24}
+                className="h-6 w-6 rounded-full border-2 border-white object-cover dark:border-dark-secondary"
               />
             )}
             {task.author && (
@@ -238,18 +253,20 @@ const Task = ({ task }: TaskProps) => {
                 key={`author-${task.author.userId}`}
                 src={`https://ninghuax-tm-demo-bucket-us-west-2.s3.us-east-1.amazonaws.com/${task.author.profilePictureUrl!}`}
                 alt={task.author.username}
-                width={30}
-                height={30}
-                className="h-8 w-8 rounded-full border-2 border-white object-cover dark:border-dark-secondary"
+                width={24}
+                height={24}
+                className="h-6 w-6 rounded-full border-2 border-white object-cover dark:border-dark-secondary"
               />
             )}
           </div>
-          <div className="flex items-center text-gray-500 dark:text-neutral-500">
-            <MessageSquareMore size={20} />
-            <span className="ml-1 text-sm dark:text-neutral-400">
-              {numberOfComments}
-            </span>
-          </div>
+          {numberOfComments > 0 && (
+            <div className="flex items-center text-gray-500 dark:text-neutral-500">
+              <MessageSquareMore size={16} />
+              <span className="ml-1 text-xs dark:text-neutral-400">
+                {numberOfComments}
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </div>

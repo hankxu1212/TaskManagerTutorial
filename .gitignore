@@ -67,3 +67,4 @@ pnpm-debug.log*
 *.swp
 *.swo
 Thumbs.db
+.kiro/

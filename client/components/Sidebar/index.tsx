@@ -5,19 +5,14 @@ import { setIsSidebarCollapsed } from "@/state";
 import { useGetAuthUserQuery, useGetProjectsQuery } from "@/state/api";
 import { signOut } from "aws-amplify/auth";
 import {
-    AlertCircle,
-    AlertOctagon,
-    AlertTriangle,
     Briefcase,
     ChevronDown,
     ChevronUp,
     Home,
-    Layers3,
     LockIcon,
     LucideIcon,
     Search,
     Settings,
-    ShieldAlert,
     User,
     Users,
     X,
@@ -28,8 +23,7 @@ import { usePathname } from "next/navigation";
 import React, { useState } from "react";
 
 const Sidebar = () => {
-    const [showProjects, setShowProjects] = useState(true);
-    const [showPriority, setShowPriority] = useState(true);
+    const [showBoards, setShowBoards] = useState(true);
 
     const { data: projects } = useGetProjectsQuery();
     const dispatch = useAppDispatch();
@@ -93,73 +87,34 @@ const Sidebar = () => {
                 {/* NAVBAR LINKS */}
                 <nav className="z-10 w-full">
                     <SidebarLink icon={Home} label="Home" href="/" />
-                    <SidebarLink icon={Briefcase} label="Timeline" href="/timeline" />
                     <SidebarLink icon={Search} label="Search" href="/search" />
                     <SidebarLink icon={Settings} label="Settings" href="/settings" />
                     <SidebarLink icon={User} label="Users" href="/users" />
                     <SidebarLink icon={Users} label="Teams" href="/teams" />
                 </nav>
 
-                {/* PROJECTS LINKS */}
+                {/* BOARDS LINKS */}
                 <button
-                    onClick={() => setShowProjects((prev) => !prev)}
+                    onClick={() => setShowBoards((prev) => !prev)}
                     className="flex w-full items-center justify-between px-8 py-3 text-gray-500"
                 >
-                    <span className="">Projects</span>
-                    {showProjects ? (
+                    <span className="">Boards</span>
+                    {showBoards ? (
                         <ChevronUp className="h-5 w-5" />
                     ) : (
                         <ChevronDown className="h-5 w-5" />
                     )}
                 </button>
-                {/* PROJECTS LIST */}
-                {showProjects &&
+                {/* BOARDS LIST */}
+                {showBoards &&
                     projects?.map((project) => (
                         <SidebarLink
                             key={project.id}
                             icon={Briefcase}
                             label={project.name}
-                            href={`/projects/${project.id}`}
+                            href={`/boards/${project.id}`}
                         />
                     ))}
-
-                {/* PRIORITIES LINKS */}
-                <button
-                    onClick={() => setShowPriority((prev) => !prev)}
-                    className="flex w-full items-center justify-between px-8 py-3 text-gray-500"
-                >
-                    <span className="">Priority</span>
-                    {showPriority ? (
-                        <ChevronUp className="h-5 w-5" />
-                    ) : (
-                        <ChevronDown className="h-5 w-5" />
-                    )}
-                </button>
-                {showPriority && (
-                    <>
-                        <SidebarLink
-                            icon={AlertCircle}
-                            label="Urgent"
-                            href="/priority/urgent"
-                        />
-                        <SidebarLink
-                            icon={ShieldAlert}
-                            label="High"
-                            href="/priority/high"
-                        />
-                        <SidebarLink
-                            icon={AlertTriangle}
-                            label="Medium"
-                            href="/priority/medium"
-                        />
-                        <SidebarLink icon={AlertOctagon} label="Low" href="/priority/low" />
-                        <SidebarLink
-                            icon={Layers3}
-                            label="Backlog"
-                            href="/priority/backlog"
-                        />
-                    </>
-                )}
             </div>
             <div className="z-10 mt-32 flex w-full flex-col items-center gap-4 bg-white px-8 py-4 dark:bg-black md:hidden">
                 <div className="flex w-full items-center">

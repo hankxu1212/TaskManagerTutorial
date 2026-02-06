@@ -1,39 +1,38 @@
 import Header from "@/components/Header";
 import {
-  Clock,
   Filter,
   Grid3x3,
-  List,
   PlusSquare,
   Share2,
   Table,
 } from "lucide-react";
 import React, { useState } from "react";
-import ModalNewProject from "./ModalNewProject";
+import ModalNewBoard from "./ModalNewBoard";
 
 type Props = {
   activeTab: string;
   setActiveTab: (tabName: string) => void;
+  boardName: string;
 };
 
-const ProjectHeader = ({ activeTab, setActiveTab }: Props) => {
-  const [isModalNewProjectOpen, setIsModalNewProjectOpen] = useState(false);
+const BoardHeader = ({ activeTab, setActiveTab, boardName }: Props) => {
+  const [isModalNewBoardOpen, setIsModalNewBoardOpen] = useState(false);
 
   return (
     <div className="px-4 xl:px-6">
-      <ModalNewProject
-        isOpen={isModalNewProjectOpen}
-        onClose={() => setIsModalNewProjectOpen(false)}
+      <ModalNewBoard
+        isOpen={isModalNewBoardOpen}
+        onClose={() => setIsModalNewBoardOpen(false)}
       />
       <div className="pb-6 pt-6 lg:pb-4 lg:pt-8">
         <Header
-          name="TODO: replace this with project name"
+          name={boardName}
           buttonComponent={
             <button
               className="flex items-center rounded-md bg-blue-primary px-3 py-2 text-white hover:bg-blue-600"
-              onClick={() => setIsModalNewProjectOpen(true)}
+              onClick={() => setIsModalNewBoardOpen(true)}
             >
-              <PlusSquare className="mr-2 h-5 w-5" /> New Boards
+              <PlusSquare className="mr-2 h-5 w-5" /> New Board
             </button>
           }
         />
@@ -45,18 +44,6 @@ const ProjectHeader = ({ activeTab, setActiveTab }: Props) => {
           <TabButton
             name="Board"
             icon={<Grid3x3 className="h-5 w-5" />}
-            setActiveTab={setActiveTab}
-            activeTab={activeTab}
-          />
-          <TabButton
-            name="List"
-            icon={<List className="h-5 w-5" />}
-            setActiveTab={setActiveTab}
-            activeTab={activeTab}
-          />
-          <TabButton
-            name="Timeline"
-            icon={<Clock className="h-5 w-5" />}
             setActiveTab={setActiveTab}
             activeTab={activeTab}
           />
@@ -114,4 +101,4 @@ const TabButton = ({ name, icon, setActiveTab, activeTab }: TabButtonProps) => {
   );
 };
 
-export default ProjectHeader;
+export default BoardHeader;
