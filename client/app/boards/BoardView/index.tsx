@@ -3,7 +3,7 @@ import { useGetTasksQuery, useUpdateTaskStatusMutation } from "@/state/api";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { Task as TaskType } from "@/state/api";
-import { EllipsisVertical, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import type { DropTargetMonitor, DragSourceMonitor } from "react-dnd";
 import TaskDetailModal from "@/components/TaskDetailModal";
 import TaskCard from "@/components/TaskCard";
@@ -108,7 +108,7 @@ const TaskColumn = ({
       ref={(instance) => {
         drop(instance);
       }}
-      className={`rounded-lg py-1 xl:px-1 ${isOver ? "bg-gray-100 dark:bg-neutral-950" : ""}`}
+      className={`rounded-lg py-2 px-2 xl:px-2 bg-gray-100 dark:bg-dark-secondary/50 ${isOver ? "bg-gray-200 dark:bg-dark-tertiary" : ""}`}
     >
       <div className="mb-2 flex w-full">
         <div
@@ -116,7 +116,7 @@ const TaskColumn = ({
           style={{ backgroundColor: statusColor[status] }}
         />
         <div className="flex w-full items-center justify-between rounded-e-lg bg-white px-3 py-2 dark:bg-dark-secondary">
-          <h3 className="flex items-center text-sm font-semibold dark:text-white">
+          <h3 className="flex items-center text-base font-semibold dark:text-white">
             {status}{" "}
             <span
               className="ml-1.5 inline-block rounded-full bg-gray-200 px-1.5 py-0.5 text-center text-xs leading-none dark:bg-dark-tertiary"
@@ -124,17 +124,6 @@ const TaskColumn = ({
               {tasksCount}
             </span>
           </h3>
-          <div className="flex items-center gap-1">
-            <button className="flex h-5 w-4 items-center justify-center dark:text-neutral-500">
-              <EllipsisVertical size={18} />
-            </button>
-            <button
-              className="flex h-5 w-5 items-center justify-center rounded bg-gray-200 dark:bg-dark-tertiary dark:text-white"
-              onClick={() => setIsModalNewTaskOpen(true)}
-            >
-              <Plus size={14} />
-            </button>
-          </div>
         </div>
       </div>
 

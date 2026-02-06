@@ -72,7 +72,7 @@ const SubtaskHierarchy = ({
                   <span
                     className={`shrink-0 rounded-full px-1.5 py-0.5 text-xs font-semibold ${
                       statusColor[subtask.status || ""] ||
-                      "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200"
+                      "bg-gray-200 text-gray-700 dark:bg-dark-tertiary dark:text-gray-200"
                     }`}
                   >
                     {subtask.status || "Unknown"}

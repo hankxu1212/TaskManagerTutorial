@@ -26,7 +26,7 @@ const PriorityTag = ({ priority }: { priority: Task["priority"] }) => (
             ? "bg-green-200 text-green-700 dark:bg-green-900 dark:text-green-200"
             : priority === "Low"
               ? "bg-blue-200 text-blue-700 dark:bg-blue-900 dark:text-blue-200"
-              : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200"
+              : "bg-gray-200 text-gray-700 dark:bg-dark-tertiary dark:text-gray-200"
     }`}
   >
     {priority}
@@ -44,7 +44,7 @@ const StatusBadge = ({ status }: { status: Task["status"] }) => {
   return (
     <span
       className={`rounded-full px-2 py-1 text-xs font-semibold ${
-        statusColor[status || ""] || "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200"
+        statusColor[status || ""] || "bg-gray-200 text-gray-700 dark:bg-dark-tertiary dark:text-gray-200"
       }`}
     >
       {status}
@@ -156,7 +156,7 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
           {!isEditing && (
             <button
               onClick={handleEditClick}
-              className="flex h-7 w-7 items-center justify-center rounded text-gray-600 hover:bg-gray-100 dark:text-neutral-300 dark:hover:bg-gray-700"
+              className="flex h-7 w-7 items-center justify-center rounded text-gray-600 hover:bg-gray-100 dark:text-neutral-300 dark:hover:bg-dark-tertiary"
               title="Edit task"
             >
               <Pencil size={16} />

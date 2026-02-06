@@ -7,7 +7,6 @@ import { signOut } from "aws-amplify/auth";
 import {
     Briefcase,
     ChevronDown,
-    ChevronUp,
     Home,
     LockIcon,
     LucideIcon,
@@ -45,7 +44,7 @@ const Sidebar = () => {
     const currentUserDetails = currentUser?.userDetails;
 
     const sidebarClassNames = `fixed flex flex-col h-[100%] justify-between shadow-xl
-    transition-all duration-300 h-full z-40 dark:bg-black overflow-y-auto bg-white
+    transition-all duration-300 h-full z-40 dark:bg-dark-secondary overflow-y-auto bg-white
     ${isSidebarCollapsed ? "w-0 hidden" : "w-64"}
   `;
 
@@ -57,7 +56,7 @@ const Sidebar = () => {
             />
             <div className="flex h-[100%] w-full flex-col justify-start">
                 {/* TOP LOGO */}
-                <div className="z-50 flex min-h-[48px] w-64 items-center justify-between bg-white px-6 pt-2 dark:bg-black">
+                <div className="z-50 flex min-h-[48px] w-64 items-center justify-between bg-white px-6 pt-2 dark:bg-dark-secondary">
                     <div className="text-lg font-bold text-gray-800 dark:text-white">
                         EDLIST
                     </div>
@@ -73,7 +72,7 @@ const Sidebar = () => {
                     )}
                 </div>
                 {/* WORKSPACE */}
-                <div className="flex items-center gap-4 border-y-[1.5px] border-gray-200 px-6 py-2.5 dark:border-gray-700">
+                <div className="flex items-center gap-4 border-y-[1.5px] border-gray-200 px-6 py-2.5 dark:border-stroke-dark">
                     <Image
                         src="https://ninghuax-tm-demo-bucket-us-west-2.s3.us-east-1.amazonaws.com/logo.png"
                         alt="Logo"
@@ -101,7 +100,7 @@ const Sidebar = () => {
                 {/* BOARDS HEADER */}
                 <button
                     onClick={() => setShowBoards((prev) => !prev)}
-                    className="flex w-full items-center justify-between px-6 py-2 text-gray-500"
+                    className="flex w-full items-center justify-between px-6 py-2 text-gray-500 transition-colors hover:text-gray-700 dark:hover:text-gray-300"
                 >
                     <span>Boards</span>
                     <div className="flex items-center gap-1">
@@ -111,29 +110,35 @@ const Sidebar = () => {
                                 e.stopPropagation();
                                 setIsModalNewBoardOpen(true);
                             }}
-                            className="rounded p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700"
+                            className="rounded p-0.5 transition-all duration-200 hover:scale-110 hover:bg-gray-200 active:scale-95 dark:hover:bg-dark-tertiary"
                         >
                             <Plus className="h-4 w-4" />
                         </span>
-                        {showBoards ? (
-                            <ChevronUp className="h-5 w-5" />
-                        ) : (
-                            <ChevronDown className="h-5 w-5" />
-                        )}
+                        <ChevronDown
+                            className={`h-5 w-5 transition-transform duration-300 ${showBoards ? "rotate-180" : "rotate-0"}`}
+                        />
                     </div>
                 </button>
                 {/* BOARDS LIST */}
-                {showBoards &&
-                    projects?.map((project) => (
-                        <SidebarLink
-                            key={project.id}
-                            icon={Briefcase}
-                            label={project.name}
-                            href={`/boards/${project.id}`}
-                        />
-                    ))}
+                {showBoards && (
+                    <div className="overflow-hidden">
+                        {projects?.map((project, index) => (
+                            <div
+                                key={project.id}
+                                className="animate-slide-down opacity-0"
+                                style={{ animationDelay: `${index * 50}ms` }}
+                            >
+                                <SidebarLink
+                                    icon={Briefcase}
+                                    label={project.name}
+                                    href={`/boards/${project.id}`}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
-            <div className="z-10 mt-32 flex w-full flex-col items-center gap-4 bg-white px-8 py-4 dark:bg-black md:hidden">
+            <div className="z-10 mt-32 flex w-full flex-col items-center gap-4 bg-white px-8 py-4 dark:bg-dark-secondary md:hidden">
                 <div className="flex w-full items-center">
                     <div className="align-center flex h-9 w-9 justify-center">
                         {!!currentUserDetails?.profilePictureUrl ? (
@@ -177,8 +182,8 @@ const SidebarLink = ({ href, icon: Icon, label }: SidebarLinkProps) => {
     return (
         <Link href={href} className="w-full">
             <div
-                className={`relative flex cursor-pointer items-center gap-3 transition-colors hover:bg-gray-100 dark:bg-black dark:hover:bg-gray-700 ${
-                    isActive ? "bg-gray-100 text-white dark:bg-gray-600" : ""
+                className={`relative flex cursor-pointer items-center gap-3 transition-colors hover:bg-gray-100 dark:hover:bg-dark-tertiary ${
+                    isActive ? "bg-gray-100 text-white dark:bg-dark-tertiary" : ""
                 } justify-start px-6 py-2`}
             >
                 {isActive && (

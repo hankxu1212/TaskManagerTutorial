@@ -98,7 +98,7 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
                                 className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                                     status === s
                                         ? "bg-gray-800 text-white dark:bg-white dark:text-gray-800"
-                                        : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-dark-tertiary dark:text-neutral-300 dark:hover:bg-gray-600"
+                                        : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-dark-tertiary dark:text-neutral-300 dark:hover:bg-dark-surface"
                                 }`}
                             >
                                 {s}
@@ -121,7 +121,7 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
                                 className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                                     priority === p
                                         ? "bg-gray-800 text-white dark:bg-white dark:text-gray-800"
-                                        : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-dark-tertiary dark:text-neutral-300 dark:hover:bg-gray-600"
+                                        : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-dark-tertiary dark:text-neutral-300 dark:hover:bg-dark-surface"
                                 }`}
                             >
                                 {p}
@@ -146,7 +146,7 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
                                     className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                                         isSelected
                                             ? "bg-gray-800 text-white dark:bg-white dark:text-gray-800"
-                                            : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-dark-tertiary dark:text-neutral-300 dark:hover:bg-gray-600"
+                                            : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-dark-tertiary dark:text-neutral-300 dark:hover:bg-dark-surface"
                                     }`}
                                 >
                                     {tag.name}

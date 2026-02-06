@@ -25,7 +25,7 @@ const BoardHeader = ({ activeTab, setActiveTab, boardName, boardId }: Props) => 
           buttonComponent={
             <Link
               href={`/boards/${boardId}/settings`}
-              className="flex items-center rounded-md border border-gray-300 px-3 py-2 text-gray-600 hover:bg-gray-100 dark:border-gray-600 dark:text-neutral-300 dark:hover:bg-gray-800"
+              className="flex items-center rounded-md border border-gray-300 px-3 py-2 text-gray-600 hover:bg-gray-100 dark:border-stroke-dark dark:text-neutral-300 dark:hover:bg-dark-tertiary"
             >
               <Settings className="mr-2 h-4 w-4" /> Settings
             </Link>

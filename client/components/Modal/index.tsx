@@ -33,7 +33,7 @@ const Modal = ({ children, isOpen, onClose, name, headerRight, hideClose }: Prop
 
     return ReactDOM.createPortal(
         <div 
-            className="fixed inset-0 z-50 flex h-full w-full items-center justify-center overflow-y-auto bg-gray-600 bg-opacity-50 p-4 animate-fade-in"
+            className="fixed inset-0 z-50 flex h-full w-full items-center justify-center overflow-y-auto bg-black/40 backdrop-blur-sm p-4 animate-fade-in"
             onClick={onClose}
         >
             <div 

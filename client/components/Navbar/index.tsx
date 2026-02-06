@@ -26,7 +26,7 @@ const Navbar = () => {
     const currentUserDetails = currentUser?.userDetails;
 
     return (
-        <div className="flex items-center justify-between bg-white px-4 py-1.5 dark:bg-black">
+        <div className="flex items-center justify-between bg-white px-4 py-1.5 dark:bg-dark-secondary">
             {/* Menu toggle */}
             <div className="flex items-center gap-8">
                 {!isSidebarCollapsed ? null : (
@@ -44,7 +44,7 @@ const Navbar = () => {
                     onClick={() => dispatch(setIsDarkMode(!isDarkMode))}
                     className={
                         isDarkMode
-                            ? `rounded p-2 dark:hover:bg-gray-700`
+                            ? `rounded p-2 dark:hover:bg-dark-tertiary`
                             : `rounded p-2 hover:bg-gray-100`
                     }
                 >
