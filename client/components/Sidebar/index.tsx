@@ -14,7 +14,6 @@ import {
     Search,
     Settings,
     User,
-    Users,
     X,
 } from "lucide-react";
 import Image from "next/image";
@@ -66,7 +65,7 @@ const Sidebar = () => {
                         </button>
                     )}
                 </div>
-                {/* TEAM */}
+                {/* WORKSPACE */}
                 <div className="flex items-center gap-5 border-y-[1.5px] border-gray-200 px-8 py-4 dark:border-gray-700">
                     <Image
                         src="https://ninghuax-tm-demo-bucket-us-west-2.s3.us-east-1.amazonaws.com/logo.png"
@@ -76,7 +75,7 @@ const Sidebar = () => {
                     />
                     <div>
                         <h3 className="text-md font-bold tracking-wide dark:text-gray-200">
-                            EDROH TEAM
+                            My Workspace
                         </h3>
                         <div className="mt-1 flex items-start gap-2">
                             <LockIcon className="mt-[0.1rem] h-3 w-3 text-gray-500 dark:text-gray-400" />
@@ -90,7 +89,6 @@ const Sidebar = () => {
                     <SidebarLink icon={Search} label="Search" href="/search" />
                     <SidebarLink icon={Settings} label="Settings" href="/settings" />
                     <SidebarLink icon={User} label="Users" href="/users" />
-                    <SidebarLink icon={Users} label="Teams" href="/teams" />
                 </nav>
 
                 {/* BOARDS LINKS */}
@@ -135,7 +133,7 @@ const Sidebar = () => {
             {currentUserDetails?.username}
           </span>
                     <button
-                        className="self-start rounded bg-blue-400 px-4 py-2 text-xs font-bold text-white hover:bg-blue-500 md:block"
+                        className="self-start rounded bg-gray-800 px-4 py-2 text-xs font-bold text-white hover:bg-gray-700 md:block"
                         onClick={handleSignOut}
                     >
                         Sign out
@@ -165,7 +163,7 @@ const SidebarLink = ({ href, icon: Icon, label }: SidebarLinkProps) => {
                 } justify-start px-8 py-3`}
             >
                 {isActive && (
-                    <div className="absolute left-0 top-0 h-[100%] w-[5px] bg-blue-200" />
+                    <div className="absolute left-0 top-0 h-[100%] w-[5px] bg-gray-800 dark:bg-white" />
                 )}
 
                 <Icon className="h-6 w-6 text-gray-800 dark:text-gray-100" />

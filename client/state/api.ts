@@ -30,7 +30,6 @@ export interface User {
     email: string;
     profilePictureUrl?: string;
     cognitoId?: string;
-    teamId?: number;
 }
 
 export interface Attachment {
@@ -67,13 +66,6 @@ export interface SearchResults {
     users?: User[];
 }
 
-export interface Team {
-    teamId: number;
-    teamName: string;
-    productOwnerUserId?: number;
-    projectManagerUserId?: number;
-}
-
 export const api = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
@@ -87,7 +79,7 @@ export const api = createApi({
         },
     }),
     reducerPath: "api",
-    tagTypes: ["Projects", "Tasks", "Users", "Teams"],
+    tagTypes: ["Projects", "Tasks", "Users"],
     endpoints: (build) => ({
         // projects
         getProjects: build.query<Project[], void>({
@@ -166,12 +158,6 @@ export const api = createApi({
             },
         }),
 
-        // teams
-        getTeams: build.query<Team[], void>({
-            query: () => "teams",
-            providesTags: ["Teams"],
-        }),
-
         // search
         search: build.query<SearchResults, string>({
             query: (query) => `search?query=${query}`,
@@ -187,7 +173,6 @@ export const {
     useUpdateTaskStatusMutation,
     useSearchQuery,
     useGetUsersQuery,
-    useGetTeamsQuery,
     useGetTasksByUserQuery,
     useGetAuthUserQuery,
 } = api;

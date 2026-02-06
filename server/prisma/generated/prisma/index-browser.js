@@ -124,15 +124,7 @@ exports.Prisma.UserScalarFieldEnum = {
   userId: 'userId',
   cognitoId: 'cognitoId',
   username: 'username',
-  profilePictureUrl: 'profilePictureUrl',
-  teamId: 'teamId'
-};
-
-exports.Prisma.TeamScalarFieldEnum = {
-  id: 'id',
-  teamName: 'teamName',
-  productOwnerUserId: 'productOwnerUserId',
-  projectManagerUserId: 'projectManagerUserId'
+  profilePictureUrl: 'profilePictureUrl'
 };
 
 exports.Prisma.ProjectScalarFieldEnum = {
@@ -141,12 +133,6 @@ exports.Prisma.ProjectScalarFieldEnum = {
   description: 'description',
   startDate: 'startDate',
   endDate: 'endDate'
-};
-
-exports.Prisma.ProjectTeamScalarFieldEnum = {
-  id: 'id',
-  teamId: 'teamId',
-  projectId: 'projectId'
 };
 
 exports.Prisma.TaskScalarFieldEnum = {
@@ -203,9 +189,7 @@ exports.Prisma.NullsOrder = {
 
 exports.Prisma.ModelName = {
   User: 'User',
-  Team: 'Team',
   Project: 'Project',
-  ProjectTeam: 'ProjectTeam',
   Task: 'Task',
   TaskAssignment: 'TaskAssignment',
   Attachment: 'Attachment',

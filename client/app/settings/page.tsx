@@ -5,7 +5,6 @@ const Settings = () => {
     const userSettings = {
         username: "johndoe",
         email: "john.doe@example.com",
-        teamName: "Development Team",
         roleName: "Developer",
     };
 
@@ -24,10 +23,6 @@ const Settings = () => {
                 <div>
                     <label className={labelStyles}>Email</label>
                     <div className={textStyles}>{userSettings.email}</div>
-                </div>
-                <div>
-                    <label className={labelStyles}>Team</label>
-                    <div className={textStyles}>{userSettings.teamName}</div>
                 </div>
                 <div>
                     <label className={labelStyles}>Role</label>

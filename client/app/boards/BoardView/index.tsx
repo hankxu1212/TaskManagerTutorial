@@ -105,7 +105,7 @@ const TaskColumn = ({
       ref={(instance) => {
         drop(instance);
       }}
-      className={`rounded-lg py-1 xl:px-1 ${isOver ? "bg-blue-100 dark:bg-neutral-950" : ""}`}
+      className={`rounded-lg py-1 xl:px-1 ${isOver ? "bg-gray-100 dark:bg-neutral-950" : ""}`}
     >
       <div className="mb-2 flex w-full">
         <div
@@ -211,7 +211,7 @@ const Task = ({ task, onClick }: TaskProps) => {
               {taskTagsSplit.map((tag) => (
                 <div
                   key={tag}
-                  className="rounded-full bg-blue-100 px-1.5 py-0.5 text-xs"
+                  className="rounded-full bg-gray-100 px-1.5 py-0.5 text-xs dark:bg-dark-tertiary"
                 >
                   {tag}
                 </div>
