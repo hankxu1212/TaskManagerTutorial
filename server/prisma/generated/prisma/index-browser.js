@@ -130,9 +130,7 @@ exports.Prisma.UserScalarFieldEnum = {
 exports.Prisma.ProjectScalarFieldEnum = {
   id: 'id',
   name: 'name',
-  description: 'description',
-  startDate: 'startDate',
-  endDate: 'endDate'
+  description: 'description'
 };
 
 exports.Prisma.TaskScalarFieldEnum = {
@@ -141,13 +139,23 @@ exports.Prisma.TaskScalarFieldEnum = {
   description: 'description',
   status: 'status',
   priority: 'priority',
-  tags: 'tags',
   startDate: 'startDate',
   dueDate: 'dueDate',
   points: 'points',
   projectId: 'projectId',
   authorUserId: 'authorUserId',
   assignedUserId: 'assignedUserId'
+};
+
+exports.Prisma.TagScalarFieldEnum = {
+  id: 'id',
+  name: 'name'
+};
+
+exports.Prisma.TaskTagScalarFieldEnum = {
+  id: 'id',
+  taskId: 'taskId',
+  tagId: 'tagId'
 };
 
 exports.Prisma.TaskAssignmentScalarFieldEnum = {
@@ -191,6 +199,8 @@ exports.Prisma.ModelName = {
   User: 'User',
   Project: 'Project',
   Task: 'Task',
+  Tag: 'Tag',
+  TaskTag: 'TaskTag',
   TaskAssignment: 'TaskAssignment',
   Attachment: 'Attachment',
   Comment: 'Comment'

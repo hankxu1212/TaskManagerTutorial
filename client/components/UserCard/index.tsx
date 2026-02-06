@@ -1,29 +1,40 @@
 import { User } from "@/state/api";
 import Image from "next/image";
-import React from "react";
+import { User as UserIcon, Mail } from "lucide-react";
 
 type Props = {
-    user: User;
+  user: User;
 };
 
 const UserCard = ({ user }: Props) => {
-    return (
-        <div className="flex items-center rounded border p-4 shadow">
-            {user.profilePictureUrl && (
-                <Image
-                    src={`https://ninghuax-tm-demo-bucket-us-west-2.s3.us-east-1.amazonaws.com/p1.jpeg`}
-                    alt="profile picture"
-                    width={32}
-                    height={32}
-                    className="rounded-full"
-                />
-            )}
-            <div>
-                <h3>{user.username}</h3>
-                <p>{user.email}</p>
-            </div>
+  return (
+    <div className="flex items-center gap-4 rounded-lg bg-white p-4 shadow transition-shadow hover:shadow-md dark:bg-dark-secondary">
+      {user.profilePictureUrl ? (
+        <Image
+          src={`https://ninghuax-tm-demo-bucket-us-west-2.s3.us-east-1.amazonaws.com/${user.profilePictureUrl}`}
+          alt={user.username}
+          width={48}
+          height={48}
+          className="h-12 w-12 rounded-full object-cover"
+        />
+      ) : (
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-dark-tertiary">
+          <UserIcon className="h-6 w-6 text-gray-500 dark:text-neutral-400" />
         </div>
-    );
+      )}
+      <div className="min-w-0 flex-1">
+        <h3 className="font-semibold text-gray-900 dark:text-white">
+          {user.username}
+        </h3>
+        {user.email && (
+          <div className="mt-1 flex items-center gap-1.5 text-sm text-gray-500 dark:text-neutral-400">
+            <Mail className="h-3.5 w-3.5" />
+            <span className="truncate">{user.email}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default UserCard;

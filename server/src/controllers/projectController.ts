@@ -26,13 +26,41 @@ export const getProjects = async (_req: Request, res: Response) => {
 
 export const createProject = async (req: Request, res: Response) => {
   try {
-    const { name, description, startDate, endDate } = req.body;
+    const { name, description } = req.body;
     const project = await getPrismaClient().project.create({
-      data: { name, description, startDate, endDate },
+      data: { name, description },
     });
     res.status(201).json(project);
   } catch (error: any) {
     console.error("Error creating project:", error.message);
     res.status(500).json({ error: "Failed to create project: " + error.message });
+  }
+};
+
+export const updateProject = async (req: Request, res: Response) => {
+  try {
+    const { projectId } = req.params;
+    const { name, description } = req.body;
+    const project = await getPrismaClient().project.update({
+      where: { id: Number(projectId) },
+      data: { name, description },
+    });
+    res.json(project);
+  } catch (error: any) {
+    console.error("Error updating project:", error.message);
+    res.status(500).json({ error: "Failed to update project: " + error.message });
+  }
+};
+
+export const deleteProject = async (req: Request, res: Response) => {
+  try {
+    const { projectId } = req.params;
+    await getPrismaClient().project.delete({
+      where: { id: Number(projectId) },
+    });
+    res.status(204).send();
+  } catch (error: any) {
+    console.error("Error deleting project:", error.message);
+    res.status(500).json({ error: "Failed to delete project: " + error.message });
   }
 };

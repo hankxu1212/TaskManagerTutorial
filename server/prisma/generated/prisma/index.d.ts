@@ -29,6 +29,16 @@ export type Project = $Result.DefaultSelection<Prisma.$ProjectPayload>
  */
 export type Task = $Result.DefaultSelection<Prisma.$TaskPayload>
 /**
+ * Model Tag
+ * 
+ */
+export type Tag = $Result.DefaultSelection<Prisma.$TagPayload>
+/**
+ * Model TaskTag
+ * 
+ */
+export type TaskTag = $Result.DefaultSelection<Prisma.$TaskTagPayload>
+/**
  * Model TaskAssignment
  * 
  */
@@ -190,6 +200,26 @@ export class PrismaClient<
     * ```
     */
   get task(): Prisma.TaskDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.tag`: Exposes CRUD operations for the **Tag** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Tags
+    * const tags = await prisma.tag.findMany()
+    * ```
+    */
+  get tag(): Prisma.TagDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.taskTag`: Exposes CRUD operations for the **TaskTag** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more TaskTags
+    * const taskTags = await prisma.taskTag.findMany()
+    * ```
+    */
+  get taskTag(): Prisma.TaskTagDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.taskAssignment`: Exposes CRUD operations for the **TaskAssignment** model.
@@ -657,6 +687,8 @@ export namespace Prisma {
     User: 'User',
     Project: 'Project',
     Task: 'Task',
+    Tag: 'Tag',
+    TaskTag: 'TaskTag',
     TaskAssignment: 'TaskAssignment',
     Attachment: 'Attachment',
     Comment: 'Comment'
@@ -675,7 +707,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "project" | "task" | "taskAssignment" | "attachment" | "comment"
+      modelProps: "user" | "project" | "task" | "tag" | "taskTag" | "taskAssignment" | "attachment" | "comment"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -898,6 +930,154 @@ export namespace Prisma {
           count: {
             args: Prisma.TaskCountArgs<ExtArgs>
             result: $Utils.Optional<TaskCountAggregateOutputType> | number
+          }
+        }
+      }
+      Tag: {
+        payload: Prisma.$TagPayload<ExtArgs>
+        fields: Prisma.TagFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.TagFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TagPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.TagFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TagPayload>
+          }
+          findFirst: {
+            args: Prisma.TagFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TagPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.TagFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TagPayload>
+          }
+          findMany: {
+            args: Prisma.TagFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TagPayload>[]
+          }
+          create: {
+            args: Prisma.TagCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TagPayload>
+          }
+          createMany: {
+            args: Prisma.TagCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.TagCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TagPayload>[]
+          }
+          delete: {
+            args: Prisma.TagDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TagPayload>
+          }
+          update: {
+            args: Prisma.TagUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TagPayload>
+          }
+          deleteMany: {
+            args: Prisma.TagDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.TagUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.TagUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TagPayload>[]
+          }
+          upsert: {
+            args: Prisma.TagUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TagPayload>
+          }
+          aggregate: {
+            args: Prisma.TagAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateTag>
+          }
+          groupBy: {
+            args: Prisma.TagGroupByArgs<ExtArgs>
+            result: $Utils.Optional<TagGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.TagCountArgs<ExtArgs>
+            result: $Utils.Optional<TagCountAggregateOutputType> | number
+          }
+        }
+      }
+      TaskTag: {
+        payload: Prisma.$TaskTagPayload<ExtArgs>
+        fields: Prisma.TaskTagFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.TaskTagFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TaskTagPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.TaskTagFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TaskTagPayload>
+          }
+          findFirst: {
+            args: Prisma.TaskTagFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TaskTagPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.TaskTagFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TaskTagPayload>
+          }
+          findMany: {
+            args: Prisma.TaskTagFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TaskTagPayload>[]
+          }
+          create: {
+            args: Prisma.TaskTagCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TaskTagPayload>
+          }
+          createMany: {
+            args: Prisma.TaskTagCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.TaskTagCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TaskTagPayload>[]
+          }
+          delete: {
+            args: Prisma.TaskTagDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TaskTagPayload>
+          }
+          update: {
+            args: Prisma.TaskTagUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TaskTagPayload>
+          }
+          deleteMany: {
+            args: Prisma.TaskTagDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.TaskTagUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.TaskTagUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TaskTagPayload>[]
+          }
+          upsert: {
+            args: Prisma.TaskTagUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TaskTagPayload>
+          }
+          aggregate: {
+            args: Prisma.TaskTagAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateTaskTag>
+          }
+          groupBy: {
+            args: Prisma.TaskTagGroupByArgs<ExtArgs>
+            result: $Utils.Optional<TaskTagGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.TaskTagCountArgs<ExtArgs>
+            result: $Utils.Optional<TaskTagCountAggregateOutputType> | number
           }
         }
       }
@@ -1234,6 +1414,8 @@ export namespace Prisma {
     user?: UserOmit
     project?: ProjectOmit
     task?: TaskOmit
+    tag?: TagOmit
+    taskTag?: TaskTagOmit
     taskAssignment?: TaskAssignmentOmit
     attachment?: AttachmentOmit
     comment?: CommentOmit
@@ -1418,12 +1600,14 @@ export namespace Prisma {
     taskAssignments: number
     attachments: number
     comments: number
+    taskTags: number
   }
 
   export type TaskCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     taskAssignments?: boolean | TaskCountOutputTypeCountTaskAssignmentsArgs
     attachments?: boolean | TaskCountOutputTypeCountAttachmentsArgs
     comments?: boolean | TaskCountOutputTypeCountCommentsArgs
+    taskTags?: boolean | TaskCountOutputTypeCountTaskTagsArgs
   }
 
   // Custom InputTypes
@@ -1456,6 +1640,44 @@ export namespace Prisma {
    */
   export type TaskCountOutputTypeCountCommentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: CommentWhereInput
+  }
+
+  /**
+   * TaskCountOutputType without action
+   */
+  export type TaskCountOutputTypeCountTaskTagsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TaskTagWhereInput
+  }
+
+
+  /**
+   * Count Type TagCountOutputType
+   */
+
+  export type TagCountOutputType = {
+    taskTags: number
+  }
+
+  export type TagCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    taskTags?: boolean | TagCountOutputTypeCountTaskTagsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * TagCountOutputType without action
+   */
+  export type TagCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TagCountOutputType
+     */
+    select?: TagCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * TagCountOutputType without action
+   */
+  export type TagCountOutputTypeCountTaskTagsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TaskTagWhereInput
   }
 
 
@@ -2690,24 +2912,18 @@ export namespace Prisma {
     id: number | null
     name: string | null
     description: string | null
-    startDate: Date | null
-    endDate: Date | null
   }
 
   export type ProjectMaxAggregateOutputType = {
     id: number | null
     name: string | null
     description: string | null
-    startDate: Date | null
-    endDate: Date | null
   }
 
   export type ProjectCountAggregateOutputType = {
     id: number
     name: number
     description: number
-    startDate: number
-    endDate: number
     _all: number
   }
 
@@ -2724,24 +2940,18 @@ export namespace Prisma {
     id?: true
     name?: true
     description?: true
-    startDate?: true
-    endDate?: true
   }
 
   export type ProjectMaxAggregateInputType = {
     id?: true
     name?: true
     description?: true
-    startDate?: true
-    endDate?: true
   }
 
   export type ProjectCountAggregateInputType = {
     id?: true
     name?: true
     description?: true
-    startDate?: true
-    endDate?: true
     _all?: true
   }
 
@@ -2835,8 +3045,6 @@ export namespace Prisma {
     id: number
     name: string
     description: string | null
-    startDate: Date | null
-    endDate: Date | null
     _count: ProjectCountAggregateOutputType | null
     _avg: ProjectAvgAggregateOutputType | null
     _sum: ProjectSumAggregateOutputType | null
@@ -2862,8 +3070,6 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     description?: boolean
-    startDate?: boolean
-    endDate?: boolean
     tasks?: boolean | Project$tasksArgs<ExtArgs>
     _count?: boolean | ProjectCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["project"]>
@@ -2872,27 +3078,21 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     description?: boolean
-    startDate?: boolean
-    endDate?: boolean
   }, ExtArgs["result"]["project"]>
 
   export type ProjectSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
     description?: boolean
-    startDate?: boolean
-    endDate?: boolean
   }, ExtArgs["result"]["project"]>
 
   export type ProjectSelectScalar = {
     id?: boolean
     name?: boolean
     description?: boolean
-    startDate?: boolean
-    endDate?: boolean
   }
 
-  export type ProjectOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "startDate" | "endDate", ExtArgs["result"]["project"]>
+  export type ProjectOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description", ExtArgs["result"]["project"]>
   export type ProjectInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tasks?: boolean | Project$tasksArgs<ExtArgs>
     _count?: boolean | ProjectCountOutputTypeDefaultArgs<ExtArgs>
@@ -2909,8 +3109,6 @@ export namespace Prisma {
       id: number
       name: string
       description: string | null
-      startDate: Date | null
-      endDate: Date | null
     }, ExtArgs["result"]["project"]>
     composites: {}
   }
@@ -3338,8 +3536,6 @@ export namespace Prisma {
     readonly id: FieldRef<"Project", 'Int'>
     readonly name: FieldRef<"Project", 'String'>
     readonly description: FieldRef<"Project", 'String'>
-    readonly startDate: FieldRef<"Project", 'DateTime'>
-    readonly endDate: FieldRef<"Project", 'DateTime'>
   }
     
 
@@ -3804,7 +4000,6 @@ export namespace Prisma {
     description: string | null
     status: string | null
     priority: string | null
-    tags: string | null
     startDate: Date | null
     dueDate: Date | null
     points: number | null
@@ -3819,7 +4014,6 @@ export namespace Prisma {
     description: string | null
     status: string | null
     priority: string | null
-    tags: string | null
     startDate: Date | null
     dueDate: Date | null
     points: number | null
@@ -3834,7 +4028,6 @@ export namespace Prisma {
     description: number
     status: number
     priority: number
-    tags: number
     startDate: number
     dueDate: number
     points: number
@@ -3867,7 +4060,6 @@ export namespace Prisma {
     description?: true
     status?: true
     priority?: true
-    tags?: true
     startDate?: true
     dueDate?: true
     points?: true
@@ -3882,7 +4074,6 @@ export namespace Prisma {
     description?: true
     status?: true
     priority?: true
-    tags?: true
     startDate?: true
     dueDate?: true
     points?: true
@@ -3897,7 +4088,6 @@ export namespace Prisma {
     description?: true
     status?: true
     priority?: true
-    tags?: true
     startDate?: true
     dueDate?: true
     points?: true
@@ -3999,7 +4189,6 @@ export namespace Prisma {
     description: string | null
     status: string | null
     priority: string | null
-    tags: string | null
     startDate: Date | null
     dueDate: Date | null
     points: number | null
@@ -4033,7 +4222,6 @@ export namespace Prisma {
     description?: boolean
     status?: boolean
     priority?: boolean
-    tags?: boolean
     startDate?: boolean
     dueDate?: boolean
     points?: boolean
@@ -4046,6 +4234,7 @@ export namespace Prisma {
     taskAssignments?: boolean | Task$taskAssignmentsArgs<ExtArgs>
     attachments?: boolean | Task$attachmentsArgs<ExtArgs>
     comments?: boolean | Task$commentsArgs<ExtArgs>
+    taskTags?: boolean | Task$taskTagsArgs<ExtArgs>
     _count?: boolean | TaskCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["task"]>
 
@@ -4055,7 +4244,6 @@ export namespace Prisma {
     description?: boolean
     status?: boolean
     priority?: boolean
-    tags?: boolean
     startDate?: boolean
     dueDate?: boolean
     points?: boolean
@@ -4073,7 +4261,6 @@ export namespace Prisma {
     description?: boolean
     status?: boolean
     priority?: boolean
-    tags?: boolean
     startDate?: boolean
     dueDate?: boolean
     points?: boolean
@@ -4091,7 +4278,6 @@ export namespace Prisma {
     description?: boolean
     status?: boolean
     priority?: boolean
-    tags?: boolean
     startDate?: boolean
     dueDate?: boolean
     points?: boolean
@@ -4100,7 +4286,7 @@ export namespace Prisma {
     assignedUserId?: boolean
   }
 
-  export type TaskOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "status" | "priority" | "tags" | "startDate" | "dueDate" | "points" | "projectId" | "authorUserId" | "assignedUserId", ExtArgs["result"]["task"]>
+  export type TaskOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "status" | "priority" | "startDate" | "dueDate" | "points" | "projectId" | "authorUserId" | "assignedUserId", ExtArgs["result"]["task"]>
   export type TaskInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     project?: boolean | ProjectDefaultArgs<ExtArgs>
     author?: boolean | UserDefaultArgs<ExtArgs>
@@ -4108,6 +4294,7 @@ export namespace Prisma {
     taskAssignments?: boolean | Task$taskAssignmentsArgs<ExtArgs>
     attachments?: boolean | Task$attachmentsArgs<ExtArgs>
     comments?: boolean | Task$commentsArgs<ExtArgs>
+    taskTags?: boolean | Task$taskTagsArgs<ExtArgs>
     _count?: boolean | TaskCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type TaskIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4130,6 +4317,7 @@ export namespace Prisma {
       taskAssignments: Prisma.$TaskAssignmentPayload<ExtArgs>[]
       attachments: Prisma.$AttachmentPayload<ExtArgs>[]
       comments: Prisma.$CommentPayload<ExtArgs>[]
+      taskTags: Prisma.$TaskTagPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -4137,7 +4325,6 @@ export namespace Prisma {
       description: string | null
       status: string | null
       priority: string | null
-      tags: string | null
       startDate: Date | null
       dueDate: Date | null
       points: number | null
@@ -4544,6 +4731,7 @@ export namespace Prisma {
     taskAssignments<T extends Task$taskAssignmentsArgs<ExtArgs> = {}>(args?: Subset<T, Task$taskAssignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TaskAssignmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     attachments<T extends Task$attachmentsArgs<ExtArgs> = {}>(args?: Subset<T, Task$attachmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AttachmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     comments<T extends Task$commentsArgs<ExtArgs> = {}>(args?: Subset<T, Task$commentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CommentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    taskTags<T extends Task$taskTagsArgs<ExtArgs> = {}>(args?: Subset<T, Task$taskTagsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TaskTagPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4578,7 +4766,6 @@ export namespace Prisma {
     readonly description: FieldRef<"Task", 'String'>
     readonly status: FieldRef<"Task", 'String'>
     readonly priority: FieldRef<"Task", 'String'>
-    readonly tags: FieldRef<"Task", 'String'>
     readonly startDate: FieldRef<"Task", 'DateTime'>
     readonly dueDate: FieldRef<"Task", 'DateTime'>
     readonly points: FieldRef<"Task", 'Int'>
@@ -5072,6 +5259,30 @@ export namespace Prisma {
   }
 
   /**
+   * Task.taskTags
+   */
+  export type Task$taskTagsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TaskTag
+     */
+    select?: TaskTagSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TaskTag
+     */
+    omit?: TaskTagOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TaskTagInclude<ExtArgs> | null
+    where?: TaskTagWhereInput
+    orderBy?: TaskTagOrderByWithRelationInput | TaskTagOrderByWithRelationInput[]
+    cursor?: TaskTagWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: TaskTagScalarFieldEnum | TaskTagScalarFieldEnum[]
+  }
+
+  /**
    * Task without action
    */
   export type TaskDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5087,6 +5298,2153 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: TaskInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Tag
+   */
+
+  export type AggregateTag = {
+    _count: TagCountAggregateOutputType | null
+    _avg: TagAvgAggregateOutputType | null
+    _sum: TagSumAggregateOutputType | null
+    _min: TagMinAggregateOutputType | null
+    _max: TagMaxAggregateOutputType | null
+  }
+
+  export type TagAvgAggregateOutputType = {
+    id: number | null
+  }
+
+  export type TagSumAggregateOutputType = {
+    id: number | null
+  }
+
+  export type TagMinAggregateOutputType = {
+    id: number | null
+    name: string | null
+  }
+
+  export type TagMaxAggregateOutputType = {
+    id: number | null
+    name: string | null
+  }
+
+  export type TagCountAggregateOutputType = {
+    id: number
+    name: number
+    _all: number
+  }
+
+
+  export type TagAvgAggregateInputType = {
+    id?: true
+  }
+
+  export type TagSumAggregateInputType = {
+    id?: true
+  }
+
+  export type TagMinAggregateInputType = {
+    id?: true
+    name?: true
+  }
+
+  export type TagMaxAggregateInputType = {
+    id?: true
+    name?: true
+  }
+
+  export type TagCountAggregateInputType = {
+    id?: true
+    name?: true
+    _all?: true
+  }
+
+  export type TagAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Tag to aggregate.
+     */
+    where?: TagWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Tags to fetch.
+     */
+    orderBy?: TagOrderByWithRelationInput | TagOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: TagWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Tags from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Tags.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Tags
+    **/
+    _count?: true | TagCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: TagAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: TagSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: TagMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: TagMaxAggregateInputType
+  }
+
+  export type GetTagAggregateType<T extends TagAggregateArgs> = {
+        [P in keyof T & keyof AggregateTag]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateTag[P]>
+      : GetScalarType<T[P], AggregateTag[P]>
+  }
+
+
+
+
+  export type TagGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TagWhereInput
+    orderBy?: TagOrderByWithAggregationInput | TagOrderByWithAggregationInput[]
+    by: TagScalarFieldEnum[] | TagScalarFieldEnum
+    having?: TagScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: TagCountAggregateInputType | true
+    _avg?: TagAvgAggregateInputType
+    _sum?: TagSumAggregateInputType
+    _min?: TagMinAggregateInputType
+    _max?: TagMaxAggregateInputType
+  }
+
+  export type TagGroupByOutputType = {
+    id: number
+    name: string
+    _count: TagCountAggregateOutputType | null
+    _avg: TagAvgAggregateOutputType | null
+    _sum: TagSumAggregateOutputType | null
+    _min: TagMinAggregateOutputType | null
+    _max: TagMaxAggregateOutputType | null
+  }
+
+  type GetTagGroupByPayload<T extends TagGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<TagGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof TagGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], TagGroupByOutputType[P]>
+            : GetScalarType<T[P], TagGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type TagSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    taskTags?: boolean | Tag$taskTagsArgs<ExtArgs>
+    _count?: boolean | TagCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["tag"]>
+
+  export type TagSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+  }, ExtArgs["result"]["tag"]>
+
+  export type TagSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+  }, ExtArgs["result"]["tag"]>
+
+  export type TagSelectScalar = {
+    id?: boolean
+    name?: boolean
+  }
+
+  export type TagOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name", ExtArgs["result"]["tag"]>
+  export type TagInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    taskTags?: boolean | Tag$taskTagsArgs<ExtArgs>
+    _count?: boolean | TagCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type TagIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type TagIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+
+  export type $TagPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Tag"
+    objects: {
+      taskTags: Prisma.$TaskTagPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      name: string
+    }, ExtArgs["result"]["tag"]>
+    composites: {}
+  }
+
+  type TagGetPayload<S extends boolean | null | undefined | TagDefaultArgs> = $Result.GetResult<Prisma.$TagPayload, S>
+
+  type TagCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<TagFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: TagCountAggregateInputType | true
+    }
+
+  export interface TagDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Tag'], meta: { name: 'Tag' } }
+    /**
+     * Find zero or one Tag that matches the filter.
+     * @param {TagFindUniqueArgs} args - Arguments to find a Tag
+     * @example
+     * // Get one Tag
+     * const tag = await prisma.tag.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends TagFindUniqueArgs>(args: SelectSubset<T, TagFindUniqueArgs<ExtArgs>>): Prisma__TagClient<$Result.GetResult<Prisma.$TagPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Tag that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {TagFindUniqueOrThrowArgs} args - Arguments to find a Tag
+     * @example
+     * // Get one Tag
+     * const tag = await prisma.tag.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends TagFindUniqueOrThrowArgs>(args: SelectSubset<T, TagFindUniqueOrThrowArgs<ExtArgs>>): Prisma__TagClient<$Result.GetResult<Prisma.$TagPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Tag that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TagFindFirstArgs} args - Arguments to find a Tag
+     * @example
+     * // Get one Tag
+     * const tag = await prisma.tag.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends TagFindFirstArgs>(args?: SelectSubset<T, TagFindFirstArgs<ExtArgs>>): Prisma__TagClient<$Result.GetResult<Prisma.$TagPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Tag that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TagFindFirstOrThrowArgs} args - Arguments to find a Tag
+     * @example
+     * // Get one Tag
+     * const tag = await prisma.tag.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends TagFindFirstOrThrowArgs>(args?: SelectSubset<T, TagFindFirstOrThrowArgs<ExtArgs>>): Prisma__TagClient<$Result.GetResult<Prisma.$TagPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Tags that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TagFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Tags
+     * const tags = await prisma.tag.findMany()
+     * 
+     * // Get first 10 Tags
+     * const tags = await prisma.tag.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const tagWithIdOnly = await prisma.tag.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends TagFindManyArgs>(args?: SelectSubset<T, TagFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TagPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Tag.
+     * @param {TagCreateArgs} args - Arguments to create a Tag.
+     * @example
+     * // Create one Tag
+     * const Tag = await prisma.tag.create({
+     *   data: {
+     *     // ... data to create a Tag
+     *   }
+     * })
+     * 
+     */
+    create<T extends TagCreateArgs>(args: SelectSubset<T, TagCreateArgs<ExtArgs>>): Prisma__TagClient<$Result.GetResult<Prisma.$TagPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Tags.
+     * @param {TagCreateManyArgs} args - Arguments to create many Tags.
+     * @example
+     * // Create many Tags
+     * const tag = await prisma.tag.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends TagCreateManyArgs>(args?: SelectSubset<T, TagCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Tags and returns the data saved in the database.
+     * @param {TagCreateManyAndReturnArgs} args - Arguments to create many Tags.
+     * @example
+     * // Create many Tags
+     * const tag = await prisma.tag.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Tags and only return the `id`
+     * const tagWithIdOnly = await prisma.tag.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends TagCreateManyAndReturnArgs>(args?: SelectSubset<T, TagCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TagPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Tag.
+     * @param {TagDeleteArgs} args - Arguments to delete one Tag.
+     * @example
+     * // Delete one Tag
+     * const Tag = await prisma.tag.delete({
+     *   where: {
+     *     // ... filter to delete one Tag
+     *   }
+     * })
+     * 
+     */
+    delete<T extends TagDeleteArgs>(args: SelectSubset<T, TagDeleteArgs<ExtArgs>>): Prisma__TagClient<$Result.GetResult<Prisma.$TagPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Tag.
+     * @param {TagUpdateArgs} args - Arguments to update one Tag.
+     * @example
+     * // Update one Tag
+     * const tag = await prisma.tag.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends TagUpdateArgs>(args: SelectSubset<T, TagUpdateArgs<ExtArgs>>): Prisma__TagClient<$Result.GetResult<Prisma.$TagPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Tags.
+     * @param {TagDeleteManyArgs} args - Arguments to filter Tags to delete.
+     * @example
+     * // Delete a few Tags
+     * const { count } = await prisma.tag.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends TagDeleteManyArgs>(args?: SelectSubset<T, TagDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Tags.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TagUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Tags
+     * const tag = await prisma.tag.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends TagUpdateManyArgs>(args: SelectSubset<T, TagUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Tags and returns the data updated in the database.
+     * @param {TagUpdateManyAndReturnArgs} args - Arguments to update many Tags.
+     * @example
+     * // Update many Tags
+     * const tag = await prisma.tag.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Tags and only return the `id`
+     * const tagWithIdOnly = await prisma.tag.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends TagUpdateManyAndReturnArgs>(args: SelectSubset<T, TagUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TagPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Tag.
+     * @param {TagUpsertArgs} args - Arguments to update or create a Tag.
+     * @example
+     * // Update or create a Tag
+     * const tag = await prisma.tag.upsert({
+     *   create: {
+     *     // ... data to create a Tag
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Tag we want to update
+     *   }
+     * })
+     */
+    upsert<T extends TagUpsertArgs>(args: SelectSubset<T, TagUpsertArgs<ExtArgs>>): Prisma__TagClient<$Result.GetResult<Prisma.$TagPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Tags.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TagCountArgs} args - Arguments to filter Tags to count.
+     * @example
+     * // Count the number of Tags
+     * const count = await prisma.tag.count({
+     *   where: {
+     *     // ... the filter for the Tags we want to count
+     *   }
+     * })
+    **/
+    count<T extends TagCountArgs>(
+      args?: Subset<T, TagCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], TagCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Tag.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TagAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends TagAggregateArgs>(args: Subset<T, TagAggregateArgs>): Prisma.PrismaPromise<GetTagAggregateType<T>>
+
+    /**
+     * Group by Tag.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TagGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends TagGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: TagGroupByArgs['orderBy'] }
+        : { orderBy?: TagGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, TagGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetTagGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Tag model
+   */
+  readonly fields: TagFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Tag.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__TagClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    taskTags<T extends Tag$taskTagsArgs<ExtArgs> = {}>(args?: Subset<T, Tag$taskTagsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TaskTagPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Tag model
+   */
+  interface TagFieldRefs {
+    readonly id: FieldRef<"Tag", 'Int'>
+    readonly name: FieldRef<"Tag", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Tag findUnique
+   */
+  export type TagFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tag
+     */
+    select?: TagSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Tag
+     */
+    omit?: TagOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TagInclude<ExtArgs> | null
+    /**
+     * Filter, which Tag to fetch.
+     */
+    where: TagWhereUniqueInput
+  }
+
+  /**
+   * Tag findUniqueOrThrow
+   */
+  export type TagFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tag
+     */
+    select?: TagSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Tag
+     */
+    omit?: TagOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TagInclude<ExtArgs> | null
+    /**
+     * Filter, which Tag to fetch.
+     */
+    where: TagWhereUniqueInput
+  }
+
+  /**
+   * Tag findFirst
+   */
+  export type TagFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tag
+     */
+    select?: TagSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Tag
+     */
+    omit?: TagOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TagInclude<ExtArgs> | null
+    /**
+     * Filter, which Tag to fetch.
+     */
+    where?: TagWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Tags to fetch.
+     */
+    orderBy?: TagOrderByWithRelationInput | TagOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Tags.
+     */
+    cursor?: TagWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Tags from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Tags.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Tags.
+     */
+    distinct?: TagScalarFieldEnum | TagScalarFieldEnum[]
+  }
+
+  /**
+   * Tag findFirstOrThrow
+   */
+  export type TagFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tag
+     */
+    select?: TagSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Tag
+     */
+    omit?: TagOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TagInclude<ExtArgs> | null
+    /**
+     * Filter, which Tag to fetch.
+     */
+    where?: TagWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Tags to fetch.
+     */
+    orderBy?: TagOrderByWithRelationInput | TagOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Tags.
+     */
+    cursor?: TagWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Tags from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Tags.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Tags.
+     */
+    distinct?: TagScalarFieldEnum | TagScalarFieldEnum[]
+  }
+
+  /**
+   * Tag findMany
+   */
+  export type TagFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tag
+     */
+    select?: TagSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Tag
+     */
+    omit?: TagOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TagInclude<ExtArgs> | null
+    /**
+     * Filter, which Tags to fetch.
+     */
+    where?: TagWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Tags to fetch.
+     */
+    orderBy?: TagOrderByWithRelationInput | TagOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Tags.
+     */
+    cursor?: TagWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Tags from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Tags.
+     */
+    skip?: number
+    distinct?: TagScalarFieldEnum | TagScalarFieldEnum[]
+  }
+
+  /**
+   * Tag create
+   */
+  export type TagCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tag
+     */
+    select?: TagSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Tag
+     */
+    omit?: TagOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TagInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Tag.
+     */
+    data: XOR<TagCreateInput, TagUncheckedCreateInput>
+  }
+
+  /**
+   * Tag createMany
+   */
+  export type TagCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Tags.
+     */
+    data: TagCreateManyInput | TagCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Tag createManyAndReturn
+   */
+  export type TagCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tag
+     */
+    select?: TagSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Tag
+     */
+    omit?: TagOmit<ExtArgs> | null
+    /**
+     * The data used to create many Tags.
+     */
+    data: TagCreateManyInput | TagCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Tag update
+   */
+  export type TagUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tag
+     */
+    select?: TagSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Tag
+     */
+    omit?: TagOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TagInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Tag.
+     */
+    data: XOR<TagUpdateInput, TagUncheckedUpdateInput>
+    /**
+     * Choose, which Tag to update.
+     */
+    where: TagWhereUniqueInput
+  }
+
+  /**
+   * Tag updateMany
+   */
+  export type TagUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Tags.
+     */
+    data: XOR<TagUpdateManyMutationInput, TagUncheckedUpdateManyInput>
+    /**
+     * Filter which Tags to update
+     */
+    where?: TagWhereInput
+    /**
+     * Limit how many Tags to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Tag updateManyAndReturn
+   */
+  export type TagUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tag
+     */
+    select?: TagSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Tag
+     */
+    omit?: TagOmit<ExtArgs> | null
+    /**
+     * The data used to update Tags.
+     */
+    data: XOR<TagUpdateManyMutationInput, TagUncheckedUpdateManyInput>
+    /**
+     * Filter which Tags to update
+     */
+    where?: TagWhereInput
+    /**
+     * Limit how many Tags to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Tag upsert
+   */
+  export type TagUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tag
+     */
+    select?: TagSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Tag
+     */
+    omit?: TagOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TagInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Tag to update in case it exists.
+     */
+    where: TagWhereUniqueInput
+    /**
+     * In case the Tag found by the `where` argument doesn't exist, create a new Tag with this data.
+     */
+    create: XOR<TagCreateInput, TagUncheckedCreateInput>
+    /**
+     * In case the Tag was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<TagUpdateInput, TagUncheckedUpdateInput>
+  }
+
+  /**
+   * Tag delete
+   */
+  export type TagDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tag
+     */
+    select?: TagSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Tag
+     */
+    omit?: TagOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TagInclude<ExtArgs> | null
+    /**
+     * Filter which Tag to delete.
+     */
+    where: TagWhereUniqueInput
+  }
+
+  /**
+   * Tag deleteMany
+   */
+  export type TagDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Tags to delete
+     */
+    where?: TagWhereInput
+    /**
+     * Limit how many Tags to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Tag.taskTags
+   */
+  export type Tag$taskTagsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TaskTag
+     */
+    select?: TaskTagSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TaskTag
+     */
+    omit?: TaskTagOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TaskTagInclude<ExtArgs> | null
+    where?: TaskTagWhereInput
+    orderBy?: TaskTagOrderByWithRelationInput | TaskTagOrderByWithRelationInput[]
+    cursor?: TaskTagWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: TaskTagScalarFieldEnum | TaskTagScalarFieldEnum[]
+  }
+
+  /**
+   * Tag without action
+   */
+  export type TagDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tag
+     */
+    select?: TagSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Tag
+     */
+    omit?: TagOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TagInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model TaskTag
+   */
+
+  export type AggregateTaskTag = {
+    _count: TaskTagCountAggregateOutputType | null
+    _avg: TaskTagAvgAggregateOutputType | null
+    _sum: TaskTagSumAggregateOutputType | null
+    _min: TaskTagMinAggregateOutputType | null
+    _max: TaskTagMaxAggregateOutputType | null
+  }
+
+  export type TaskTagAvgAggregateOutputType = {
+    id: number | null
+    taskId: number | null
+    tagId: number | null
+  }
+
+  export type TaskTagSumAggregateOutputType = {
+    id: number | null
+    taskId: number | null
+    tagId: number | null
+  }
+
+  export type TaskTagMinAggregateOutputType = {
+    id: number | null
+    taskId: number | null
+    tagId: number | null
+  }
+
+  export type TaskTagMaxAggregateOutputType = {
+    id: number | null
+    taskId: number | null
+    tagId: number | null
+  }
+
+  export type TaskTagCountAggregateOutputType = {
+    id: number
+    taskId: number
+    tagId: number
+    _all: number
+  }
+
+
+  export type TaskTagAvgAggregateInputType = {
+    id?: true
+    taskId?: true
+    tagId?: true
+  }
+
+  export type TaskTagSumAggregateInputType = {
+    id?: true
+    taskId?: true
+    tagId?: true
+  }
+
+  export type TaskTagMinAggregateInputType = {
+    id?: true
+    taskId?: true
+    tagId?: true
+  }
+
+  export type TaskTagMaxAggregateInputType = {
+    id?: true
+    taskId?: true
+    tagId?: true
+  }
+
+  export type TaskTagCountAggregateInputType = {
+    id?: true
+    taskId?: true
+    tagId?: true
+    _all?: true
+  }
+
+  export type TaskTagAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which TaskTag to aggregate.
+     */
+    where?: TaskTagWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TaskTags to fetch.
+     */
+    orderBy?: TaskTagOrderByWithRelationInput | TaskTagOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: TaskTagWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TaskTags from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TaskTags.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned TaskTags
+    **/
+    _count?: true | TaskTagCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: TaskTagAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: TaskTagSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: TaskTagMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: TaskTagMaxAggregateInputType
+  }
+
+  export type GetTaskTagAggregateType<T extends TaskTagAggregateArgs> = {
+        [P in keyof T & keyof AggregateTaskTag]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateTaskTag[P]>
+      : GetScalarType<T[P], AggregateTaskTag[P]>
+  }
+
+
+
+
+  export type TaskTagGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TaskTagWhereInput
+    orderBy?: TaskTagOrderByWithAggregationInput | TaskTagOrderByWithAggregationInput[]
+    by: TaskTagScalarFieldEnum[] | TaskTagScalarFieldEnum
+    having?: TaskTagScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: TaskTagCountAggregateInputType | true
+    _avg?: TaskTagAvgAggregateInputType
+    _sum?: TaskTagSumAggregateInputType
+    _min?: TaskTagMinAggregateInputType
+    _max?: TaskTagMaxAggregateInputType
+  }
+
+  export type TaskTagGroupByOutputType = {
+    id: number
+    taskId: number
+    tagId: number
+    _count: TaskTagCountAggregateOutputType | null
+    _avg: TaskTagAvgAggregateOutputType | null
+    _sum: TaskTagSumAggregateOutputType | null
+    _min: TaskTagMinAggregateOutputType | null
+    _max: TaskTagMaxAggregateOutputType | null
+  }
+
+  type GetTaskTagGroupByPayload<T extends TaskTagGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<TaskTagGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof TaskTagGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], TaskTagGroupByOutputType[P]>
+            : GetScalarType<T[P], TaskTagGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type TaskTagSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    taskId?: boolean
+    tagId?: boolean
+    task?: boolean | TaskDefaultArgs<ExtArgs>
+    tag?: boolean | TagDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["taskTag"]>
+
+  export type TaskTagSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    taskId?: boolean
+    tagId?: boolean
+    task?: boolean | TaskDefaultArgs<ExtArgs>
+    tag?: boolean | TagDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["taskTag"]>
+
+  export type TaskTagSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    taskId?: boolean
+    tagId?: boolean
+    task?: boolean | TaskDefaultArgs<ExtArgs>
+    tag?: boolean | TagDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["taskTag"]>
+
+  export type TaskTagSelectScalar = {
+    id?: boolean
+    taskId?: boolean
+    tagId?: boolean
+  }
+
+  export type TaskTagOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "taskId" | "tagId", ExtArgs["result"]["taskTag"]>
+  export type TaskTagInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    task?: boolean | TaskDefaultArgs<ExtArgs>
+    tag?: boolean | TagDefaultArgs<ExtArgs>
+  }
+  export type TaskTagIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    task?: boolean | TaskDefaultArgs<ExtArgs>
+    tag?: boolean | TagDefaultArgs<ExtArgs>
+  }
+  export type TaskTagIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    task?: boolean | TaskDefaultArgs<ExtArgs>
+    tag?: boolean | TagDefaultArgs<ExtArgs>
+  }
+
+  export type $TaskTagPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "TaskTag"
+    objects: {
+      task: Prisma.$TaskPayload<ExtArgs>
+      tag: Prisma.$TagPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      taskId: number
+      tagId: number
+    }, ExtArgs["result"]["taskTag"]>
+    composites: {}
+  }
+
+  type TaskTagGetPayload<S extends boolean | null | undefined | TaskTagDefaultArgs> = $Result.GetResult<Prisma.$TaskTagPayload, S>
+
+  type TaskTagCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<TaskTagFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: TaskTagCountAggregateInputType | true
+    }
+
+  export interface TaskTagDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['TaskTag'], meta: { name: 'TaskTag' } }
+    /**
+     * Find zero or one TaskTag that matches the filter.
+     * @param {TaskTagFindUniqueArgs} args - Arguments to find a TaskTag
+     * @example
+     * // Get one TaskTag
+     * const taskTag = await prisma.taskTag.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends TaskTagFindUniqueArgs>(args: SelectSubset<T, TaskTagFindUniqueArgs<ExtArgs>>): Prisma__TaskTagClient<$Result.GetResult<Prisma.$TaskTagPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one TaskTag that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {TaskTagFindUniqueOrThrowArgs} args - Arguments to find a TaskTag
+     * @example
+     * // Get one TaskTag
+     * const taskTag = await prisma.taskTag.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends TaskTagFindUniqueOrThrowArgs>(args: SelectSubset<T, TaskTagFindUniqueOrThrowArgs<ExtArgs>>): Prisma__TaskTagClient<$Result.GetResult<Prisma.$TaskTagPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first TaskTag that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TaskTagFindFirstArgs} args - Arguments to find a TaskTag
+     * @example
+     * // Get one TaskTag
+     * const taskTag = await prisma.taskTag.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends TaskTagFindFirstArgs>(args?: SelectSubset<T, TaskTagFindFirstArgs<ExtArgs>>): Prisma__TaskTagClient<$Result.GetResult<Prisma.$TaskTagPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first TaskTag that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TaskTagFindFirstOrThrowArgs} args - Arguments to find a TaskTag
+     * @example
+     * // Get one TaskTag
+     * const taskTag = await prisma.taskTag.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends TaskTagFindFirstOrThrowArgs>(args?: SelectSubset<T, TaskTagFindFirstOrThrowArgs<ExtArgs>>): Prisma__TaskTagClient<$Result.GetResult<Prisma.$TaskTagPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more TaskTags that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TaskTagFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all TaskTags
+     * const taskTags = await prisma.taskTag.findMany()
+     * 
+     * // Get first 10 TaskTags
+     * const taskTags = await prisma.taskTag.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const taskTagWithIdOnly = await prisma.taskTag.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends TaskTagFindManyArgs>(args?: SelectSubset<T, TaskTagFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TaskTagPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a TaskTag.
+     * @param {TaskTagCreateArgs} args - Arguments to create a TaskTag.
+     * @example
+     * // Create one TaskTag
+     * const TaskTag = await prisma.taskTag.create({
+     *   data: {
+     *     // ... data to create a TaskTag
+     *   }
+     * })
+     * 
+     */
+    create<T extends TaskTagCreateArgs>(args: SelectSubset<T, TaskTagCreateArgs<ExtArgs>>): Prisma__TaskTagClient<$Result.GetResult<Prisma.$TaskTagPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many TaskTags.
+     * @param {TaskTagCreateManyArgs} args - Arguments to create many TaskTags.
+     * @example
+     * // Create many TaskTags
+     * const taskTag = await prisma.taskTag.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends TaskTagCreateManyArgs>(args?: SelectSubset<T, TaskTagCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many TaskTags and returns the data saved in the database.
+     * @param {TaskTagCreateManyAndReturnArgs} args - Arguments to create many TaskTags.
+     * @example
+     * // Create many TaskTags
+     * const taskTag = await prisma.taskTag.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many TaskTags and only return the `id`
+     * const taskTagWithIdOnly = await prisma.taskTag.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends TaskTagCreateManyAndReturnArgs>(args?: SelectSubset<T, TaskTagCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TaskTagPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a TaskTag.
+     * @param {TaskTagDeleteArgs} args - Arguments to delete one TaskTag.
+     * @example
+     * // Delete one TaskTag
+     * const TaskTag = await prisma.taskTag.delete({
+     *   where: {
+     *     // ... filter to delete one TaskTag
+     *   }
+     * })
+     * 
+     */
+    delete<T extends TaskTagDeleteArgs>(args: SelectSubset<T, TaskTagDeleteArgs<ExtArgs>>): Prisma__TaskTagClient<$Result.GetResult<Prisma.$TaskTagPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one TaskTag.
+     * @param {TaskTagUpdateArgs} args - Arguments to update one TaskTag.
+     * @example
+     * // Update one TaskTag
+     * const taskTag = await prisma.taskTag.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends TaskTagUpdateArgs>(args: SelectSubset<T, TaskTagUpdateArgs<ExtArgs>>): Prisma__TaskTagClient<$Result.GetResult<Prisma.$TaskTagPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more TaskTags.
+     * @param {TaskTagDeleteManyArgs} args - Arguments to filter TaskTags to delete.
+     * @example
+     * // Delete a few TaskTags
+     * const { count } = await prisma.taskTag.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends TaskTagDeleteManyArgs>(args?: SelectSubset<T, TaskTagDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more TaskTags.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TaskTagUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many TaskTags
+     * const taskTag = await prisma.taskTag.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends TaskTagUpdateManyArgs>(args: SelectSubset<T, TaskTagUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more TaskTags and returns the data updated in the database.
+     * @param {TaskTagUpdateManyAndReturnArgs} args - Arguments to update many TaskTags.
+     * @example
+     * // Update many TaskTags
+     * const taskTag = await prisma.taskTag.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more TaskTags and only return the `id`
+     * const taskTagWithIdOnly = await prisma.taskTag.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends TaskTagUpdateManyAndReturnArgs>(args: SelectSubset<T, TaskTagUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TaskTagPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one TaskTag.
+     * @param {TaskTagUpsertArgs} args - Arguments to update or create a TaskTag.
+     * @example
+     * // Update or create a TaskTag
+     * const taskTag = await prisma.taskTag.upsert({
+     *   create: {
+     *     // ... data to create a TaskTag
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the TaskTag we want to update
+     *   }
+     * })
+     */
+    upsert<T extends TaskTagUpsertArgs>(args: SelectSubset<T, TaskTagUpsertArgs<ExtArgs>>): Prisma__TaskTagClient<$Result.GetResult<Prisma.$TaskTagPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of TaskTags.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TaskTagCountArgs} args - Arguments to filter TaskTags to count.
+     * @example
+     * // Count the number of TaskTags
+     * const count = await prisma.taskTag.count({
+     *   where: {
+     *     // ... the filter for the TaskTags we want to count
+     *   }
+     * })
+    **/
+    count<T extends TaskTagCountArgs>(
+      args?: Subset<T, TaskTagCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], TaskTagCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a TaskTag.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TaskTagAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends TaskTagAggregateArgs>(args: Subset<T, TaskTagAggregateArgs>): Prisma.PrismaPromise<GetTaskTagAggregateType<T>>
+
+    /**
+     * Group by TaskTag.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TaskTagGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends TaskTagGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: TaskTagGroupByArgs['orderBy'] }
+        : { orderBy?: TaskTagGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, TaskTagGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetTaskTagGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the TaskTag model
+   */
+  readonly fields: TaskTagFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for TaskTag.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__TaskTagClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    task<T extends TaskDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TaskDefaultArgs<ExtArgs>>): Prisma__TaskClient<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    tag<T extends TagDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TagDefaultArgs<ExtArgs>>): Prisma__TagClient<$Result.GetResult<Prisma.$TagPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the TaskTag model
+   */
+  interface TaskTagFieldRefs {
+    readonly id: FieldRef<"TaskTag", 'Int'>
+    readonly taskId: FieldRef<"TaskTag", 'Int'>
+    readonly tagId: FieldRef<"TaskTag", 'Int'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * TaskTag findUnique
+   */
+  export type TaskTagFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TaskTag
+     */
+    select?: TaskTagSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TaskTag
+     */
+    omit?: TaskTagOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TaskTagInclude<ExtArgs> | null
+    /**
+     * Filter, which TaskTag to fetch.
+     */
+    where: TaskTagWhereUniqueInput
+  }
+
+  /**
+   * TaskTag findUniqueOrThrow
+   */
+  export type TaskTagFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TaskTag
+     */
+    select?: TaskTagSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TaskTag
+     */
+    omit?: TaskTagOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TaskTagInclude<ExtArgs> | null
+    /**
+     * Filter, which TaskTag to fetch.
+     */
+    where: TaskTagWhereUniqueInput
+  }
+
+  /**
+   * TaskTag findFirst
+   */
+  export type TaskTagFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TaskTag
+     */
+    select?: TaskTagSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TaskTag
+     */
+    omit?: TaskTagOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TaskTagInclude<ExtArgs> | null
+    /**
+     * Filter, which TaskTag to fetch.
+     */
+    where?: TaskTagWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TaskTags to fetch.
+     */
+    orderBy?: TaskTagOrderByWithRelationInput | TaskTagOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for TaskTags.
+     */
+    cursor?: TaskTagWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TaskTags from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TaskTags.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of TaskTags.
+     */
+    distinct?: TaskTagScalarFieldEnum | TaskTagScalarFieldEnum[]
+  }
+
+  /**
+   * TaskTag findFirstOrThrow
+   */
+  export type TaskTagFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TaskTag
+     */
+    select?: TaskTagSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TaskTag
+     */
+    omit?: TaskTagOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TaskTagInclude<ExtArgs> | null
+    /**
+     * Filter, which TaskTag to fetch.
+     */
+    where?: TaskTagWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TaskTags to fetch.
+     */
+    orderBy?: TaskTagOrderByWithRelationInput | TaskTagOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for TaskTags.
+     */
+    cursor?: TaskTagWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TaskTags from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TaskTags.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of TaskTags.
+     */
+    distinct?: TaskTagScalarFieldEnum | TaskTagScalarFieldEnum[]
+  }
+
+  /**
+   * TaskTag findMany
+   */
+  export type TaskTagFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TaskTag
+     */
+    select?: TaskTagSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TaskTag
+     */
+    omit?: TaskTagOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TaskTagInclude<ExtArgs> | null
+    /**
+     * Filter, which TaskTags to fetch.
+     */
+    where?: TaskTagWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TaskTags to fetch.
+     */
+    orderBy?: TaskTagOrderByWithRelationInput | TaskTagOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing TaskTags.
+     */
+    cursor?: TaskTagWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TaskTags from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TaskTags.
+     */
+    skip?: number
+    distinct?: TaskTagScalarFieldEnum | TaskTagScalarFieldEnum[]
+  }
+
+  /**
+   * TaskTag create
+   */
+  export type TaskTagCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TaskTag
+     */
+    select?: TaskTagSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TaskTag
+     */
+    omit?: TaskTagOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TaskTagInclude<ExtArgs> | null
+    /**
+     * The data needed to create a TaskTag.
+     */
+    data: XOR<TaskTagCreateInput, TaskTagUncheckedCreateInput>
+  }
+
+  /**
+   * TaskTag createMany
+   */
+  export type TaskTagCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many TaskTags.
+     */
+    data: TaskTagCreateManyInput | TaskTagCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * TaskTag createManyAndReturn
+   */
+  export type TaskTagCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TaskTag
+     */
+    select?: TaskTagSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the TaskTag
+     */
+    omit?: TaskTagOmit<ExtArgs> | null
+    /**
+     * The data used to create many TaskTags.
+     */
+    data: TaskTagCreateManyInput | TaskTagCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TaskTagIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * TaskTag update
+   */
+  export type TaskTagUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TaskTag
+     */
+    select?: TaskTagSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TaskTag
+     */
+    omit?: TaskTagOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TaskTagInclude<ExtArgs> | null
+    /**
+     * The data needed to update a TaskTag.
+     */
+    data: XOR<TaskTagUpdateInput, TaskTagUncheckedUpdateInput>
+    /**
+     * Choose, which TaskTag to update.
+     */
+    where: TaskTagWhereUniqueInput
+  }
+
+  /**
+   * TaskTag updateMany
+   */
+  export type TaskTagUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update TaskTags.
+     */
+    data: XOR<TaskTagUpdateManyMutationInput, TaskTagUncheckedUpdateManyInput>
+    /**
+     * Filter which TaskTags to update
+     */
+    where?: TaskTagWhereInput
+    /**
+     * Limit how many TaskTags to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * TaskTag updateManyAndReturn
+   */
+  export type TaskTagUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TaskTag
+     */
+    select?: TaskTagSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the TaskTag
+     */
+    omit?: TaskTagOmit<ExtArgs> | null
+    /**
+     * The data used to update TaskTags.
+     */
+    data: XOR<TaskTagUpdateManyMutationInput, TaskTagUncheckedUpdateManyInput>
+    /**
+     * Filter which TaskTags to update
+     */
+    where?: TaskTagWhereInput
+    /**
+     * Limit how many TaskTags to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TaskTagIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * TaskTag upsert
+   */
+  export type TaskTagUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TaskTag
+     */
+    select?: TaskTagSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TaskTag
+     */
+    omit?: TaskTagOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TaskTagInclude<ExtArgs> | null
+    /**
+     * The filter to search for the TaskTag to update in case it exists.
+     */
+    where: TaskTagWhereUniqueInput
+    /**
+     * In case the TaskTag found by the `where` argument doesn't exist, create a new TaskTag with this data.
+     */
+    create: XOR<TaskTagCreateInput, TaskTagUncheckedCreateInput>
+    /**
+     * In case the TaskTag was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<TaskTagUpdateInput, TaskTagUncheckedUpdateInput>
+  }
+
+  /**
+   * TaskTag delete
+   */
+  export type TaskTagDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TaskTag
+     */
+    select?: TaskTagSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TaskTag
+     */
+    omit?: TaskTagOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TaskTagInclude<ExtArgs> | null
+    /**
+     * Filter which TaskTag to delete.
+     */
+    where: TaskTagWhereUniqueInput
+  }
+
+  /**
+   * TaskTag deleteMany
+   */
+  export type TaskTagDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which TaskTags to delete
+     */
+    where?: TaskTagWhereInput
+    /**
+     * Limit how many TaskTags to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * TaskTag without action
+   */
+  export type TaskTagDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TaskTag
+     */
+    select?: TaskTagSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TaskTag
+     */
+    omit?: TaskTagOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TaskTagInclude<ExtArgs> | null
   }
 
 
@@ -8402,9 +10760,7 @@ export namespace Prisma {
   export const ProjectScalarFieldEnum: {
     id: 'id',
     name: 'name',
-    description: 'description',
-    startDate: 'startDate',
-    endDate: 'endDate'
+    description: 'description'
   };
 
   export type ProjectScalarFieldEnum = (typeof ProjectScalarFieldEnum)[keyof typeof ProjectScalarFieldEnum]
@@ -8416,7 +10772,6 @@ export namespace Prisma {
     description: 'description',
     status: 'status',
     priority: 'priority',
-    tags: 'tags',
     startDate: 'startDate',
     dueDate: 'dueDate',
     points: 'points',
@@ -8426,6 +10781,23 @@ export namespace Prisma {
   };
 
   export type TaskScalarFieldEnum = (typeof TaskScalarFieldEnum)[keyof typeof TaskScalarFieldEnum]
+
+
+  export const TagScalarFieldEnum: {
+    id: 'id',
+    name: 'name'
+  };
+
+  export type TagScalarFieldEnum = (typeof TagScalarFieldEnum)[keyof typeof TagScalarFieldEnum]
+
+
+  export const TaskTagScalarFieldEnum: {
+    id: 'id',
+    taskId: 'taskId',
+    tagId: 'tagId'
+  };
+
+  export type TaskTagScalarFieldEnum = (typeof TaskTagScalarFieldEnum)[keyof typeof TaskTagScalarFieldEnum]
 
 
   export const TaskAssignmentScalarFieldEnum: {
@@ -8617,8 +10989,6 @@ export namespace Prisma {
     id?: IntFilter<"Project"> | number
     name?: StringFilter<"Project"> | string
     description?: StringNullableFilter<"Project"> | string | null
-    startDate?: DateTimeNullableFilter<"Project"> | Date | string | null
-    endDate?: DateTimeNullableFilter<"Project"> | Date | string | null
     tasks?: TaskListRelationFilter
   }
 
@@ -8626,8 +10996,6 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
-    startDate?: SortOrderInput | SortOrder
-    endDate?: SortOrderInput | SortOrder
     tasks?: TaskOrderByRelationAggregateInput
   }
 
@@ -8638,8 +11006,6 @@ export namespace Prisma {
     NOT?: ProjectWhereInput | ProjectWhereInput[]
     name?: StringFilter<"Project"> | string
     description?: StringNullableFilter<"Project"> | string | null
-    startDate?: DateTimeNullableFilter<"Project"> | Date | string | null
-    endDate?: DateTimeNullableFilter<"Project"> | Date | string | null
     tasks?: TaskListRelationFilter
   }, "id">
 
@@ -8647,8 +11013,6 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
-    startDate?: SortOrderInput | SortOrder
-    endDate?: SortOrderInput | SortOrder
     _count?: ProjectCountOrderByAggregateInput
     _avg?: ProjectAvgOrderByAggregateInput
     _max?: ProjectMaxOrderByAggregateInput
@@ -8663,8 +11027,6 @@ export namespace Prisma {
     id?: IntWithAggregatesFilter<"Project"> | number
     name?: StringWithAggregatesFilter<"Project"> | string
     description?: StringNullableWithAggregatesFilter<"Project"> | string | null
-    startDate?: DateTimeNullableWithAggregatesFilter<"Project"> | Date | string | null
-    endDate?: DateTimeNullableWithAggregatesFilter<"Project"> | Date | string | null
   }
 
   export type TaskWhereInput = {
@@ -8676,7 +11038,6 @@ export namespace Prisma {
     description?: StringNullableFilter<"Task"> | string | null
     status?: StringNullableFilter<"Task"> | string | null
     priority?: StringNullableFilter<"Task"> | string | null
-    tags?: StringNullableFilter<"Task"> | string | null
     startDate?: DateTimeNullableFilter<"Task"> | Date | string | null
     dueDate?: DateTimeNullableFilter<"Task"> | Date | string | null
     points?: IntNullableFilter<"Task"> | number | null
@@ -8689,6 +11050,7 @@ export namespace Prisma {
     taskAssignments?: TaskAssignmentListRelationFilter
     attachments?: AttachmentListRelationFilter
     comments?: CommentListRelationFilter
+    taskTags?: TaskTagListRelationFilter
   }
 
   export type TaskOrderByWithRelationInput = {
@@ -8697,7 +11059,6 @@ export namespace Prisma {
     description?: SortOrderInput | SortOrder
     status?: SortOrderInput | SortOrder
     priority?: SortOrderInput | SortOrder
-    tags?: SortOrderInput | SortOrder
     startDate?: SortOrderInput | SortOrder
     dueDate?: SortOrderInput | SortOrder
     points?: SortOrderInput | SortOrder
@@ -8710,6 +11071,7 @@ export namespace Prisma {
     taskAssignments?: TaskAssignmentOrderByRelationAggregateInput
     attachments?: AttachmentOrderByRelationAggregateInput
     comments?: CommentOrderByRelationAggregateInput
+    taskTags?: TaskTagOrderByRelationAggregateInput
   }
 
   export type TaskWhereUniqueInput = Prisma.AtLeast<{
@@ -8721,7 +11083,6 @@ export namespace Prisma {
     description?: StringNullableFilter<"Task"> | string | null
     status?: StringNullableFilter<"Task"> | string | null
     priority?: StringNullableFilter<"Task"> | string | null
-    tags?: StringNullableFilter<"Task"> | string | null
     startDate?: DateTimeNullableFilter<"Task"> | Date | string | null
     dueDate?: DateTimeNullableFilter<"Task"> | Date | string | null
     points?: IntNullableFilter<"Task"> | number | null
@@ -8734,6 +11095,7 @@ export namespace Prisma {
     taskAssignments?: TaskAssignmentListRelationFilter
     attachments?: AttachmentListRelationFilter
     comments?: CommentListRelationFilter
+    taskTags?: TaskTagListRelationFilter
   }, "id">
 
   export type TaskOrderByWithAggregationInput = {
@@ -8742,7 +11104,6 @@ export namespace Prisma {
     description?: SortOrderInput | SortOrder
     status?: SortOrderInput | SortOrder
     priority?: SortOrderInput | SortOrder
-    tags?: SortOrderInput | SortOrder
     startDate?: SortOrderInput | SortOrder
     dueDate?: SortOrderInput | SortOrder
     points?: SortOrderInput | SortOrder
@@ -8765,13 +11126,105 @@ export namespace Prisma {
     description?: StringNullableWithAggregatesFilter<"Task"> | string | null
     status?: StringNullableWithAggregatesFilter<"Task"> | string | null
     priority?: StringNullableWithAggregatesFilter<"Task"> | string | null
-    tags?: StringNullableWithAggregatesFilter<"Task"> | string | null
     startDate?: DateTimeNullableWithAggregatesFilter<"Task"> | Date | string | null
     dueDate?: DateTimeNullableWithAggregatesFilter<"Task"> | Date | string | null
     points?: IntNullableWithAggregatesFilter<"Task"> | number | null
     projectId?: IntWithAggregatesFilter<"Task"> | number
     authorUserId?: IntWithAggregatesFilter<"Task"> | number
     assignedUserId?: IntNullableWithAggregatesFilter<"Task"> | number | null
+  }
+
+  export type TagWhereInput = {
+    AND?: TagWhereInput | TagWhereInput[]
+    OR?: TagWhereInput[]
+    NOT?: TagWhereInput | TagWhereInput[]
+    id?: IntFilter<"Tag"> | number
+    name?: StringFilter<"Tag"> | string
+    taskTags?: TaskTagListRelationFilter
+  }
+
+  export type TagOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    taskTags?: TaskTagOrderByRelationAggregateInput
+  }
+
+  export type TagWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    name?: string
+    AND?: TagWhereInput | TagWhereInput[]
+    OR?: TagWhereInput[]
+    NOT?: TagWhereInput | TagWhereInput[]
+    taskTags?: TaskTagListRelationFilter
+  }, "id" | "name">
+
+  export type TagOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    _count?: TagCountOrderByAggregateInput
+    _avg?: TagAvgOrderByAggregateInput
+    _max?: TagMaxOrderByAggregateInput
+    _min?: TagMinOrderByAggregateInput
+    _sum?: TagSumOrderByAggregateInput
+  }
+
+  export type TagScalarWhereWithAggregatesInput = {
+    AND?: TagScalarWhereWithAggregatesInput | TagScalarWhereWithAggregatesInput[]
+    OR?: TagScalarWhereWithAggregatesInput[]
+    NOT?: TagScalarWhereWithAggregatesInput | TagScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"Tag"> | number
+    name?: StringWithAggregatesFilter<"Tag"> | string
+  }
+
+  export type TaskTagWhereInput = {
+    AND?: TaskTagWhereInput | TaskTagWhereInput[]
+    OR?: TaskTagWhereInput[]
+    NOT?: TaskTagWhereInput | TaskTagWhereInput[]
+    id?: IntFilter<"TaskTag"> | number
+    taskId?: IntFilter<"TaskTag"> | number
+    tagId?: IntFilter<"TaskTag"> | number
+    task?: XOR<TaskScalarRelationFilter, TaskWhereInput>
+    tag?: XOR<TagScalarRelationFilter, TagWhereInput>
+  }
+
+  export type TaskTagOrderByWithRelationInput = {
+    id?: SortOrder
+    taskId?: SortOrder
+    tagId?: SortOrder
+    task?: TaskOrderByWithRelationInput
+    tag?: TagOrderByWithRelationInput
+  }
+
+  export type TaskTagWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    taskId_tagId?: TaskTagTaskIdTagIdCompoundUniqueInput
+    AND?: TaskTagWhereInput | TaskTagWhereInput[]
+    OR?: TaskTagWhereInput[]
+    NOT?: TaskTagWhereInput | TaskTagWhereInput[]
+    taskId?: IntFilter<"TaskTag"> | number
+    tagId?: IntFilter<"TaskTag"> | number
+    task?: XOR<TaskScalarRelationFilter, TaskWhereInput>
+    tag?: XOR<TagScalarRelationFilter, TagWhereInput>
+  }, "id" | "taskId_tagId">
+
+  export type TaskTagOrderByWithAggregationInput = {
+    id?: SortOrder
+    taskId?: SortOrder
+    tagId?: SortOrder
+    _count?: TaskTagCountOrderByAggregateInput
+    _avg?: TaskTagAvgOrderByAggregateInput
+    _max?: TaskTagMaxOrderByAggregateInput
+    _min?: TaskTagMinOrderByAggregateInput
+    _sum?: TaskTagSumOrderByAggregateInput
+  }
+
+  export type TaskTagScalarWhereWithAggregatesInput = {
+    AND?: TaskTagScalarWhereWithAggregatesInput | TaskTagScalarWhereWithAggregatesInput[]
+    OR?: TaskTagScalarWhereWithAggregatesInput[]
+    NOT?: TaskTagScalarWhereWithAggregatesInput | TaskTagScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"TaskTag"> | number
+    taskId?: IntWithAggregatesFilter<"TaskTag"> | number
+    tagId?: IntWithAggregatesFilter<"TaskTag"> | number
   }
 
   export type TaskAssignmentWhereInput = {
@@ -9008,8 +11461,6 @@ export namespace Prisma {
   export type ProjectCreateInput = {
     name: string
     description?: string | null
-    startDate?: Date | string | null
-    endDate?: Date | string | null
     tasks?: TaskCreateNestedManyWithoutProjectInput
   }
 
@@ -9017,16 +11468,12 @@ export namespace Prisma {
     id?: number
     name: string
     description?: string | null
-    startDate?: Date | string | null
-    endDate?: Date | string | null
     tasks?: TaskUncheckedCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectUpdateInput = {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     tasks?: TaskUpdateManyWithoutProjectNestedInput
   }
 
@@ -9034,8 +11481,6 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     tasks?: TaskUncheckedUpdateManyWithoutProjectNestedInput
   }
 
@@ -9043,23 +11488,17 @@ export namespace Prisma {
     id?: number
     name: string
     description?: string | null
-    startDate?: Date | string | null
-    endDate?: Date | string | null
   }
 
   export type ProjectUpdateManyMutationInput = {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type ProjectUncheckedUpdateManyInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type TaskCreateInput = {
@@ -9067,7 +11506,6 @@ export namespace Prisma {
     description?: string | null
     status?: string | null
     priority?: string | null
-    tags?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
     points?: number | null
@@ -9077,6 +11515,7 @@ export namespace Prisma {
     taskAssignments?: TaskAssignmentCreateNestedManyWithoutTaskInput
     attachments?: AttachmentCreateNestedManyWithoutTaskInput
     comments?: CommentCreateNestedManyWithoutTaskInput
+    taskTags?: TaskTagCreateNestedManyWithoutTaskInput
   }
 
   export type TaskUncheckedCreateInput = {
@@ -9085,7 +11524,6 @@ export namespace Prisma {
     description?: string | null
     status?: string | null
     priority?: string | null
-    tags?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
     points?: number | null
@@ -9095,6 +11533,7 @@ export namespace Prisma {
     taskAssignments?: TaskAssignmentUncheckedCreateNestedManyWithoutTaskInput
     attachments?: AttachmentUncheckedCreateNestedManyWithoutTaskInput
     comments?: CommentUncheckedCreateNestedManyWithoutTaskInput
+    taskTags?: TaskTagUncheckedCreateNestedManyWithoutTaskInput
   }
 
   export type TaskUpdateInput = {
@@ -9102,7 +11541,6 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
-    tags?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     points?: NullableIntFieldUpdateOperationsInput | number | null
@@ -9112,6 +11550,7 @@ export namespace Prisma {
     taskAssignments?: TaskAssignmentUpdateManyWithoutTaskNestedInput
     attachments?: AttachmentUpdateManyWithoutTaskNestedInput
     comments?: CommentUpdateManyWithoutTaskNestedInput
+    taskTags?: TaskTagUpdateManyWithoutTaskNestedInput
   }
 
   export type TaskUncheckedUpdateInput = {
@@ -9120,7 +11559,6 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
-    tags?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     points?: NullableIntFieldUpdateOperationsInput | number | null
@@ -9130,6 +11568,7 @@ export namespace Prisma {
     taskAssignments?: TaskAssignmentUncheckedUpdateManyWithoutTaskNestedInput
     attachments?: AttachmentUncheckedUpdateManyWithoutTaskNestedInput
     comments?: CommentUncheckedUpdateManyWithoutTaskNestedInput
+    taskTags?: TaskTagUncheckedUpdateManyWithoutTaskNestedInput
   }
 
   export type TaskCreateManyInput = {
@@ -9138,7 +11577,6 @@ export namespace Prisma {
     description?: string | null
     status?: string | null
     priority?: string | null
-    tags?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
     points?: number | null
@@ -9152,7 +11590,6 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
-    tags?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     points?: NullableIntFieldUpdateOperationsInput | number | null
@@ -9164,13 +11601,86 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
-    tags?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     points?: NullableIntFieldUpdateOperationsInput | number | null
     projectId?: IntFieldUpdateOperationsInput | number
     authorUserId?: IntFieldUpdateOperationsInput | number
     assignedUserId?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type TagCreateInput = {
+    name: string
+    taskTags?: TaskTagCreateNestedManyWithoutTagInput
+  }
+
+  export type TagUncheckedCreateInput = {
+    id?: number
+    name: string
+    taskTags?: TaskTagUncheckedCreateNestedManyWithoutTagInput
+  }
+
+  export type TagUpdateInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    taskTags?: TaskTagUpdateManyWithoutTagNestedInput
+  }
+
+  export type TagUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    taskTags?: TaskTagUncheckedUpdateManyWithoutTagNestedInput
+  }
+
+  export type TagCreateManyInput = {
+    id?: number
+    name: string
+  }
+
+  export type TagUpdateManyMutationInput = {
+    name?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type TagUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type TaskTagCreateInput = {
+    task: TaskCreateNestedOneWithoutTaskTagsInput
+    tag: TagCreateNestedOneWithoutTaskTagsInput
+  }
+
+  export type TaskTagUncheckedCreateInput = {
+    id?: number
+    taskId: number
+    tagId: number
+  }
+
+  export type TaskTagUpdateInput = {
+    task?: TaskUpdateOneRequiredWithoutTaskTagsNestedInput
+    tag?: TagUpdateOneRequiredWithoutTaskTagsNestedInput
+  }
+
+  export type TaskTagUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    taskId?: IntFieldUpdateOperationsInput | number
+    tagId?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type TaskTagCreateManyInput = {
+    id?: number
+    taskId: number
+    tagId: number
+  }
+
+  export type TaskTagUpdateManyMutationInput = {
+
+  }
+
+  export type TaskTagUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    taskId?: IntFieldUpdateOperationsInput | number
+    tagId?: IntFieldUpdateOperationsInput | number
   }
 
   export type TaskAssignmentCreateInput = {
@@ -9473,23 +11983,10 @@ export namespace Prisma {
     _max?: NestedStringNullableFilter<$PrismaModel>
   }
 
-  export type DateTimeNullableFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
-  }
-
   export type ProjectCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
     description?: SortOrder
-    startDate?: SortOrder
-    endDate?: SortOrder
   }
 
   export type ProjectAvgOrderByAggregateInput = {
@@ -9500,23 +11997,19 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     description?: SortOrder
-    startDate?: SortOrder
-    endDate?: SortOrder
   }
 
   export type ProjectMinOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
     description?: SortOrder
-    startDate?: SortOrder
-    endDate?: SortOrder
   }
 
   export type ProjectSumOrderByAggregateInput = {
     id?: SortOrder
   }
 
-  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+  export type DateTimeNullableFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
     in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
     notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
@@ -9524,10 +12017,7 @@ export namespace Prisma {
     lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedDateTimeNullableFilter<$PrismaModel>
-    _max?: NestedDateTimeNullableFilter<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
   }
 
   export type IntNullableFilter<$PrismaModel = never> = {
@@ -9556,13 +12046,22 @@ export namespace Prisma {
     isNot?: UserWhereInput | null
   }
 
+  export type TaskTagListRelationFilter = {
+    every?: TaskTagWhereInput
+    some?: TaskTagWhereInput
+    none?: TaskTagWhereInput
+  }
+
+  export type TaskTagOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type TaskCountOrderByAggregateInput = {
     id?: SortOrder
     title?: SortOrder
     description?: SortOrder
     status?: SortOrder
     priority?: SortOrder
-    tags?: SortOrder
     startDate?: SortOrder
     dueDate?: SortOrder
     points?: SortOrder
@@ -9585,7 +12084,6 @@ export namespace Prisma {
     description?: SortOrder
     status?: SortOrder
     priority?: SortOrder
-    tags?: SortOrder
     startDate?: SortOrder
     dueDate?: SortOrder
     points?: SortOrder
@@ -9600,7 +12098,6 @@ export namespace Prisma {
     description?: SortOrder
     status?: SortOrder
     priority?: SortOrder
-    tags?: SortOrder
     startDate?: SortOrder
     dueDate?: SortOrder
     points?: SortOrder
@@ -9615,6 +12112,20 @@ export namespace Prisma {
     projectId?: SortOrder
     authorUserId?: SortOrder
     assignedUserId?: SortOrder
+  }
+
+  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
   export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -9633,9 +12144,72 @@ export namespace Prisma {
     _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
+  export type TagCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+  }
+
+  export type TagAvgOrderByAggregateInput = {
+    id?: SortOrder
+  }
+
+  export type TagMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+  }
+
+  export type TagMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+  }
+
+  export type TagSumOrderByAggregateInput = {
+    id?: SortOrder
+  }
+
   export type TaskScalarRelationFilter = {
     is?: TaskWhereInput
     isNot?: TaskWhereInput
+  }
+
+  export type TagScalarRelationFilter = {
+    is?: TagWhereInput
+    isNot?: TagWhereInput
+  }
+
+  export type TaskTagTaskIdTagIdCompoundUniqueInput = {
+    taskId: number
+    tagId: number
+  }
+
+  export type TaskTagCountOrderByAggregateInput = {
+    id?: SortOrder
+    taskId?: SortOrder
+    tagId?: SortOrder
+  }
+
+  export type TaskTagAvgOrderByAggregateInput = {
+    id?: SortOrder
+    taskId?: SortOrder
+    tagId?: SortOrder
+  }
+
+  export type TaskTagMaxOrderByAggregateInput = {
+    id?: SortOrder
+    taskId?: SortOrder
+    tagId?: SortOrder
+  }
+
+  export type TaskTagMinOrderByAggregateInput = {
+    id?: SortOrder
+    taskId?: SortOrder
+    tagId?: SortOrder
+  }
+
+  export type TaskTagSumOrderByAggregateInput = {
+    id?: SortOrder
+    taskId?: SortOrder
+    tagId?: SortOrder
   }
 
   export type TaskAssignmentCountOrderByAggregateInput = {
@@ -9977,10 +12551,6 @@ export namespace Prisma {
     connect?: TaskWhereUniqueInput | TaskWhereUniqueInput[]
   }
 
-  export type NullableDateTimeFieldUpdateOperationsInput = {
-    set?: Date | string | null
-  }
-
   export type TaskUpdateManyWithoutProjectNestedInput = {
     create?: XOR<TaskCreateWithoutProjectInput, TaskUncheckedCreateWithoutProjectInput> | TaskCreateWithoutProjectInput[] | TaskUncheckedCreateWithoutProjectInput[]
     connectOrCreate?: TaskCreateOrConnectWithoutProjectInput | TaskCreateOrConnectWithoutProjectInput[]
@@ -10048,6 +12618,13 @@ export namespace Prisma {
     connect?: CommentWhereUniqueInput | CommentWhereUniqueInput[]
   }
 
+  export type TaskTagCreateNestedManyWithoutTaskInput = {
+    create?: XOR<TaskTagCreateWithoutTaskInput, TaskTagUncheckedCreateWithoutTaskInput> | TaskTagCreateWithoutTaskInput[] | TaskTagUncheckedCreateWithoutTaskInput[]
+    connectOrCreate?: TaskTagCreateOrConnectWithoutTaskInput | TaskTagCreateOrConnectWithoutTaskInput[]
+    createMany?: TaskTagCreateManyTaskInputEnvelope
+    connect?: TaskTagWhereUniqueInput | TaskTagWhereUniqueInput[]
+  }
+
   export type TaskAssignmentUncheckedCreateNestedManyWithoutTaskInput = {
     create?: XOR<TaskAssignmentCreateWithoutTaskInput, TaskAssignmentUncheckedCreateWithoutTaskInput> | TaskAssignmentCreateWithoutTaskInput[] | TaskAssignmentUncheckedCreateWithoutTaskInput[]
     connectOrCreate?: TaskAssignmentCreateOrConnectWithoutTaskInput | TaskAssignmentCreateOrConnectWithoutTaskInput[]
@@ -10067,6 +12644,17 @@ export namespace Prisma {
     connectOrCreate?: CommentCreateOrConnectWithoutTaskInput | CommentCreateOrConnectWithoutTaskInput[]
     createMany?: CommentCreateManyTaskInputEnvelope
     connect?: CommentWhereUniqueInput | CommentWhereUniqueInput[]
+  }
+
+  export type TaskTagUncheckedCreateNestedManyWithoutTaskInput = {
+    create?: XOR<TaskTagCreateWithoutTaskInput, TaskTagUncheckedCreateWithoutTaskInput> | TaskTagCreateWithoutTaskInput[] | TaskTagUncheckedCreateWithoutTaskInput[]
+    connectOrCreate?: TaskTagCreateOrConnectWithoutTaskInput | TaskTagCreateOrConnectWithoutTaskInput[]
+    createMany?: TaskTagCreateManyTaskInputEnvelope
+    connect?: TaskTagWhereUniqueInput | TaskTagWhereUniqueInput[]
+  }
+
+  export type NullableDateTimeFieldUpdateOperationsInput = {
+    set?: Date | string | null
   }
 
   export type NullableIntFieldUpdateOperationsInput = {
@@ -10145,6 +12733,20 @@ export namespace Prisma {
     deleteMany?: CommentScalarWhereInput | CommentScalarWhereInput[]
   }
 
+  export type TaskTagUpdateManyWithoutTaskNestedInput = {
+    create?: XOR<TaskTagCreateWithoutTaskInput, TaskTagUncheckedCreateWithoutTaskInput> | TaskTagCreateWithoutTaskInput[] | TaskTagUncheckedCreateWithoutTaskInput[]
+    connectOrCreate?: TaskTagCreateOrConnectWithoutTaskInput | TaskTagCreateOrConnectWithoutTaskInput[]
+    upsert?: TaskTagUpsertWithWhereUniqueWithoutTaskInput | TaskTagUpsertWithWhereUniqueWithoutTaskInput[]
+    createMany?: TaskTagCreateManyTaskInputEnvelope
+    set?: TaskTagWhereUniqueInput | TaskTagWhereUniqueInput[]
+    disconnect?: TaskTagWhereUniqueInput | TaskTagWhereUniqueInput[]
+    delete?: TaskTagWhereUniqueInput | TaskTagWhereUniqueInput[]
+    connect?: TaskTagWhereUniqueInput | TaskTagWhereUniqueInput[]
+    update?: TaskTagUpdateWithWhereUniqueWithoutTaskInput | TaskTagUpdateWithWhereUniqueWithoutTaskInput[]
+    updateMany?: TaskTagUpdateManyWithWhereWithoutTaskInput | TaskTagUpdateManyWithWhereWithoutTaskInput[]
+    deleteMany?: TaskTagScalarWhereInput | TaskTagScalarWhereInput[]
+  }
+
   export type TaskAssignmentUncheckedUpdateManyWithoutTaskNestedInput = {
     create?: XOR<TaskAssignmentCreateWithoutTaskInput, TaskAssignmentUncheckedCreateWithoutTaskInput> | TaskAssignmentCreateWithoutTaskInput[] | TaskAssignmentUncheckedCreateWithoutTaskInput[]
     connectOrCreate?: TaskAssignmentCreateOrConnectWithoutTaskInput | TaskAssignmentCreateOrConnectWithoutTaskInput[]
@@ -10185,6 +12787,90 @@ export namespace Prisma {
     update?: CommentUpdateWithWhereUniqueWithoutTaskInput | CommentUpdateWithWhereUniqueWithoutTaskInput[]
     updateMany?: CommentUpdateManyWithWhereWithoutTaskInput | CommentUpdateManyWithWhereWithoutTaskInput[]
     deleteMany?: CommentScalarWhereInput | CommentScalarWhereInput[]
+  }
+
+  export type TaskTagUncheckedUpdateManyWithoutTaskNestedInput = {
+    create?: XOR<TaskTagCreateWithoutTaskInput, TaskTagUncheckedCreateWithoutTaskInput> | TaskTagCreateWithoutTaskInput[] | TaskTagUncheckedCreateWithoutTaskInput[]
+    connectOrCreate?: TaskTagCreateOrConnectWithoutTaskInput | TaskTagCreateOrConnectWithoutTaskInput[]
+    upsert?: TaskTagUpsertWithWhereUniqueWithoutTaskInput | TaskTagUpsertWithWhereUniqueWithoutTaskInput[]
+    createMany?: TaskTagCreateManyTaskInputEnvelope
+    set?: TaskTagWhereUniqueInput | TaskTagWhereUniqueInput[]
+    disconnect?: TaskTagWhereUniqueInput | TaskTagWhereUniqueInput[]
+    delete?: TaskTagWhereUniqueInput | TaskTagWhereUniqueInput[]
+    connect?: TaskTagWhereUniqueInput | TaskTagWhereUniqueInput[]
+    update?: TaskTagUpdateWithWhereUniqueWithoutTaskInput | TaskTagUpdateWithWhereUniqueWithoutTaskInput[]
+    updateMany?: TaskTagUpdateManyWithWhereWithoutTaskInput | TaskTagUpdateManyWithWhereWithoutTaskInput[]
+    deleteMany?: TaskTagScalarWhereInput | TaskTagScalarWhereInput[]
+  }
+
+  export type TaskTagCreateNestedManyWithoutTagInput = {
+    create?: XOR<TaskTagCreateWithoutTagInput, TaskTagUncheckedCreateWithoutTagInput> | TaskTagCreateWithoutTagInput[] | TaskTagUncheckedCreateWithoutTagInput[]
+    connectOrCreate?: TaskTagCreateOrConnectWithoutTagInput | TaskTagCreateOrConnectWithoutTagInput[]
+    createMany?: TaskTagCreateManyTagInputEnvelope
+    connect?: TaskTagWhereUniqueInput | TaskTagWhereUniqueInput[]
+  }
+
+  export type TaskTagUncheckedCreateNestedManyWithoutTagInput = {
+    create?: XOR<TaskTagCreateWithoutTagInput, TaskTagUncheckedCreateWithoutTagInput> | TaskTagCreateWithoutTagInput[] | TaskTagUncheckedCreateWithoutTagInput[]
+    connectOrCreate?: TaskTagCreateOrConnectWithoutTagInput | TaskTagCreateOrConnectWithoutTagInput[]
+    createMany?: TaskTagCreateManyTagInputEnvelope
+    connect?: TaskTagWhereUniqueInput | TaskTagWhereUniqueInput[]
+  }
+
+  export type TaskTagUpdateManyWithoutTagNestedInput = {
+    create?: XOR<TaskTagCreateWithoutTagInput, TaskTagUncheckedCreateWithoutTagInput> | TaskTagCreateWithoutTagInput[] | TaskTagUncheckedCreateWithoutTagInput[]
+    connectOrCreate?: TaskTagCreateOrConnectWithoutTagInput | TaskTagCreateOrConnectWithoutTagInput[]
+    upsert?: TaskTagUpsertWithWhereUniqueWithoutTagInput | TaskTagUpsertWithWhereUniqueWithoutTagInput[]
+    createMany?: TaskTagCreateManyTagInputEnvelope
+    set?: TaskTagWhereUniqueInput | TaskTagWhereUniqueInput[]
+    disconnect?: TaskTagWhereUniqueInput | TaskTagWhereUniqueInput[]
+    delete?: TaskTagWhereUniqueInput | TaskTagWhereUniqueInput[]
+    connect?: TaskTagWhereUniqueInput | TaskTagWhereUniqueInput[]
+    update?: TaskTagUpdateWithWhereUniqueWithoutTagInput | TaskTagUpdateWithWhereUniqueWithoutTagInput[]
+    updateMany?: TaskTagUpdateManyWithWhereWithoutTagInput | TaskTagUpdateManyWithWhereWithoutTagInput[]
+    deleteMany?: TaskTagScalarWhereInput | TaskTagScalarWhereInput[]
+  }
+
+  export type TaskTagUncheckedUpdateManyWithoutTagNestedInput = {
+    create?: XOR<TaskTagCreateWithoutTagInput, TaskTagUncheckedCreateWithoutTagInput> | TaskTagCreateWithoutTagInput[] | TaskTagUncheckedCreateWithoutTagInput[]
+    connectOrCreate?: TaskTagCreateOrConnectWithoutTagInput | TaskTagCreateOrConnectWithoutTagInput[]
+    upsert?: TaskTagUpsertWithWhereUniqueWithoutTagInput | TaskTagUpsertWithWhereUniqueWithoutTagInput[]
+    createMany?: TaskTagCreateManyTagInputEnvelope
+    set?: TaskTagWhereUniqueInput | TaskTagWhereUniqueInput[]
+    disconnect?: TaskTagWhereUniqueInput | TaskTagWhereUniqueInput[]
+    delete?: TaskTagWhereUniqueInput | TaskTagWhereUniqueInput[]
+    connect?: TaskTagWhereUniqueInput | TaskTagWhereUniqueInput[]
+    update?: TaskTagUpdateWithWhereUniqueWithoutTagInput | TaskTagUpdateWithWhereUniqueWithoutTagInput[]
+    updateMany?: TaskTagUpdateManyWithWhereWithoutTagInput | TaskTagUpdateManyWithWhereWithoutTagInput[]
+    deleteMany?: TaskTagScalarWhereInput | TaskTagScalarWhereInput[]
+  }
+
+  export type TaskCreateNestedOneWithoutTaskTagsInput = {
+    create?: XOR<TaskCreateWithoutTaskTagsInput, TaskUncheckedCreateWithoutTaskTagsInput>
+    connectOrCreate?: TaskCreateOrConnectWithoutTaskTagsInput
+    connect?: TaskWhereUniqueInput
+  }
+
+  export type TagCreateNestedOneWithoutTaskTagsInput = {
+    create?: XOR<TagCreateWithoutTaskTagsInput, TagUncheckedCreateWithoutTaskTagsInput>
+    connectOrCreate?: TagCreateOrConnectWithoutTaskTagsInput
+    connect?: TagWhereUniqueInput
+  }
+
+  export type TaskUpdateOneRequiredWithoutTaskTagsNestedInput = {
+    create?: XOR<TaskCreateWithoutTaskTagsInput, TaskUncheckedCreateWithoutTaskTagsInput>
+    connectOrCreate?: TaskCreateOrConnectWithoutTaskTagsInput
+    upsert?: TaskUpsertWithoutTaskTagsInput
+    connect?: TaskWhereUniqueInput
+    update?: XOR<XOR<TaskUpdateToOneWithWhereWithoutTaskTagsInput, TaskUpdateWithoutTaskTagsInput>, TaskUncheckedUpdateWithoutTaskTagsInput>
+  }
+
+  export type TagUpdateOneRequiredWithoutTaskTagsNestedInput = {
+    create?: XOR<TagCreateWithoutTaskTagsInput, TagUncheckedCreateWithoutTaskTagsInput>
+    connectOrCreate?: TagCreateOrConnectWithoutTaskTagsInput
+    upsert?: TagUpsertWithoutTaskTagsInput
+    connect?: TagWhereUniqueInput
+    update?: XOR<XOR<TagUpdateToOneWithWhereWithoutTaskTagsInput, TagUpdateWithoutTaskTagsInput>, TagUncheckedUpdateWithoutTaskTagsInput>
   }
 
   export type UserCreateNestedOneWithoutTaskAssignmentsInput = {
@@ -10439,7 +13125,6 @@ export namespace Prisma {
     description?: string | null
     status?: string | null
     priority?: string | null
-    tags?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
     points?: number | null
@@ -10448,6 +13133,7 @@ export namespace Prisma {
     taskAssignments?: TaskAssignmentCreateNestedManyWithoutTaskInput
     attachments?: AttachmentCreateNestedManyWithoutTaskInput
     comments?: CommentCreateNestedManyWithoutTaskInput
+    taskTags?: TaskTagCreateNestedManyWithoutTaskInput
   }
 
   export type TaskUncheckedCreateWithoutAuthorInput = {
@@ -10456,7 +13142,6 @@ export namespace Prisma {
     description?: string | null
     status?: string | null
     priority?: string | null
-    tags?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
     points?: number | null
@@ -10465,6 +13150,7 @@ export namespace Prisma {
     taskAssignments?: TaskAssignmentUncheckedCreateNestedManyWithoutTaskInput
     attachments?: AttachmentUncheckedCreateNestedManyWithoutTaskInput
     comments?: CommentUncheckedCreateNestedManyWithoutTaskInput
+    taskTags?: TaskTagUncheckedCreateNestedManyWithoutTaskInput
   }
 
   export type TaskCreateOrConnectWithoutAuthorInput = {
@@ -10482,7 +13168,6 @@ export namespace Prisma {
     description?: string | null
     status?: string | null
     priority?: string | null
-    tags?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
     points?: number | null
@@ -10491,6 +13176,7 @@ export namespace Prisma {
     taskAssignments?: TaskAssignmentCreateNestedManyWithoutTaskInput
     attachments?: AttachmentCreateNestedManyWithoutTaskInput
     comments?: CommentCreateNestedManyWithoutTaskInput
+    taskTags?: TaskTagCreateNestedManyWithoutTaskInput
   }
 
   export type TaskUncheckedCreateWithoutAssigneeInput = {
@@ -10499,7 +13185,6 @@ export namespace Prisma {
     description?: string | null
     status?: string | null
     priority?: string | null
-    tags?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
     points?: number | null
@@ -10508,6 +13193,7 @@ export namespace Prisma {
     taskAssignments?: TaskAssignmentUncheckedCreateNestedManyWithoutTaskInput
     attachments?: AttachmentUncheckedCreateNestedManyWithoutTaskInput
     comments?: CommentUncheckedCreateNestedManyWithoutTaskInput
+    taskTags?: TaskTagUncheckedCreateNestedManyWithoutTaskInput
   }
 
   export type TaskCreateOrConnectWithoutAssigneeInput = {
@@ -10608,7 +13294,6 @@ export namespace Prisma {
     description?: StringNullableFilter<"Task"> | string | null
     status?: StringNullableFilter<"Task"> | string | null
     priority?: StringNullableFilter<"Task"> | string | null
-    tags?: StringNullableFilter<"Task"> | string | null
     startDate?: DateTimeNullableFilter<"Task"> | Date | string | null
     dueDate?: DateTimeNullableFilter<"Task"> | Date | string | null
     points?: IntNullableFilter<"Task"> | number | null
@@ -10716,7 +13401,6 @@ export namespace Prisma {
     description?: string | null
     status?: string | null
     priority?: string | null
-    tags?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
     points?: number | null
@@ -10725,6 +13409,7 @@ export namespace Prisma {
     taskAssignments?: TaskAssignmentCreateNestedManyWithoutTaskInput
     attachments?: AttachmentCreateNestedManyWithoutTaskInput
     comments?: CommentCreateNestedManyWithoutTaskInput
+    taskTags?: TaskTagCreateNestedManyWithoutTaskInput
   }
 
   export type TaskUncheckedCreateWithoutProjectInput = {
@@ -10733,7 +13418,6 @@ export namespace Prisma {
     description?: string | null
     status?: string | null
     priority?: string | null
-    tags?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
     points?: number | null
@@ -10742,6 +13426,7 @@ export namespace Prisma {
     taskAssignments?: TaskAssignmentUncheckedCreateNestedManyWithoutTaskInput
     attachments?: AttachmentUncheckedCreateNestedManyWithoutTaskInput
     comments?: CommentUncheckedCreateNestedManyWithoutTaskInput
+    taskTags?: TaskTagUncheckedCreateNestedManyWithoutTaskInput
   }
 
   export type TaskCreateOrConnectWithoutProjectInput = {
@@ -10773,16 +13458,12 @@ export namespace Prisma {
   export type ProjectCreateWithoutTasksInput = {
     name: string
     description?: string | null
-    startDate?: Date | string | null
-    endDate?: Date | string | null
   }
 
   export type ProjectUncheckedCreateWithoutTasksInput = {
     id?: number
     name: string
     description?: string | null
-    startDate?: Date | string | null
-    endDate?: Date | string | null
   }
 
   export type ProjectCreateOrConnectWithoutTasksInput = {
@@ -10905,6 +13586,25 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type TaskTagCreateWithoutTaskInput = {
+    tag: TagCreateNestedOneWithoutTaskTagsInput
+  }
+
+  export type TaskTagUncheckedCreateWithoutTaskInput = {
+    id?: number
+    tagId: number
+  }
+
+  export type TaskTagCreateOrConnectWithoutTaskInput = {
+    where: TaskTagWhereUniqueInput
+    create: XOR<TaskTagCreateWithoutTaskInput, TaskTagUncheckedCreateWithoutTaskInput>
+  }
+
+  export type TaskTagCreateManyTaskInputEnvelope = {
+    data: TaskTagCreateManyTaskInput | TaskTagCreateManyTaskInput[]
+    skipDuplicates?: boolean
+  }
+
   export type ProjectUpsertWithoutTasksInput = {
     update: XOR<ProjectUpdateWithoutTasksInput, ProjectUncheckedUpdateWithoutTasksInput>
     create: XOR<ProjectCreateWithoutTasksInput, ProjectUncheckedCreateWithoutTasksInput>
@@ -10919,16 +13619,12 @@ export namespace Prisma {
   export type ProjectUpdateWithoutTasksInput = {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type ProjectUncheckedUpdateWithoutTasksInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type UserUpsertWithoutAuthoredTasksInput = {
@@ -11043,6 +13739,182 @@ export namespace Prisma {
     data: XOR<CommentUpdateManyMutationInput, CommentUncheckedUpdateManyWithoutTaskInput>
   }
 
+  export type TaskTagUpsertWithWhereUniqueWithoutTaskInput = {
+    where: TaskTagWhereUniqueInput
+    update: XOR<TaskTagUpdateWithoutTaskInput, TaskTagUncheckedUpdateWithoutTaskInput>
+    create: XOR<TaskTagCreateWithoutTaskInput, TaskTagUncheckedCreateWithoutTaskInput>
+  }
+
+  export type TaskTagUpdateWithWhereUniqueWithoutTaskInput = {
+    where: TaskTagWhereUniqueInput
+    data: XOR<TaskTagUpdateWithoutTaskInput, TaskTagUncheckedUpdateWithoutTaskInput>
+  }
+
+  export type TaskTagUpdateManyWithWhereWithoutTaskInput = {
+    where: TaskTagScalarWhereInput
+    data: XOR<TaskTagUpdateManyMutationInput, TaskTagUncheckedUpdateManyWithoutTaskInput>
+  }
+
+  export type TaskTagScalarWhereInput = {
+    AND?: TaskTagScalarWhereInput | TaskTagScalarWhereInput[]
+    OR?: TaskTagScalarWhereInput[]
+    NOT?: TaskTagScalarWhereInput | TaskTagScalarWhereInput[]
+    id?: IntFilter<"TaskTag"> | number
+    taskId?: IntFilter<"TaskTag"> | number
+    tagId?: IntFilter<"TaskTag"> | number
+  }
+
+  export type TaskTagCreateWithoutTagInput = {
+    task: TaskCreateNestedOneWithoutTaskTagsInput
+  }
+
+  export type TaskTagUncheckedCreateWithoutTagInput = {
+    id?: number
+    taskId: number
+  }
+
+  export type TaskTagCreateOrConnectWithoutTagInput = {
+    where: TaskTagWhereUniqueInput
+    create: XOR<TaskTagCreateWithoutTagInput, TaskTagUncheckedCreateWithoutTagInput>
+  }
+
+  export type TaskTagCreateManyTagInputEnvelope = {
+    data: TaskTagCreateManyTagInput | TaskTagCreateManyTagInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type TaskTagUpsertWithWhereUniqueWithoutTagInput = {
+    where: TaskTagWhereUniqueInput
+    update: XOR<TaskTagUpdateWithoutTagInput, TaskTagUncheckedUpdateWithoutTagInput>
+    create: XOR<TaskTagCreateWithoutTagInput, TaskTagUncheckedCreateWithoutTagInput>
+  }
+
+  export type TaskTagUpdateWithWhereUniqueWithoutTagInput = {
+    where: TaskTagWhereUniqueInput
+    data: XOR<TaskTagUpdateWithoutTagInput, TaskTagUncheckedUpdateWithoutTagInput>
+  }
+
+  export type TaskTagUpdateManyWithWhereWithoutTagInput = {
+    where: TaskTagScalarWhereInput
+    data: XOR<TaskTagUpdateManyMutationInput, TaskTagUncheckedUpdateManyWithoutTagInput>
+  }
+
+  export type TaskCreateWithoutTaskTagsInput = {
+    title: string
+    description?: string | null
+    status?: string | null
+    priority?: string | null
+    startDate?: Date | string | null
+    dueDate?: Date | string | null
+    points?: number | null
+    project: ProjectCreateNestedOneWithoutTasksInput
+    author: UserCreateNestedOneWithoutAuthoredTasksInput
+    assignee?: UserCreateNestedOneWithoutAssignedTasksInput
+    taskAssignments?: TaskAssignmentCreateNestedManyWithoutTaskInput
+    attachments?: AttachmentCreateNestedManyWithoutTaskInput
+    comments?: CommentCreateNestedManyWithoutTaskInput
+  }
+
+  export type TaskUncheckedCreateWithoutTaskTagsInput = {
+    id?: number
+    title: string
+    description?: string | null
+    status?: string | null
+    priority?: string | null
+    startDate?: Date | string | null
+    dueDate?: Date | string | null
+    points?: number | null
+    projectId: number
+    authorUserId: number
+    assignedUserId?: number | null
+    taskAssignments?: TaskAssignmentUncheckedCreateNestedManyWithoutTaskInput
+    attachments?: AttachmentUncheckedCreateNestedManyWithoutTaskInput
+    comments?: CommentUncheckedCreateNestedManyWithoutTaskInput
+  }
+
+  export type TaskCreateOrConnectWithoutTaskTagsInput = {
+    where: TaskWhereUniqueInput
+    create: XOR<TaskCreateWithoutTaskTagsInput, TaskUncheckedCreateWithoutTaskTagsInput>
+  }
+
+  export type TagCreateWithoutTaskTagsInput = {
+    name: string
+  }
+
+  export type TagUncheckedCreateWithoutTaskTagsInput = {
+    id?: number
+    name: string
+  }
+
+  export type TagCreateOrConnectWithoutTaskTagsInput = {
+    where: TagWhereUniqueInput
+    create: XOR<TagCreateWithoutTaskTagsInput, TagUncheckedCreateWithoutTaskTagsInput>
+  }
+
+  export type TaskUpsertWithoutTaskTagsInput = {
+    update: XOR<TaskUpdateWithoutTaskTagsInput, TaskUncheckedUpdateWithoutTaskTagsInput>
+    create: XOR<TaskCreateWithoutTaskTagsInput, TaskUncheckedCreateWithoutTaskTagsInput>
+    where?: TaskWhereInput
+  }
+
+  export type TaskUpdateToOneWithWhereWithoutTaskTagsInput = {
+    where?: TaskWhereInput
+    data: XOR<TaskUpdateWithoutTaskTagsInput, TaskUncheckedUpdateWithoutTaskTagsInput>
+  }
+
+  export type TaskUpdateWithoutTaskTagsInput = {
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    priority?: NullableStringFieldUpdateOperationsInput | string | null
+    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    points?: NullableIntFieldUpdateOperationsInput | number | null
+    project?: ProjectUpdateOneRequiredWithoutTasksNestedInput
+    author?: UserUpdateOneRequiredWithoutAuthoredTasksNestedInput
+    assignee?: UserUpdateOneWithoutAssignedTasksNestedInput
+    taskAssignments?: TaskAssignmentUpdateManyWithoutTaskNestedInput
+    attachments?: AttachmentUpdateManyWithoutTaskNestedInput
+    comments?: CommentUpdateManyWithoutTaskNestedInput
+  }
+
+  export type TaskUncheckedUpdateWithoutTaskTagsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    priority?: NullableStringFieldUpdateOperationsInput | string | null
+    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    points?: NullableIntFieldUpdateOperationsInput | number | null
+    projectId?: IntFieldUpdateOperationsInput | number
+    authorUserId?: IntFieldUpdateOperationsInput | number
+    assignedUserId?: NullableIntFieldUpdateOperationsInput | number | null
+    taskAssignments?: TaskAssignmentUncheckedUpdateManyWithoutTaskNestedInput
+    attachments?: AttachmentUncheckedUpdateManyWithoutTaskNestedInput
+    comments?: CommentUncheckedUpdateManyWithoutTaskNestedInput
+  }
+
+  export type TagUpsertWithoutTaskTagsInput = {
+    update: XOR<TagUpdateWithoutTaskTagsInput, TagUncheckedUpdateWithoutTaskTagsInput>
+    create: XOR<TagCreateWithoutTaskTagsInput, TagUncheckedCreateWithoutTaskTagsInput>
+    where?: TagWhereInput
+  }
+
+  export type TagUpdateToOneWithWhereWithoutTaskTagsInput = {
+    where?: TagWhereInput
+    data: XOR<TagUpdateWithoutTaskTagsInput, TagUncheckedUpdateWithoutTaskTagsInput>
+  }
+
+  export type TagUpdateWithoutTaskTagsInput = {
+    name?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type TagUncheckedUpdateWithoutTaskTagsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+  }
+
   export type UserCreateWithoutTaskAssignmentsInput = {
     cognitoId: string
     username: string
@@ -11074,7 +13946,6 @@ export namespace Prisma {
     description?: string | null
     status?: string | null
     priority?: string | null
-    tags?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
     points?: number | null
@@ -11083,6 +13954,7 @@ export namespace Prisma {
     assignee?: UserCreateNestedOneWithoutAssignedTasksInput
     attachments?: AttachmentCreateNestedManyWithoutTaskInput
     comments?: CommentCreateNestedManyWithoutTaskInput
+    taskTags?: TaskTagCreateNestedManyWithoutTaskInput
   }
 
   export type TaskUncheckedCreateWithoutTaskAssignmentsInput = {
@@ -11091,7 +13963,6 @@ export namespace Prisma {
     description?: string | null
     status?: string | null
     priority?: string | null
-    tags?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
     points?: number | null
@@ -11100,6 +13971,7 @@ export namespace Prisma {
     assignedUserId?: number | null
     attachments?: AttachmentUncheckedCreateNestedManyWithoutTaskInput
     comments?: CommentUncheckedCreateNestedManyWithoutTaskInput
+    taskTags?: TaskTagUncheckedCreateNestedManyWithoutTaskInput
   }
 
   export type TaskCreateOrConnectWithoutTaskAssignmentsInput = {
@@ -11155,7 +14027,6 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
-    tags?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     points?: NullableIntFieldUpdateOperationsInput | number | null
@@ -11164,6 +14035,7 @@ export namespace Prisma {
     assignee?: UserUpdateOneWithoutAssignedTasksNestedInput
     attachments?: AttachmentUpdateManyWithoutTaskNestedInput
     comments?: CommentUpdateManyWithoutTaskNestedInput
+    taskTags?: TaskTagUpdateManyWithoutTaskNestedInput
   }
 
   export type TaskUncheckedUpdateWithoutTaskAssignmentsInput = {
@@ -11172,7 +14044,6 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
-    tags?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     points?: NullableIntFieldUpdateOperationsInput | number | null
@@ -11181,6 +14052,7 @@ export namespace Prisma {
     assignedUserId?: NullableIntFieldUpdateOperationsInput | number | null
     attachments?: AttachmentUncheckedUpdateManyWithoutTaskNestedInput
     comments?: CommentUncheckedUpdateManyWithoutTaskNestedInput
+    taskTags?: TaskTagUncheckedUpdateManyWithoutTaskNestedInput
   }
 
   export type TaskCreateWithoutAttachmentsInput = {
@@ -11188,7 +14060,6 @@ export namespace Prisma {
     description?: string | null
     status?: string | null
     priority?: string | null
-    tags?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
     points?: number | null
@@ -11197,6 +14068,7 @@ export namespace Prisma {
     assignee?: UserCreateNestedOneWithoutAssignedTasksInput
     taskAssignments?: TaskAssignmentCreateNestedManyWithoutTaskInput
     comments?: CommentCreateNestedManyWithoutTaskInput
+    taskTags?: TaskTagCreateNestedManyWithoutTaskInput
   }
 
   export type TaskUncheckedCreateWithoutAttachmentsInput = {
@@ -11205,7 +14077,6 @@ export namespace Prisma {
     description?: string | null
     status?: string | null
     priority?: string | null
-    tags?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
     points?: number | null
@@ -11214,6 +14085,7 @@ export namespace Prisma {
     assignedUserId?: number | null
     taskAssignments?: TaskAssignmentUncheckedCreateNestedManyWithoutTaskInput
     comments?: CommentUncheckedCreateNestedManyWithoutTaskInput
+    taskTags?: TaskTagUncheckedCreateNestedManyWithoutTaskInput
   }
 
   export type TaskCreateOrConnectWithoutAttachmentsInput = {
@@ -11263,7 +14135,6 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
-    tags?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     points?: NullableIntFieldUpdateOperationsInput | number | null
@@ -11272,6 +14143,7 @@ export namespace Prisma {
     assignee?: UserUpdateOneWithoutAssignedTasksNestedInput
     taskAssignments?: TaskAssignmentUpdateManyWithoutTaskNestedInput
     comments?: CommentUpdateManyWithoutTaskNestedInput
+    taskTags?: TaskTagUpdateManyWithoutTaskNestedInput
   }
 
   export type TaskUncheckedUpdateWithoutAttachmentsInput = {
@@ -11280,7 +14152,6 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
-    tags?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     points?: NullableIntFieldUpdateOperationsInput | number | null
@@ -11289,6 +14160,7 @@ export namespace Prisma {
     assignedUserId?: NullableIntFieldUpdateOperationsInput | number | null
     taskAssignments?: TaskAssignmentUncheckedUpdateManyWithoutTaskNestedInput
     comments?: CommentUncheckedUpdateManyWithoutTaskNestedInput
+    taskTags?: TaskTagUncheckedUpdateManyWithoutTaskNestedInput
   }
 
   export type UserUpsertWithoutAttachmentsInput = {
@@ -11328,7 +14200,6 @@ export namespace Prisma {
     description?: string | null
     status?: string | null
     priority?: string | null
-    tags?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
     points?: number | null
@@ -11337,6 +14208,7 @@ export namespace Prisma {
     assignee?: UserCreateNestedOneWithoutAssignedTasksInput
     taskAssignments?: TaskAssignmentCreateNestedManyWithoutTaskInput
     attachments?: AttachmentCreateNestedManyWithoutTaskInput
+    taskTags?: TaskTagCreateNestedManyWithoutTaskInput
   }
 
   export type TaskUncheckedCreateWithoutCommentsInput = {
@@ -11345,7 +14217,6 @@ export namespace Prisma {
     description?: string | null
     status?: string | null
     priority?: string | null
-    tags?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
     points?: number | null
@@ -11354,6 +14225,7 @@ export namespace Prisma {
     assignedUserId?: number | null
     taskAssignments?: TaskAssignmentUncheckedCreateNestedManyWithoutTaskInput
     attachments?: AttachmentUncheckedCreateNestedManyWithoutTaskInput
+    taskTags?: TaskTagUncheckedCreateNestedManyWithoutTaskInput
   }
 
   export type TaskCreateOrConnectWithoutCommentsInput = {
@@ -11403,7 +14275,6 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
-    tags?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     points?: NullableIntFieldUpdateOperationsInput | number | null
@@ -11412,6 +14283,7 @@ export namespace Prisma {
     assignee?: UserUpdateOneWithoutAssignedTasksNestedInput
     taskAssignments?: TaskAssignmentUpdateManyWithoutTaskNestedInput
     attachments?: AttachmentUpdateManyWithoutTaskNestedInput
+    taskTags?: TaskTagUpdateManyWithoutTaskNestedInput
   }
 
   export type TaskUncheckedUpdateWithoutCommentsInput = {
@@ -11420,7 +14292,6 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
-    tags?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     points?: NullableIntFieldUpdateOperationsInput | number | null
@@ -11429,6 +14300,7 @@ export namespace Prisma {
     assignedUserId?: NullableIntFieldUpdateOperationsInput | number | null
     taskAssignments?: TaskAssignmentUncheckedUpdateManyWithoutTaskNestedInput
     attachments?: AttachmentUncheckedUpdateManyWithoutTaskNestedInput
+    taskTags?: TaskTagUncheckedUpdateManyWithoutTaskNestedInput
   }
 
   export type UserUpsertWithoutCommentsInput = {
@@ -11469,7 +14341,6 @@ export namespace Prisma {
     description?: string | null
     status?: string | null
     priority?: string | null
-    tags?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
     points?: number | null
@@ -11483,7 +14354,6 @@ export namespace Prisma {
     description?: string | null
     status?: string | null
     priority?: string | null
-    tags?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
     points?: number | null
@@ -11514,7 +14384,6 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
-    tags?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     points?: NullableIntFieldUpdateOperationsInput | number | null
@@ -11523,6 +14392,7 @@ export namespace Prisma {
     taskAssignments?: TaskAssignmentUpdateManyWithoutTaskNestedInput
     attachments?: AttachmentUpdateManyWithoutTaskNestedInput
     comments?: CommentUpdateManyWithoutTaskNestedInput
+    taskTags?: TaskTagUpdateManyWithoutTaskNestedInput
   }
 
   export type TaskUncheckedUpdateWithoutAuthorInput = {
@@ -11531,7 +14401,6 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
-    tags?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     points?: NullableIntFieldUpdateOperationsInput | number | null
@@ -11540,6 +14409,7 @@ export namespace Prisma {
     taskAssignments?: TaskAssignmentUncheckedUpdateManyWithoutTaskNestedInput
     attachments?: AttachmentUncheckedUpdateManyWithoutTaskNestedInput
     comments?: CommentUncheckedUpdateManyWithoutTaskNestedInput
+    taskTags?: TaskTagUncheckedUpdateManyWithoutTaskNestedInput
   }
 
   export type TaskUncheckedUpdateManyWithoutAuthorInput = {
@@ -11548,7 +14418,6 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
-    tags?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     points?: NullableIntFieldUpdateOperationsInput | number | null
@@ -11561,7 +14430,6 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
-    tags?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     points?: NullableIntFieldUpdateOperationsInput | number | null
@@ -11570,6 +14438,7 @@ export namespace Prisma {
     taskAssignments?: TaskAssignmentUpdateManyWithoutTaskNestedInput
     attachments?: AttachmentUpdateManyWithoutTaskNestedInput
     comments?: CommentUpdateManyWithoutTaskNestedInput
+    taskTags?: TaskTagUpdateManyWithoutTaskNestedInput
   }
 
   export type TaskUncheckedUpdateWithoutAssigneeInput = {
@@ -11578,7 +14447,6 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
-    tags?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     points?: NullableIntFieldUpdateOperationsInput | number | null
@@ -11587,6 +14455,7 @@ export namespace Prisma {
     taskAssignments?: TaskAssignmentUncheckedUpdateManyWithoutTaskNestedInput
     attachments?: AttachmentUncheckedUpdateManyWithoutTaskNestedInput
     comments?: CommentUncheckedUpdateManyWithoutTaskNestedInput
+    taskTags?: TaskTagUncheckedUpdateManyWithoutTaskNestedInput
   }
 
   export type TaskUncheckedUpdateManyWithoutAssigneeInput = {
@@ -11595,7 +14464,6 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
-    tags?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     points?: NullableIntFieldUpdateOperationsInput | number | null
@@ -11660,7 +14528,6 @@ export namespace Prisma {
     description?: string | null
     status?: string | null
     priority?: string | null
-    tags?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
     points?: number | null
@@ -11673,7 +14540,6 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
-    tags?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     points?: NullableIntFieldUpdateOperationsInput | number | null
@@ -11682,6 +14548,7 @@ export namespace Prisma {
     taskAssignments?: TaskAssignmentUpdateManyWithoutTaskNestedInput
     attachments?: AttachmentUpdateManyWithoutTaskNestedInput
     comments?: CommentUpdateManyWithoutTaskNestedInput
+    taskTags?: TaskTagUpdateManyWithoutTaskNestedInput
   }
 
   export type TaskUncheckedUpdateWithoutProjectInput = {
@@ -11690,7 +14557,6 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
-    tags?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     points?: NullableIntFieldUpdateOperationsInput | number | null
@@ -11699,6 +14565,7 @@ export namespace Prisma {
     taskAssignments?: TaskAssignmentUncheckedUpdateManyWithoutTaskNestedInput
     attachments?: AttachmentUncheckedUpdateManyWithoutTaskNestedInput
     comments?: CommentUncheckedUpdateManyWithoutTaskNestedInput
+    taskTags?: TaskTagUncheckedUpdateManyWithoutTaskNestedInput
   }
 
   export type TaskUncheckedUpdateManyWithoutProjectInput = {
@@ -11707,7 +14574,6 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     status?: NullableStringFieldUpdateOperationsInput | string | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
-    tags?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     points?: NullableIntFieldUpdateOperationsInput | number | null
@@ -11731,6 +14597,11 @@ export namespace Prisma {
     id?: number
     text: string
     userId: number
+  }
+
+  export type TaskTagCreateManyTaskInput = {
+    id?: number
+    tagId: number
   }
 
   export type TaskAssignmentUpdateWithoutTaskInput = {
@@ -11782,6 +14653,39 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     text?: StringFieldUpdateOperationsInput | string
     userId?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type TaskTagUpdateWithoutTaskInput = {
+    tag?: TagUpdateOneRequiredWithoutTaskTagsNestedInput
+  }
+
+  export type TaskTagUncheckedUpdateWithoutTaskInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    tagId?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type TaskTagUncheckedUpdateManyWithoutTaskInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    tagId?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type TaskTagCreateManyTagInput = {
+    id?: number
+    taskId: number
+  }
+
+  export type TaskTagUpdateWithoutTagInput = {
+    task?: TaskUpdateOneRequiredWithoutTaskTagsNestedInput
+  }
+
+  export type TaskTagUncheckedUpdateWithoutTagInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    taskId?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type TaskTagUncheckedUpdateManyWithoutTagInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    taskId?: IntFieldUpdateOperationsInput | number
   }
 
 

@@ -27,11 +27,9 @@ model User {
 }
 
 model Project {
-  id          Int       @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   name        String
   description String?
-  startDate   DateTime?
-  endDate     DateTime?
   tasks       Task[]
 }
 
@@ -41,7 +39,6 @@ model Task {
   description    String?
   status         String?
   priority       String?
-  tags           String?
   startDate      DateTime?
   dueDate        DateTime?
   points         Int?
@@ -49,12 +46,30 @@ model Task {
   authorUserId   Int
   assignedUserId Int?
 
-  project         Project          @relation(fields: [projectId], references: [id])
+  project         Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
   author          User             @relation("TaskAuthor", fields: [authorUserId], references: [userId])
   assignee        User?            @relation("TaskAssignee", fields: [assignedUserId], references: [userId])
   taskAssignments TaskAssignment[]
   attachments     Attachment[]
   comments        Comment[]
+  taskTags        TaskTag[]
+}
+
+model Tag {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  taskTags TaskTag[]
+}
+
+model TaskTag {
+  id     Int @id @default(autoincrement())
+  taskId Int
+  tagId  Int
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, tagId])
 }
 
 model TaskAssignment {
@@ -63,7 +78,7 @@ model TaskAssignment {
   taskId Int
 
   user User @relation(fields: [userId], references: [userId])
-  task Task @relation(fields: [taskId], references: [id])
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
 }
 
 model Attachment {
@@ -73,7 +88,7 @@ model Attachment {
   taskId       Int
   uploadedById Int
 
-  task       Task @relation(fields: [taskId], references: [id])
+  task       Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
   uploadedBy User @relation(fields: [uploadedById], references: [userId])
 }
 
@@ -83,6 +98,6 @@ model Comment {
   taskId Int
   userId Int
 
-  task Task @relation(fields: [taskId], references: [id])
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [userId])
 }

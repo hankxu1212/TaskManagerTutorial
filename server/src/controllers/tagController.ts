@@ -1,0 +1,60 @@
+import type { Request, Response } from "express";
+import { PrismaClient } from "../../prisma/generated/prisma/client.js";
+import { PrismaPg } from "@prisma/adapter-pg";
+import pg from "pg";
+
+let prisma: PrismaClient;
+
+function getPrismaClient() {
+  if (!prisma) {
+    const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+    const adapter = new PrismaPg(pool);
+    prisma = new PrismaClient({ adapter });
+  }
+  return prisma;
+}
+
+export const getTags = async (_req: Request, res: Response) => {
+  try {
+    const tags = await getPrismaClient().tag.findMany({
+      orderBy: { name: "asc" },
+    });
+    res.json(tags);
+  } catch (error: any) {
+    res.status(500).json({ error: "Failed to fetch tags: " + error.message });
+  }
+};
+
+export const createTag = async (req: Request, res: Response) => {
+  try {
+    const { name } = req.body;
+    const tag = await getPrismaClient().tag.create({ data: { name } });
+    res.status(201).json(tag);
+  } catch (error: any) {
+    res.status(500).json({ error: "Failed to create tag: " + error.message });
+  }
+};
+
+export const updateTag = async (req: Request, res: Response) => {
+  try {
+    const { tagId } = req.params;
+    const { name } = req.body;
+    const tag = await getPrismaClient().tag.update({
+      where: { id: Number(tagId) },
+      data: { name },
+    });
+    res.json(tag);
+  } catch (error: any) {
+    res.status(500).json({ error: "Failed to update tag: " + error.message });
+  }
+};
+
+export const deleteTag = async (req: Request, res: Response) => {
+  try {
+    const { tagId } = req.params;
+    await getPrismaClient().tag.delete({ where: { id: Number(tagId) } });
+    res.status(204).send();
+  } catch (error: any) {
+    res.status(500).json({ error: "Failed to delete tag: " + error.message });
+  }
+};

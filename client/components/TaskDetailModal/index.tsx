@@ -54,7 +54,7 @@ const TaskDetailModal = ({ isOpen, onClose, task }: TaskDetailModalProps) => {
   if (!task) return null;
 
   // Parse tags
-  const taskTagsSplit = task.tags ? task.tags.split(",") : [];
+  const tags = task.taskTags?.map((tt) => tt.tag.name) || [];
 
   // Format dates
   const formattedStartDate = task.startDate
@@ -124,7 +124,7 @@ const TaskDetailModal = ({ isOpen, onClose, task }: TaskDetailModalProps) => {
         </div>
 
         {/* Tags Section */}
-        {taskTagsSplit.length > 0 && (
+        {tags.length > 0 && (
           <div>
             <div className="mb-2 flex items-center gap-2">
               <Tag className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
@@ -133,12 +133,12 @@ const TaskDetailModal = ({ isOpen, onClose, task }: TaskDetailModalProps) => {
               </h3>
             </div>
             <div className="flex flex-wrap gap-2">
-              {taskTagsSplit.map((tag) => (
+              {tags.map((tag) => (
                 <span
                   key={tag}
                   className="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
                 >
-                  {tag.trim()}
+                  {tag}
                 </span>
               ))}
             </div>

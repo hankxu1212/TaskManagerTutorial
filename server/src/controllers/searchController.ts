@@ -20,8 +20,8 @@ export const search = async (req: Request, res: Response): Promise<void> => {
     const tasks = await getPrismaClient().task.findMany({
       where: {
         OR: [
-          { title: { contains: query as string } },
-          { description: { contains: query as string } },
+          { title: { contains: query as string, mode: "insensitive" } },
+          { description: { contains: query as string, mode: "insensitive" } },
         ],
       },
     });
@@ -29,15 +29,15 @@ export const search = async (req: Request, res: Response): Promise<void> => {
     const projects = await getPrismaClient().project.findMany({
       where: {
         OR: [
-          { name: { contains: query as string } },
-          { description: { contains: query as string } },
+          { name: { contains: query as string, mode: "insensitive" } },
+          { description: { contains: query as string, mode: "insensitive" } },
         ],
       },
     });
 
     const users = await getPrismaClient().user.findMany({
       where: {
-        OR: [{ username: { contains: query as string } }],
+        OR: [{ username: { contains: query as string, mode: "insensitive" } }],
       },
     });
     res.json({ tasks, projects, users });

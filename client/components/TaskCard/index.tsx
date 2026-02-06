@@ -1,68 +1,119 @@
 import { Task } from "@/state/api";
 import { format } from "date-fns";
+import { MessageSquareMore } from "lucide-react";
 import Image from "next/image";
-import React from "react";
 
 type Props = {
-    task: Task;
+  task: Task;
+  onClick?: () => void;
+  className?: string;
 };
 
-const TaskCard = ({ task }: Props) => {
-    return (
-        <div className="mb-3 rounded bg-white p-4 shadow dark:bg-dark-secondary dark:text-white">
-            {task.attachments && task.attachments.length > 0 && (
-                <div>
-                    <strong>Attachments:</strong>
-                    <div className="flex flex-wrap">
-                        {task.attachments && task.attachments.length > 0 && (
-                            <Image
-                                src={`https://ninghuax-tm-demo-bucket-us-west-2.s3.us-east-1.amazonaws.com/${task.attachments[0].fileURL}`}
-                                alt={task.attachments[0].fileName}
-                                width={400}
-                                height={200}
-                                className="rounded-md"
-                            />
-                        )}
-                    </div>
+const PriorityTag = ({ priority }: { priority: Task["priority"] }) => (
+  <div
+    className={`rounded-full px-2 py-1 text-xs font-semibold ${
+      priority === "Urgent"
+        ? "bg-red-200 text-red-700"
+        : priority === "High"
+          ? "bg-yellow-200 text-yellow-700"
+          : priority === "Medium"
+            ? "bg-green-200 text-green-700"
+            : priority === "Low"
+              ? "bg-gray-300 text-gray-700"
+              : "bg-gray-200 text-gray-700"
+    }`}
+  >
+    {priority}
+  </div>
+);
+
+const TaskCard = ({ task, onClick, className = "" }: Props) => {
+  const tags = task.taskTags?.map((tt) => tt.tag.name) || [];
+
+  const formattedStartDate = task.startDate
+    ? format(new Date(task.startDate), "P")
+    : "";
+  const formattedDueDate = task.dueDate
+    ? format(new Date(task.dueDate), "P")
+    : "";
+
+  const numberOfComments = (task.comments && task.comments.length) || 0;
+
+  return (
+    <div
+      onClick={onClick}
+      className={`rounded-md bg-white shadow dark:bg-dark-secondary ${
+        onClick ? "cursor-pointer" : ""
+      } ${className}`}
+    >
+      <div className="p-2 md:p-3">
+        <div className="flex items-start justify-between">
+          <div className="flex flex-1 flex-wrap items-center gap-1">
+            {task.priority && <PriorityTag priority={task.priority} />}
+            <div className="flex gap-1">
+              {tags.map((tag) => (
+                <div
+                  key={tag}
+                  className="rounded-full bg-gray-100 px-1.5 py-0.5 text-xs dark:bg-dark-tertiary"
+                >
+                  {tag}
                 </div>
-            )}
-            <p>
-                <strong>ID:</strong> {task.id}
-            </p>
-            <p>
-                <strong>Title:</strong> {task.title}
-            </p>
-            <p>
-                <strong>Description:</strong>{" "}
-                {task.description || "No description provided"}
-            </p>
-            <p>
-                <strong>Status:</strong> {task.status}
-            </p>
-            <p>
-                <strong>Priority:</strong> {task.priority}
-            </p>
-            <p>
-                <strong>Tags:</strong> {task.tags || "No tags"}
-            </p>
-            <p>
-                <strong>Start Date:</strong>{" "}
-                {task.startDate ? format(new Date(task.startDate), "P") : "Not set"}
-            </p>
-            <p>
-                <strong>Due Date:</strong>{" "}
-                {task.dueDate ? format(new Date(task.dueDate), "P") : "Not set"}
-            </p>
-            <p>
-                <strong>Author:</strong>{" "}
-                {task.author ? task.author.username : "Unknown"}
-            </p>
-            <p>
-                <strong>Assignee:</strong>{" "}
-                {task.assignee ? task.assignee.username : "Unassigned"}
-            </p>
+              ))}
+            </div>
+          </div>
         </div>
-    );
+
+        <div className="my-1.5 flex justify-between">
+          <h4 className="text-sm font-bold dark:text-white">{task.title}</h4>
+          {typeof task.points === "number" && (
+            <div className="text-xs font-semibold dark:text-white">
+              {task.points} pts
+            </div>
+          )}
+        </div>
+
+        <div className="text-xs text-gray-500 dark:text-neutral-500">
+          {formattedStartDate && <span>{formattedStartDate} - </span>}
+          {formattedDueDate && <span>{formattedDueDate}</span>}
+        </div>
+        <div className="mt-2 border-t border-gray-200 dark:border-stroke-dark" />
+
+        {/* Users */}
+        <div className="mt-2 flex items-center justify-between">
+          <div className="flex -space-x-1 overflow-hidden">
+            {task.assignee && task.assignee.profilePictureUrl && (
+              <Image
+                key={`assignee-${task.assignee.userId}`}
+                src={`https://ninghuax-tm-demo-bucket-us-west-2.s3.us-east-1.amazonaws.com/${task.assignee.profilePictureUrl}`}
+                alt={task.assignee.username}
+                width={24}
+                height={24}
+                className="h-6 w-6 rounded-full border-2 border-white object-cover dark:border-dark-secondary"
+              />
+            )}
+            {task.author && task.author.profilePictureUrl && (
+              <Image
+                key={`author-${task.author.userId}`}
+                src={`https://ninghuax-tm-demo-bucket-us-west-2.s3.us-east-1.amazonaws.com/${task.author.profilePictureUrl}`}
+                alt={task.author.username}
+                width={24}
+                height={24}
+                className="h-6 w-6 rounded-full border-2 border-white object-cover dark:border-dark-secondary"
+              />
+            )}
+          </div>
+          {numberOfComments > 0 && (
+            <div className="flex items-center text-gray-500 dark:text-neutral-500">
+              <MessageSquareMore size={16} />
+              <span className="ml-1 text-xs dark:text-neutral-400">
+                {numberOfComments}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default TaskCard;

@@ -1,6 +1,6 @@
 import Modal from "@/components/Modal";
-import { Priority, Status, useCreateTaskMutation } from "@/state/api";
-import React, { useState } from "react";
+import { Priority, Status, useCreateTaskMutation, useGetTagsQuery } from "@/state/api";
+import { useState } from "react";
 import { formatISO } from "date-fns";
 
 type Props = {
@@ -11,16 +11,23 @@ type Props = {
 
 const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
     const [createTask, { isLoading }] = useCreateTaskMutation();
+    const { data: availableTags } = useGetTagsQuery();
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [status, setStatus] = useState<Status>(Status.ToDo);
     const [priority, setPriority] = useState<Priority>(Priority.Backlog);
-    const [tags, setTags] = useState("");
+    const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
     const [startDate, setStartDate] = useState("");
     const [dueDate, setDueDate] = useState("");
     const [authorUserId, setAuthorUserId] = useState("");
     const [assignedUserId, setAssignedUserId] = useState("");
     const [projectId, setProjectId] = useState("");
+
+    const toggleTag = (tagId: number) => {
+        setSelectedTagIds((prev) =>
+            prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId],
+        );
+    };
 
     const handleSubmit = async () => {
         if (!title || !authorUserId || !(id !== null || projectId)) return;
@@ -37,12 +44,12 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
             description,
             status,
             priority,
-            tags,
             startDate: formattedStartDate,
             dueDate: formattedDueDate,
             authorUserId: parseInt(authorUserId),
             assignedUserId: parseInt(assignedUserId),
             projectId: id !== null ? Number(id) : Number(projectId),
+            tagIds: selectedTagIds,
         });
 
         onClose();
@@ -51,9 +58,6 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
     const isFormValid = () => {
         return title && authorUserId && (id !== null || projectId);
     };
-
-    const selectStyles =
-        "mb-4 block w-full rounded border border-gray-300 px-3 py-2 dark:border-dark-tertiary dark:bg-dark-tertiary dark:text-white dark:focus:outline-none";
 
     const inputStyles =
         "w-full rounded border border-gray-300 p-2 shadow-sm dark:border-dark-tertiary dark:bg-dark-tertiary dark:text-white dark:focus:outline-none";
@@ -80,42 +84,80 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                 />
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-2">
-                    <select
-                        className={selectStyles}
-                        value={status}
-                        onChange={(e) =>
-                            setStatus(Status[e.target.value as keyof typeof Status])
-                        }
-                    >
-                        <option value="">Select Status</option>
-                        <option value={Status.ToDo}>To Do</option>
-                        <option value={Status.WorkInProgress}>Work In Progress</option>
-                        <option value={Status.UnderReview}>Under Review</option>
-                        <option value={Status.Completed}>Completed</option>
-                    </select>
-                    <select
-                        className={selectStyles}
-                        value={priority}
-                        onChange={(e) =>
-                            setPriority(Priority[e.target.value as keyof typeof Priority])
-                        }
-                    >
-                        <option value="">Select Priority</option>
-                        <option value={Priority.Urgent}>Urgent</option>
-                        <option value={Priority.High}>High</option>
-                        <option value={Priority.Medium}>Medium</option>
-                        <option value={Priority.Low}>Low</option>
-                        <option value={Priority.Backlog}>Backlog</option>
-                    </select>
+                {/* Status */}
+                <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-neutral-300">
+                        Status
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                        {Object.values(Status).map((s) => (
+                            <button
+                                key={s}
+                                type="button"
+                                onClick={() => setStatus(s)}
+                                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                                    status === s
+                                        ? "bg-gray-800 text-white dark:bg-white dark:text-gray-800"
+                                        : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-dark-tertiary dark:text-neutral-300 dark:hover:bg-gray-600"
+                                }`}
+                            >
+                                {s}
+                            </button>
+                        ))}
+                    </div>
                 </div>
-                <input
-                    type="text"
-                    className={inputStyles}
-                    placeholder="Tags (comma separated)"
-                    value={tags}
-                    onChange={(e) => setTags(e.target.value)}
-                />
+
+                {/* Priority */}
+                <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-neutral-300">
+                        Priority
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                        {Object.values(Priority).map((p) => (
+                            <button
+                                key={p}
+                                type="button"
+                                onClick={() => setPriority(p)}
+                                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                                    priority === p
+                                        ? "bg-gray-800 text-white dark:bg-white dark:text-gray-800"
+                                        : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-dark-tertiary dark:text-neutral-300 dark:hover:bg-gray-600"
+                                }`}
+                            >
+                                {p}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Tags */}
+                <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-neutral-300">
+                        Tags
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                        {availableTags?.map((tag) => {
+                            const isSelected = selectedTagIds.includes(tag.id);
+                            return (
+                                <button
+                                    key={tag.id}
+                                    type="button"
+                                    onClick={() => toggleTag(tag.id)}
+                                    className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                                        isSelected
+                                            ? "bg-gray-800 text-white dark:bg-white dark:text-gray-800"
+                                            : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-dark-tertiary dark:text-neutral-300 dark:hover:bg-gray-600"
+                                    }`}
+                                >
+                                    {tag.name}
+                                </button>
+                            );
+                        })}
+                        {(!availableTags || availableTags.length === 0) && (
+                            <p className="text-xs text-gray-400">No tags available</p>
+                        )}
+                    </div>
+                </div>
 
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-2">
                     <input

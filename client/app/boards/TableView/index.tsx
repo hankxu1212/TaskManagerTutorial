@@ -37,11 +37,6 @@ const columns: GridColDef[] = [
     width: 75,
   },
   {
-    field: "tags",
-    headerName: "Tags",
-    width: 130,
-  },
-  {
     field: "startDate",
     headerName: "Start Date",
     width: 130,

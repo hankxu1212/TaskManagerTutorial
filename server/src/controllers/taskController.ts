@@ -28,6 +28,7 @@ export const getTasks = async (_req: Request, res: Response) => {
                     assignee: true,
                     comments: true,
                     attachments: true,
+                    taskTags: { include: { tag: true } },
                 }
             }
         );
@@ -47,13 +48,13 @@ export const createTask = async (
         description,
         status,
         priority,
-        tags,
         startDate,
         dueDate,
         points,
         projectId,
         authorUserId,
         assignedUserId,
+        tagIds,
     } = req.body;
     try {
         const newTask = await getPrismaClient().task.create({
@@ -62,13 +63,20 @@ export const createTask = async (
                 description,
                 status,
                 priority,
-                tags,
                 startDate,
                 dueDate,
                 points,
                 projectId,
                 authorUserId,
                 assignedUserId,
+                ...(tagIds?.length && {
+                    taskTags: {
+                        create: tagIds.map((tagId: number) => ({ tagId })),
+                    },
+                }),
+            },
+            include: {
+                taskTags: { include: { tag: true } },
             },
         });
         res.status(201).json(newTask);

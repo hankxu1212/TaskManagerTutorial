@@ -1,0 +1,130 @@
+"use client";
+
+import { use, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Header from "@/components/Header";
+import {
+  useGetProjectsQuery,
+  useUpdateProjectMutation,
+  useDeleteProjectMutation,
+} from "@/state/api";
+import { ArrowLeft, Trash2 } from "lucide-react";
+import Link from "next/link";
+
+type Props = {
+  params: Promise<{ id: string }>;
+};
+
+const BoardSettings = ({ params }: Props) => {
+  const { id } = use(params);
+  const router = useRouter();
+
+  const { data: projects } = useGetProjectsQuery();
+  const project = projects?.find((p) => p.id === Number(id));
+
+  const [updateProject, { isLoading: isUpdating }] = useUpdateProjectMutation();
+  const [deleteProject, { isLoading: isDeleting }] = useDeleteProjectMutation();
+
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (project) {
+      setName(project.name);
+      setDescription(project.description || "");
+    }
+  }, [project]);
+
+  const handleSave = async () => {
+    if (!name.trim()) return;
+    await updateProject({ projectId: Number(id), name: name.trim(), description: description.trim() || undefined });
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleDelete = async () => {
+    if (!confirm(`Delete "${project?.name}" and all its tasks? This cannot be undone.`)) return;
+    await deleteProject(Number(id));
+    router.push("/");
+  };
+
+  if (!project) return <div className="p-8">Loading...</div>;
+
+  const inputStyles =
+    "w-full rounded border border-gray-300 p-2 shadow-sm dark:border-dark-tertiary dark:bg-dark-tertiary dark:text-white dark:focus:outline-none focus:outline-none focus:border-gray-400";
+
+  return (
+    <div className="p-8">
+      <div className="mb-6">
+        <Link
+          href={`/boards/${id}`}
+          className="mb-4 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+        >
+          <ArrowLeft className="h-4 w-4" /> Back to board
+        </Link>
+        <Header name={`${project.name} — Settings`} />
+      </div>
+
+      <div className="max-w-lg space-y-6">
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-neutral-300">
+            Board Name
+          </label>
+          <input
+            type="text"
+            className={inputStyles}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-neutral-300">
+            Description
+          </label>
+          <textarea
+            className={inputStyles}
+            rows={3}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleSave}
+            disabled={isUpdating || !name.trim()}
+            className={`rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 dark:bg-white dark:text-gray-800 dark:hover:bg-gray-200 ${
+              isUpdating || !name.trim() ? "cursor-not-allowed opacity-50" : ""
+            }`}
+          >
+            {isUpdating ? "Saving..." : "Save Changes"}
+          </button>
+          {saved && (
+            <span className="text-sm text-green-600 dark:text-green-400">Saved!</span>
+          )}
+        </div>
+
+        <div className="border-t border-gray-200 pt-6 dark:border-stroke-dark">
+          <h3 className="mb-2 text-sm font-medium text-red-600 dark:text-red-400">
+            Danger Zone
+          </h3>
+          <p className="mb-3 text-sm text-gray-500 dark:text-neutral-400">
+            Deleting this board will permanently remove all its tasks, comments, and attachments.
+          </p>
+          <button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="flex items-center gap-2 rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950"
+          >
+            <Trash2 className="h-4 w-4" />
+            {isDeleting ? "Deleting..." : "Delete Board"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default BoardSettings;

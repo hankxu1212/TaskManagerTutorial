@@ -5,8 +5,6 @@ export interface Project {
     id: number;
     name: string;
     description?: string;
-    startDate?: string;
-    endDate?: string;
 }
 
 export enum Priority {
@@ -40,13 +38,19 @@ export interface Attachment {
     uploadedById: number;
 }
 
+export interface TaskTag {
+    id: number;
+    taskId: number;
+    tagId: number;
+    tag: Tag;
+}
+
 export interface Task {
     id: number;
     title: string;
     description?: string;
     status?: Status;
     priority?: Priority;
-    tags?: string;
     startDate?: string;
     dueDate?: string;
     points?: number;
@@ -58,12 +62,18 @@ export interface Task {
     assignee?: User;
     comments?: Comment[];
     attachments?: Attachment[];
+    taskTags?: TaskTag[];
 }
 
 export interface SearchResults {
     tasks?: Task[];
     projects?: Project[];
     users?: User[];
+}
+
+export interface Tag {
+    id: number;
+    name: string;
 }
 
 export const api = createApi({
@@ -79,7 +89,7 @@ export const api = createApi({
         },
     }),
     reducerPath: "api",
-    tagTypes: ["Projects", "Tasks", "Users"],
+    tagTypes: ["Projects", "Tasks", "Users", "Tags"],
     endpoints: (build) => ({
         // projects
         getProjects: build.query<Project[], void>({
@@ -92,6 +102,23 @@ export const api = createApi({
                 url: "projects",
                 method: "POST",
                 body: project,
+            }),
+            invalidatesTags: ["Projects"],
+        }),
+
+        deleteProject: build.mutation<void, number>({
+            query: (projectId) => ({
+                url: `projects/${projectId}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: ["Projects"],
+        }),
+
+        updateProject: build.mutation<Project, { projectId: number; name: string; description?: string }>({
+            query: ({ projectId, ...body }) => ({
+                url: `projects/${projectId}`,
+                method: "PATCH",
+                body,
             }),
             invalidatesTags: ["Projects"],
         }),
@@ -113,7 +140,7 @@ export const api = createApi({
                     : [{ type: "Tasks", id: userId }],
         }),
 
-        createTask: build.mutation<Task, Partial<Task>>({
+        createTask: build.mutation<Task, Partial<Task> & { tagIds?: number[] }>({
             query: (task) => ({
                 url: "tasks",
                 method: "POST",
@@ -162,12 +189,46 @@ export const api = createApi({
         search: build.query<SearchResults, string>({
             query: (query) => `search?query=${query}`,
         }),
+
+        // tags
+        getTags: build.query<Tag[], void>({
+            query: () => "tags",
+            providesTags: ["Tags"],
+        }),
+
+        createTag: build.mutation<Tag, { name: string }>({
+            query: (body) => ({
+                url: "tags",
+                method: "POST",
+                body,
+            }),
+            invalidatesTags: ["Tags"],
+        }),
+
+        updateTag: build.mutation<Tag, { tagId: number; name: string }>({
+            query: ({ tagId, ...body }) => ({
+                url: `tags/${tagId}`,
+                method: "PATCH",
+                body,
+            }),
+            invalidatesTags: ["Tags"],
+        }),
+
+        deleteTag: build.mutation<void, number>({
+            query: (tagId) => ({
+                url: `tags/${tagId}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: ["Tags"],
+        }),
     }),
 });
 
 export const {
     useGetProjectsQuery,
     useCreateProjectMutation,
+    useDeleteProjectMutation,
+    useUpdateProjectMutation,
     useGetTasksQuery,
     useCreateTaskMutation,
     useUpdateTaskStatusMutation,
@@ -175,4 +236,8 @@ export const {
     useGetUsersQuery,
     useGetTasksByUserQuery,
     useGetAuthUserQuery,
+    useGetTagsQuery,
+    useCreateTagMutation,
+    useUpdateTagMutation,
+    useDeleteTagMutation,
 } = api;

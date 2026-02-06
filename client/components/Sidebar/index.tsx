@@ -11,18 +11,21 @@ import {
     Home,
     LockIcon,
     LucideIcon,
+    Plus,
     Search,
-    Settings,
+    Tag,
     User,
     X,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React, { useState } from "react";
+import { useState } from "react";
+import ModalNewBoard from "@/app/boards/ModalNewBoard";
 
 const Sidebar = () => {
     const [showBoards, setShowBoards] = useState(true);
+    const [isModalNewBoardOpen, setIsModalNewBoardOpen] = useState(false);
 
     const { data: projects } = useGetProjectsQuery();
     const dispatch = useAppDispatch();
@@ -48,10 +51,14 @@ const Sidebar = () => {
 
     return (
         <div className={sidebarClassNames}>
+            <ModalNewBoard
+                isOpen={isModalNewBoardOpen}
+                onClose={() => setIsModalNewBoardOpen(false)}
+            />
             <div className="flex h-[100%] w-full flex-col justify-start">
                 {/* TOP LOGO */}
-                <div className="z-50 flex min-h-[56px] w-64 items-center justify-between bg-white px-6 pt-3 dark:bg-black">
-                    <div className="text-xl font-bold text-gray-800 dark:text-white">
+                <div className="z-50 flex min-h-[48px] w-64 items-center justify-between bg-white px-6 pt-2 dark:bg-black">
+                    <div className="text-lg font-bold text-gray-800 dark:text-white">
                         EDLIST
                     </div>
                     {isSidebarCollapsed ? null : (
@@ -66,7 +73,7 @@ const Sidebar = () => {
                     )}
                 </div>
                 {/* WORKSPACE */}
-                <div className="flex items-center gap-5 border-y-[1.5px] border-gray-200 px-8 py-4 dark:border-gray-700">
+                <div className="flex items-center gap-4 border-y-[1.5px] border-gray-200 px-6 py-2.5 dark:border-gray-700">
                     <Image
                         src="https://ninghuax-tm-demo-bucket-us-west-2.s3.us-east-1.amazonaws.com/logo.png"
                         alt="Logo"
@@ -87,21 +94,33 @@ const Sidebar = () => {
                 <nav className="z-10 w-full">
                     <SidebarLink icon={Home} label="Home" href="/" />
                     <SidebarLink icon={Search} label="Search" href="/search" />
-                    <SidebarLink icon={Settings} label="Settings" href="/settings" />
-                    <SidebarLink icon={User} label="Users" href="/users" />
+                    <SidebarLink icon={Tag} label="Tags" href="/tags" />
+                    <SidebarLink icon={User} label="Team" href="/users" />
                 </nav>
 
-                {/* BOARDS LINKS */}
+                {/* BOARDS HEADER */}
                 <button
                     onClick={() => setShowBoards((prev) => !prev)}
-                    className="flex w-full items-center justify-between px-8 py-3 text-gray-500"
+                    className="flex w-full items-center justify-between px-6 py-2 text-gray-500"
                 >
-                    <span className="">Boards</span>
-                    {showBoards ? (
-                        <ChevronUp className="h-5 w-5" />
-                    ) : (
-                        <ChevronDown className="h-5 w-5" />
-                    )}
+                    <span>Boards</span>
+                    <div className="flex items-center gap-1">
+                        <span
+                            role="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsModalNewBoardOpen(true);
+                            }}
+                            className="rounded p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        >
+                            <Plus className="h-4 w-4" />
+                        </span>
+                        {showBoards ? (
+                            <ChevronUp className="h-5 w-5" />
+                        ) : (
+                            <ChevronDown className="h-5 w-5" />
+                        )}
+                    </div>
                 </button>
                 {/* BOARDS LIST */}
                 {showBoards &&
@@ -160,14 +179,14 @@ const SidebarLink = ({ href, icon: Icon, label }: SidebarLinkProps) => {
             <div
                 className={`relative flex cursor-pointer items-center gap-3 transition-colors hover:bg-gray-100 dark:bg-black dark:hover:bg-gray-700 ${
                     isActive ? "bg-gray-100 text-white dark:bg-gray-600" : ""
-                } justify-start px-8 py-3`}
+                } justify-start px-6 py-2`}
             >
                 {isActive && (
-                    <div className="absolute left-0 top-0 h-[100%] w-[5px] bg-gray-800 dark:bg-white" />
+                    <div className="absolute left-0 top-0 h-[100%] w-[3px] bg-gray-800 dark:bg-white" />
                 )}
 
-                <Icon className="h-6 w-6 text-gray-800 dark:text-gray-100" />
-                <span className={`font-medium text-gray-800 dark:text-gray-100`}>
+                <Icon className="h-5 w-5 text-gray-800 dark:text-gray-100" />
+                <span className={`text-sm font-medium text-gray-800 dark:text-gray-100`}>
           {label}
         </span>
             </div>

@@ -1,7 +1,6 @@
 import Modal from "@/components/Modal";
 import { useCreateProjectMutation } from "@/state/api";
-import React, { useState } from "react";
-import { formatISO } from "date-fns";
+import { useState } from "react";
 
 type Props = {
   isOpen: boolean;
@@ -12,29 +11,10 @@ const ModalNewBoard = ({ isOpen, onClose }: Props) => {
   const [createProject, { isLoading }] = useCreateProjectMutation();
   const [boardName, setBoardName] = useState("");
   const [description, setDescription] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
 
   const handleSubmit = async () => {
-    if (!boardName || !startDate || !endDate) return;
-
-    const formattedStartDate = formatISO(new Date(startDate), {
-      representation: "complete",
-    });
-    const formattedEndDate = formatISO(new Date(endDate), {
-      representation: "complete",
-    });
-
-    await createProject({
-      name: boardName,
-      description,
-      startDate: formattedStartDate,
-      endDate: formattedEndDate,
-    });
-  };
-
-  const isFormValid = () => {
-    return boardName && description && startDate && endDate;
+    if (!boardName) return;
+    await createProject({ name: boardName, description });
   };
 
   const inputStyles =
@@ -62,26 +42,12 @@ const ModalNewBoard = ({ isOpen, onClose }: Props) => {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-2">
-          <input
-            type="date"
-            className={inputStyles}
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-          <input
-            type="date"
-            className={inputStyles}
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-        </div>
         <button
           type="submit"
           className={`focus-offset-2 mt-4 flex w-full justify-center rounded-md border border-transparent bg-gray-800 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600 dark:bg-white dark:text-gray-800 dark:hover:bg-gray-200 ${
-            !isFormValid() || isLoading ? "cursor-not-allowed opacity-50" : ""
+            !boardName || isLoading ? "cursor-not-allowed opacity-50" : ""
           }`}
-          disabled={!isFormValid() || isLoading}
+          disabled={!boardName || isLoading}
         >
           {isLoading ? "Creating..." : "Create Board"}
         </button>

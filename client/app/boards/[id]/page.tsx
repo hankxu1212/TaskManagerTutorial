@@ -30,6 +30,7 @@ const BoardPage = ({ params }: Props) => {
                 activeTab={activeTab} 
                 setActiveTab={setActiveTab} 
                 boardName={project?.name || "Board"}
+                boardId={id}
             />
             {activeTab === "Board" && (
                 <Board id={id} setIsModalNewTaskOpen={setIsModalNewTaskOpen} />
