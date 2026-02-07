@@ -19,6 +19,7 @@ type Props = {
   activeTab: string;
   setActiveTab: (tabName: string) => void;
   boardName: string;
+  boardDescription?: string;
   boardId: string;
   filterState: FilterState;
   onFilterChange: (newState: FilterState) => void;
@@ -34,6 +35,7 @@ const BoardHeader = ({
   activeTab,
   setActiveTab,
   boardName,
+  boardDescription,
   boardId,
   filterState,
   onFilterChange,
@@ -47,6 +49,7 @@ const BoardHeader = ({
       <div className="pb-6 pt-6 lg:pb-4 lg:pt-8">
         <Header
           name={boardName}
+          description={boardDescription}
           buttonComponent={
             <Link
               href={`/boards/${boardId}/settings`}

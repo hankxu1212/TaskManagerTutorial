@@ -70,6 +70,7 @@ Thumbs.db
 .kiro/
 
 # -----------------------------
-# PRISMA MIGRATIONS (dev only)
+# PRISMA
 # -----------------------------
 server/prisma/migrations/
+server/prisma/generated/

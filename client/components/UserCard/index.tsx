@@ -1,6 +1,7 @@
 import { User } from "@/state/api";
 import { User as UserIcon, Mail } from "lucide-react";
 import S3Image from "@/components/S3Image";
+import Link from "next/link";
 
 type Props = {
   user: User;
@@ -8,32 +9,34 @@ type Props = {
 
 const UserCard = ({ user }: Props) => {
   return (
-    <div className="flex items-center gap-4 rounded-lg bg-white p-4 shadow transition-shadow hover:shadow-md dark:bg-dark-secondary">
-      {user.userId && user.profilePictureExt ? (
-        <S3Image
-          s3Key={`users/${user.userId}/profile.${user.profilePictureExt}`}
-          alt={user.username}
-          width={48}
-          height={48}
-          className="h-12 w-12 rounded-full object-cover"
-        />
-      ) : (
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-dark-tertiary">
-          <UserIcon className="h-6 w-6 text-gray-500 dark:text-neutral-400" />
-        </div>
-      )}
-      <div className="min-w-0 flex-1">
-        <h3 className="font-semibold text-gray-900 dark:text-white">
-          {user.username}
-        </h3>
-        {user.email && (
-          <div className="mt-1 flex items-center gap-1.5 text-sm text-gray-500 dark:text-neutral-400">
-            <Mail className="h-3.5 w-3.5" />
-            <span className="truncate">{user.email}</span>
+    <Link href={`/users/${user.userId}`}>
+      <div className="flex items-center gap-4 rounded-lg bg-white p-4 shadow transition-shadow hover:shadow-md dark:bg-dark-secondary">
+        {user.userId && user.profilePictureExt ? (
+          <S3Image
+            s3Key={`users/${user.userId}/profile.${user.profilePictureExt}`}
+            alt={user.username}
+            width={48}
+            height={48}
+            className="h-12 w-12 rounded-full object-cover"
+          />
+        ) : (
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-dark-tertiary">
+            <UserIcon className="h-6 w-6 text-gray-500 dark:text-neutral-400" />
           </div>
         )}
+        <div className="min-w-0 flex-1">
+          <h3 className="font-semibold text-gray-900 dark:text-white">
+            {user.username}
+          </h3>
+          {user.email && (
+            <div className="mt-1 flex items-center gap-1.5 text-sm text-gray-500 dark:text-neutral-400">
+              <Mail className="h-3.5 w-3.5" />
+              <span className="truncate">{user.email}</span>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </Link>
   );
 };
 

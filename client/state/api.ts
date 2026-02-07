@@ -210,6 +210,11 @@ export const api = createApi({
             providesTags: ["Users"],
         }),
 
+        getUserById: build.query<User, number>({
+            query: (userId) => `users/id/${userId}`,
+            providesTags: (result, error, userId) => [{ type: "Users", id: userId }],
+        }),
+
         getAuthUser: build.query({
             queryFn: async (_, _queryApi, _extraoptions, fetchWithBQ) => {
                 try {
@@ -303,6 +308,7 @@ export const {
     useUpdateTaskMutation,
     useSearchQuery,
     useGetUsersQuery,
+    useGetUserByIdQuery,
     useGetTasksByUserQuery,
     useGetAuthUserQuery,
     useGetTagsQuery,

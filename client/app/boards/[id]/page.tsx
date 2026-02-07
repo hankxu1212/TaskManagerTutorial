@@ -36,6 +36,7 @@ const BoardPage = ({ params }: Props) => {
                 activeTab={activeTab} 
                 setActiveTab={setActiveTab} 
                 boardName={project?.name || "Board"}
+                boardDescription={project?.description}
                 boardId={id}
                 filterState={filterState}
                 onFilterChange={handleFilterChange}
