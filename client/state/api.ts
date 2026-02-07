@@ -106,6 +106,7 @@ export interface SearchResults {
     tasks?: Task[];
     projects?: Project[];
     users?: User[];
+    sprints?: Sprint[];
 }
 
 export interface Tag {

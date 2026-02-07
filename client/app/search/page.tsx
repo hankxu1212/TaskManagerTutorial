@@ -8,7 +8,8 @@ import TaskCard from "@/components/TaskCard";
 import { Task, useSearchQuery } from "@/state/api";
 import { debounce } from "lodash";
 import { useEffect, useState } from "react";
-import { Search as SearchIcon } from "lucide-react";
+import { Search as SearchIcon, Calendar, Zap } from "lucide-react";
+import Link from "next/link";
 
 const Search = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -48,9 +49,19 @@ const Search = () => {
     searchResults &&
     ((searchResults.tasks && searchResults.tasks.length > 0) ||
       (searchResults.projects && searchResults.projects.length > 0) ||
-      (searchResults.users && searchResults.users.length > 0));
+      (searchResults.users && searchResults.users.length > 0) ||
+      (searchResults.sprints && searchResults.sprints.length > 0));
 
   const noResults = searchTerm.length >= 3 && !isLoading && !hasResults;
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return null;
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
 
   return (
     <div className="p-8">
@@ -61,7 +72,7 @@ const Search = () => {
         <SearchIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
         <input
           type="text"
-          placeholder="Search tasks, projects, or users..."
+          placeholder="Search tasks, boards, users, or sprints..."
           className="w-full rounded-lg border border-gray-300 bg-white py-3 pl-10 pr-4 shadow-sm transition-colors focus:border-gray-400 focus:outline-none dark:border-dark-tertiary dark:bg-dark-secondary dark:text-white dark:placeholder-neutral-400"
           onChange={handleSearch}
         />
@@ -114,6 +125,42 @@ const Search = () => {
             </section>
           )}
 
+          {/* Sprints Section */}
+          {searchResults.sprints && searchResults.sprints.length > 0 && (
+            <section>
+              <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+                Sprints ({searchResults.sprints.length})
+              </h2>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {searchResults.sprints.map((sprint) => (
+                  <Link
+                    key={sprint.id}
+                    href={`/sprints/${sprint.id}`}
+                    className="rounded-md bg-white p-4 shadow transition-all hover:outline hover:outline-2 hover:outline-gray-300 dark:bg-dark-secondary dark:hover:outline-gray-600"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Zap className="h-5 w-5 text-purple-500" />
+                      <h3 className="font-medium text-gray-900 dark:text-white">
+                        {sprint.title}
+                      </h3>
+                    </div>
+                    <div className="mt-2 flex items-center gap-4 text-sm text-gray-500 dark:text-neutral-400">
+                      {sprint._count && (
+                        <span>{sprint._count.sprintTasks} tasks</span>
+                      )}
+                      {sprint.startDate && (
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3.5 w-3.5" />
+                          <span>{formatDate(sprint.startDate)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* Projects Section */}
           {searchResults.projects && searchResults.projects.length > 0 && (
             <section>
@@ -149,6 +196,7 @@ const Search = () => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         task={selectedTask}
+        tasks={searchResults?.tasks}
       />
     </div>
   );

@@ -35,6 +35,17 @@ export const search = async (req: Request, res: Response): Promise<void> => {
           { description: { contains: query as string, mode: "insensitive" } },
         ],
       },
+      include: {
+        author: true,
+        assignee: true,
+        comments: true,
+        attachments: true,
+        taskTags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
     });
 
     const projects = await getPrismaClient().project.findMany({
@@ -51,6 +62,17 @@ export const search = async (req: Request, res: Response): Promise<void> => {
         OR: [{ username: { contains: query as string, mode: "insensitive" } }],
       },
     });
+
+    const sprints = await getPrismaClient().sprint.findMany({
+      where: {
+        title: { contains: query as string, mode: "insensitive" },
+      },
+      include: {
+        _count: {
+          select: { sprintTasks: true },
+        },
+      },
+    });
     
     // Map integer status to string for frontend
     const tasksWithStringStatus = tasks.map(task => ({
@@ -58,7 +80,7 @@ export const search = async (req: Request, res: Response): Promise<void> => {
         status: statusIntToString(task.status),
     }));
     
-    res.json({ tasks: tasksWithStringStatus, projects, users });
+    res.json({ tasks: tasksWithStringStatus, projects, users, sprints });
   } catch (error: any) {
     res
       .status(500)
