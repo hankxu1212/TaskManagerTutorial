@@ -111,6 +111,7 @@ export const createTask = async (
         authorUserId,
         assignedUserId,
         tagIds,
+        sprintIds,
     } = req.body;
     try {
         const newTask = await getPrismaClient().task.create({
@@ -130,9 +131,21 @@ export const createTask = async (
                         create: tagIds.map((tagId: number) => ({ tagId })),
                     },
                 }),
+                ...(sprintIds?.length && {
+                    sprintTasks: {
+                        create: sprintIds.map((sprintId: number) => ({ sprintId })),
+                    },
+                }),
             },
             include: {
                 taskTags: { include: { tag: true } },
+                sprintTasks: {
+                    include: {
+                        sprint: {
+                            select: { id: true, title: true },
+                        },
+                    },
+                },
             },
         });
         
@@ -140,6 +153,7 @@ export const createTask = async (
         const taskWithStringStatus = {
             ...newTask,
             status: statusIntToString(newTask.status),
+            sprints: newTask.sprintTasks?.map(st => st.sprint),
         };
         
         res.status(201).json(taskWithStringStatus);
@@ -181,7 +195,7 @@ export const updateTask = async (
     res: Response
 ): Promise<void> => {
     const { taskId } = req.params;
-    const { title, description, status, priority, startDate, dueDate, points, assignedUserId, tagIds, subtaskIds } = req.body;
+    const { title, description, status, priority, startDate, dueDate, points, assignedUserId, tagIds, subtaskIds, projectId, sprintIds } = req.body;
     try {
         const data: Record<string, any> = {};
         if (title !== undefined) data.title = title;
@@ -192,6 +206,7 @@ export const updateTask = async (
         if (dueDate !== undefined) data.dueDate = dueDate ? new Date(dueDate) : null;
         if (points !== undefined) data.points = points !== null && points !== "" ? Number(points) : null;
         if (assignedUserId !== undefined) data.assignedUserId = assignedUserId ? Number(assignedUserId) : null;
+        if (projectId !== undefined) data.projectId = projectId ? Number(projectId) : null;
 
         // Handle tag updates: delete existing and create new associations
         if (tagIds !== undefined) {
@@ -203,6 +218,21 @@ export const updateTask = async (
                     data: tagIds.map((tagId: number) => ({
                         taskId: Number(taskId),
                         tagId,
+                    })),
+                });
+            }
+        }
+
+        // Handle sprint updates: delete existing and create new associations
+        if (sprintIds !== undefined) {
+            await getPrismaClient().sprintTask.deleteMany({
+                where: { taskId: Number(taskId) },
+            });
+            if (sprintIds.length > 0) {
+                await getPrismaClient().sprintTask.createMany({
+                    data: sprintIds.map((sprintId: number) => ({
+                        taskId: Number(taskId),
+                        sprintId,
                     })),
                 });
             }

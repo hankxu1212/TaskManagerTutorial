@@ -1,20 +1,22 @@
 import Modal from "@/components/Modal";
-import { Priority, Status, useCreateTaskMutation, useGetTagsQuery, useGetUsersQuery, useGetProjectsQuery, useGetAuthUserQuery, User, Project } from "@/state/api";
+import { Priority, Status, useCreateTaskMutation, useGetTagsQuery, useGetUsersQuery, useGetProjectsQuery, useGetAuthUserQuery, useGetSprintsQuery, User, Project, Sprint } from "@/state/api";
 import { useState, useEffect, useRef } from "react";
 import { formatISO, format } from "date-fns";
-import { X, ChevronDown } from "lucide-react";
+import { X, ChevronDown, Zap } from "lucide-react";
 
 type Props = {
     isOpen: boolean;
     onClose: () => void;
-    id?: string | null;
+    projectId?: number | null;
+    sprintId?: number | null;
 };
 
-const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
+const ModalNewTask = ({ isOpen, onClose, projectId = null, sprintId = null }: Props) => {
     const [createTask, { isLoading }] = useCreateTaskMutation();
     const { data: availableTags } = useGetTagsQuery();
     const { data: users = [] } = useGetUsersQuery();
     const { data: projects = [] } = useGetProjectsQuery();
+    const { data: sprints = [] } = useGetSprintsQuery();
     const { data: authData } = useGetAuthUserQuery({});
     
     const [title, setTitle] = useState("");
@@ -22,6 +24,7 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
     const [status, setStatus] = useState<Status>(Status.InputQueue);
     const [priority, setPriority] = useState<Priority>(Priority.Backlog);
     const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
+    const [selectedSprintIds, setSelectedSprintIds] = useState<number[]>([]);
     const [startDate, setStartDate] = useState("");
     const [dueDate, setDueDate] = useState("");
     const [selectedAssignees, setSelectedAssignees] = useState<User[]>([]);
@@ -30,11 +33,15 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [projectSearch, setProjectSearch] = useState("");
     const [showProjectDropdown, setShowProjectDropdown] = useState(false);
+    const [selectedSprints, setSelectedSprints] = useState<Sprint[]>([]);
+    const [sprintSearch, setSprintSearch] = useState("");
+    const [showSprintDropdown, setShowSprintDropdown] = useState(false);
     
     const assigneeInputRef = useRef<HTMLInputElement>(null);
     const projectInputRef = useRef<HTMLInputElement>(null);
     const assigneeDropdownRef = useRef<HTMLDivElement>(null);
     const projectDropdownRef = useRef<HTMLDivElement>(null);
+    const sprintDropdownRef = useRef<HTMLDivElement>(null);
 
     // Set defaults when modal opens
     useEffect(() => {
@@ -51,10 +58,37 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
             setDueDate("");
             setSelectedAssignees([]);
             setAssigneeSearch("");
-            setSelectedProject(null);
             setProjectSearch("");
+            setSprintSearch("");
+            
+            // Pre-fill project if projectId is provided
+            if (projectId && projects.length > 0) {
+                const project = projects.find(p => p.id === projectId);
+                if (project) {
+                    setSelectedProject(project);
+                } else {
+                    setSelectedProject(null);
+                }
+            } else {
+                setSelectedProject(null);
+            }
+            
+            // Pre-fill sprint if sprintId is provided
+            if (sprintId && sprints.length > 0) {
+                const sprint = sprints.find(s => s.id === sprintId);
+                if (sprint) {
+                    setSelectedSprints([sprint]);
+                    setSelectedSprintIds([sprint.id]);
+                } else {
+                    setSelectedSprints([]);
+                    setSelectedSprintIds([]);
+                }
+            } else {
+                setSelectedSprints([]);
+                setSelectedSprintIds([]);
+            }
         }
-    }, [isOpen]);
+    }, [isOpen, projectId, sprintId, projects, sprints]);
 
     // Close dropdowns when clicking outside
     useEffect(() => {
@@ -64,6 +98,9 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
             }
             if (projectDropdownRef.current && !projectDropdownRef.current.contains(event.target as Node)) {
                 setShowProjectDropdown(false);
+            }
+            if (sprintDropdownRef.current && !sprintDropdownRef.current.contains(event.target as Node)) {
+                setShowSprintDropdown(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
@@ -89,6 +126,13 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
         return project.name.toLowerCase().includes(searchLower);
     });
 
+    const filteredSprints = sprints.filter(sprint => {
+        const searchLower = sprintSearch.toLowerCase();
+        const matchesSearch = sprint.title.toLowerCase().includes(searchLower);
+        const notAlreadySelected = !selectedSprints.some(s => s.id === sprint.id);
+        return matchesSearch && notAlreadySelected;
+    });
+
     const addAssignee = (user: User) => {
         setSelectedAssignees(prev => [...prev, user]);
         setAssigneeSearch("");
@@ -105,11 +149,23 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
         setShowProjectDropdown(false);
     };
 
+    const addSprint = (sprint: Sprint) => {
+        setSelectedSprints(prev => [...prev, sprint]);
+        setSelectedSprintIds(prev => [...prev, sprint.id]);
+        setSprintSearch("");
+        setShowSprintDropdown(false);
+    };
+
+    const removeSprint = (sprintId: number) => {
+        setSelectedSprints(prev => prev.filter(s => s.id !== sprintId));
+        setSelectedSprintIds(prev => prev.filter(id => id !== sprintId));
+    };
+
     const handleSubmit = async () => {
         const authorUserId = authData?.userDetails?.userId;
-        const projectId = id !== null ? Number(id) : selectedProject?.id;
+        const finalProjectId = selectedProject?.id;
         
-        if (!title || !authorUserId || !projectId) return;
+        if (!title || !authorUserId || !finalProjectId) return;
 
         const formattedStartDate = startDate ? formatISO(new Date(startDate), {
             representation: "complete",
@@ -127,8 +183,9 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
             dueDate: formattedDueDate,
             authorUserId,
             assignedUserId: selectedAssignees[0]?.userId, // Primary assignee
-            projectId,
+            projectId: finalProjectId,
             tagIds: selectedTagIds,
+            sprintIds: selectedSprintIds,
         });
 
         onClose();
@@ -136,8 +193,7 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
 
     const isFormValid = () => {
         const authorUserId = authData?.userDetails?.userId;
-        const projectId = id !== null ? Number(id) : selectedProject?.id;
-        return title && authorUserId && projectId;
+        return title && authorUserId && selectedProject;
     };
 
     const inputStyles =
@@ -241,6 +297,67 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
                     </div>
                 </div>
 
+                {/* Sprints */}
+                <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-neutral-300">
+                        <span className="flex items-center gap-1.5">
+                            <Zap size={14} />
+                            Sprints
+                        </span>
+                    </label>
+                    <div className="relative" ref={sprintDropdownRef}>
+                        <div className={`${inputStyles} flex flex-wrap gap-2 min-h-[42px] items-center`}>
+                            {selectedSprints.map((sprint) => (
+                                <span
+                                    key={sprint.id}
+                                    className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-1 text-xs font-medium text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
+                                >
+                                    {sprint.title}
+                                    <button
+                                        type="button"
+                                        onClick={() => removeSprint(sprint.id)}
+                                        className="ml-0.5 hover:text-purple-600 dark:hover:text-purple-200"
+                                    >
+                                        <X size={12} />
+                                    </button>
+                                </span>
+                            ))}
+                            <input
+                                type="text"
+                                className="flex-1 min-w-[120px] border-none bg-transparent p-0 text-sm focus:outline-none focus:ring-0 dark:text-white"
+                                placeholder={selectedSprints.length === 0 ? "Search sprints..." : "Add more..."}
+                                value={sprintSearch}
+                                onChange={(e) => {
+                                    setSprintSearch(e.target.value);
+                                    setShowSprintDropdown(true);
+                                }}
+                                onFocus={() => setShowSprintDropdown(true)}
+                            />
+                        </div>
+                        {showSprintDropdown && (
+                            <div className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg dark:border-dark-tertiary dark:bg-dark-secondary">
+                                {filteredSprints.length > 0 ? (
+                                    filteredSprints.slice(0, 8).map((sprint) => (
+                                        <button
+                                            key={sprint.id}
+                                            type="button"
+                                            onClick={() => addSprint(sprint)}
+                                            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-dark-tertiary"
+                                        >
+                                            <Zap size={14} className="text-purple-500" />
+                                            <span className="font-medium text-gray-900 dark:text-white">{sprint.title}</span>
+                                        </button>
+                                    ))
+                                ) : (
+                                    <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
+                                        {sprints.length === 0 ? "No sprints available" : "No matching sprints"}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
                 {/* Dates */}
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-2">
                     <div>
@@ -338,78 +455,76 @@ const ModalNewTask = ({ isOpen, onClose, id = null }: Props) => {
                     </div>
                 </div>
 
-                {/* Project selection (only if not passed via id prop) */}
-                {id === null && (
-                    <div>
-                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-neutral-300">
-                            Project
-                        </label>
-                        <div className="relative" ref={projectDropdownRef}>
-                            {selectedProject ? (
-                                <div className={`${inputStyles} flex items-center justify-between`}>
-                                    <span>{selectedProject.name}</span>
-                                    <button
-                                        type="button"
-                                        onClick={() => setSelectedProject(null)}
-                                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-                                    >
-                                        <X size={16} />
-                                    </button>
+                {/* Project selection */}
+                <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-neutral-300">
+                        Project
+                    </label>
+                    <div className="relative" ref={projectDropdownRef}>
+                        {selectedProject ? (
+                            <div className={`${inputStyles} flex items-center justify-between`}>
+                                <span>{selectedProject.name}</span>
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedProject(null)}
+                                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                                >
+                                    <X size={16} />
+                                </button>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="relative">
+                                    <input
+                                        ref={projectInputRef}
+                                        type="text"
+                                        className={inputStyles}
+                                        placeholder="Search projects..."
+                                        value={projectSearch}
+                                        onChange={(e) => {
+                                            setProjectSearch(e.target.value);
+                                            setShowProjectDropdown(true);
+                                        }}
+                                        onFocus={() => setShowProjectDropdown(true)}
+                                    />
+                                    <ChevronDown
+                                        size={16}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                                    />
                                 </div>
-                            ) : (
-                                <>
-                                    <div className="relative">
-                                        <input
-                                            ref={projectInputRef}
-                                            type="text"
-                                            className={inputStyles}
-                                            placeholder="Search projects..."
-                                            value={projectSearch}
-                                            onChange={(e) => {
-                                                setProjectSearch(e.target.value);
-                                                setShowProjectDropdown(true);
-                                            }}
-                                            onFocus={() => setShowProjectDropdown(true)}
-                                        />
-                                        <ChevronDown
-                                            size={16}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-                                        />
-                                    </div>
-                                    {showProjectDropdown && (
-                                        <div
-                                            className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg dark:border-dark-tertiary dark:bg-dark-secondary"
-                                        >
-                                            {filteredProjects.length > 0 ? (
-                                                filteredProjects.map((project) => (
-                                                    <button
-                                                        key={project.id}
-                                                        type="button"
-                                                        onClick={() => selectProject(project)}
-                                                        className="flex w-full flex-col px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-dark-tertiary"
-                                                    >
-                                                        <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                                            {project.name}
+                                {showProjectDropdown && (
+                                    <div
+                                        className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg dark:border-dark-tertiary dark:bg-dark-secondary"
+                                    >
+                                        {filteredProjects.length > 0 ? (
+                                            filteredProjects.map((project) => (
+                                                <button
+                                                    key={project.id}
+                                                    type="button"
+                                                    onClick={() => selectProject(project)}
+                                                    className="flex w-full flex-col px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-dark-tertiary"
+                                                >
+                                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                                        {project.name}
+                                                    </span>
+                                                    {project.description && (
+                                                        <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                                            {project.description}
                                                         </span>
-                                                        {project.description && (
-                                                            <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                                                {project.description}
-                                                            </span>
-                                                        )}
-                                                    </button>
-                                                ))
-                                            ) : (
-                                                <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
-                                                    No projects found
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </>
-                            )}
-                        </div>
+                                                    )}
+                                                </button>
+                                            ))
+                                        ) : (
+                                            <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
+                                                No projects found
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </>
+                        )}
                     </div>
-                )}
+                </div>
 
                 <button
                     type="submit"

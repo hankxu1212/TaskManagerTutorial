@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar, Copy, Filter, Settings, Table } from "lucide-react";
+import { Calendar, Copy, Filter, Settings, Table, X } from "lucide-react";
 import { BiColumns } from "react-icons/bi";
 import { MdTimeline } from "react-icons/md";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FilterState } from "@/lib/filterTypes";
-import { Tag, useDuplicateSprintMutation } from "@/state/api";
+import { FilterState, DueDateOption } from "@/lib/filterTypes";
+import { Tag, Priority, useDuplicateSprintMutation } from "@/state/api";
 import FilterDropdown from "@/components/FilterDropdown";
 import ConfirmationMenu from "@/components/ConfirmationMenu";
 
@@ -50,6 +50,39 @@ const SprintHeader = ({
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false);
   const [duplicateSprint, { isLoading: isDuplicating }] = useDuplicateSprintMutation();
+
+  // Due date option labels
+  const dueDateLabels: Record<DueDateOption, string> = {
+    overdue: "Overdue",
+    dueToday: "Due Today",
+    dueThisWeek: "Due This Week",
+    dueThisMonth: "Due This Month",
+    noDueDate: "No Due Date",
+  };
+
+  // Remove a tag filter
+  const removeTagFilter = (tagId: number) => {
+    onFilterChange({
+      ...filterState,
+      selectedTagIds: filterState.selectedTagIds.filter((id) => id !== tagId),
+    });
+  };
+
+  // Remove a priority filter
+  const removePriorityFilter = (priority: Priority) => {
+    onFilterChange({
+      ...filterState,
+      selectedPriorities: filterState.selectedPriorities.filter((p) => p !== priority),
+    });
+  };
+
+  // Remove a due date filter
+  const removeDueDateFilter = (option: DueDateOption) => {
+    onFilterChange({
+      ...filterState,
+      selectedDueDateOptions: filterState.selectedDueDateOptions.filter((o) => o !== option),
+    });
+  };
 
   const handleDuplicate = async () => {
     try {
@@ -131,8 +164,8 @@ const SprintHeader = ({
       </div>
 
       {/* TABS - Validates: Requirement 5.3 */}
-      <div className="flex flex-wrap-reverse gap-2 border-y border-gray-200 pb-[8px] pt-2 dark:border-stroke-dark md:items-center">
-        <div className="flex flex-1 items-center gap-2 md:gap-4">
+      <div className="flex flex-wrap gap-2 border-y border-gray-200 pb-[8px] pt-2 dark:border-stroke-dark">
+        <div className="flex flex-1 items-end self-end gap-2 md:gap-4">
           <TabButton
             name="Board"
             icon={<BiColumns className="h-5 w-5" />}
@@ -153,6 +186,70 @@ const SprintHeader = ({
           />
         </div>
         <div className="flex items-center gap-2">
+          {/* Active filter pills */}
+          <div className="flex flex-wrap items-center gap-1.5 max-w-xs">
+            {filterState.selectedTagIds.map((tagId) => {
+              const tag = tags.find((t) => t.id === tagId);
+              if (!tag) return null;
+              return (
+                <span
+                  key={`tag-${tagId}`}
+                  className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium text-white"
+                  style={{ backgroundColor: tag.color || '#3b82f6' }}
+                >
+                  {tag.name}
+                  <button
+                    onClick={() => removeTagFilter(tagId)}
+                    className="ml-0.5 hover:opacity-70"
+                    aria-label={`Remove ${tag.name} filter`}
+                  >
+                    <X size={12} />
+                  </button>
+                </span>
+              );
+            })}
+            {filterState.selectedPriorities.map((priority) => {
+              const priorityColors: Record<Priority, string> = {
+                [Priority.Urgent]: "#dc2626",
+                [Priority.High]: "#ca8a04",
+                [Priority.Medium]: "#16a34a",
+                [Priority.Low]: "#2563eb",
+                [Priority.Backlog]: "#6b7280",
+              };
+              return (
+                <span
+                  key={`priority-${priority}`}
+                  className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium text-white"
+                  style={{ backgroundColor: priorityColors[priority] }}
+                >
+                  {priority}
+                  <button
+                    onClick={() => removePriorityFilter(priority)}
+                    className="ml-0.5 hover:opacity-70"
+                    aria-label={`Remove ${priority} filter`}
+                  >
+                    <X size={12} />
+                  </button>
+                </span>
+              );
+            })}
+            {filterState.selectedDueDateOptions.map((option) => (
+              <span
+                key={`duedate-${option}`}
+                className="inline-flex items-center gap-1 rounded-full bg-gray-600 px-2.5 py-1 text-xs font-medium text-white"
+              >
+                {dueDateLabels[option]}
+                <button
+                  onClick={() => removeDueDateFilter(option)}
+                  className="ml-0.5 hover:opacity-70"
+                  aria-label={`Remove ${dueDateLabels[option]} filter`}
+                >
+                  <X size={12} />
+                </button>
+              </span>
+            ))}
+          </div>
+          
           {/* Filter button with dropdown - Validates: Requirements 9.1, 9.3 */}
           <div className="relative">
             <button

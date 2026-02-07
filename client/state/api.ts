@@ -192,13 +192,13 @@ export const api = createApi({
                     : [{ type: "Tasks", id: userId }],
         }),
 
-        createTask: build.mutation<Task, Partial<Task> & { tagIds?: number[] }>({
+        createTask: build.mutation<Task, Partial<Task> & { tagIds?: number[]; sprintIds?: number[] }>({
             query: (task) => ({
                 url: "tasks",
                 method: "POST",
                 body: task,
             }),
-            invalidatesTags: ["Tasks"],
+            invalidatesTags: ["Tasks", "Sprints"],
         }),
 
         updateTaskStatus: build.mutation<Task, { taskId: number; status: string }>({
@@ -214,7 +214,7 @@ export const api = createApi({
             ],
         }),
 
-        updateTask: build.mutation<Task, Partial<Task> & { id: number; tagIds?: number[]; subtaskIds?: number[] }>({
+        updateTask: build.mutation<Task, Partial<Task> & { id: number; tagIds?: number[]; subtaskIds?: number[]; sprintIds?: number[] }>({
             query: ({ id, ...body }) => ({
                 url: `tasks/${id}`,
                 method: "PATCH",
@@ -223,7 +223,16 @@ export const api = createApi({
             invalidatesTags: (_, __, { id }) => [
                 { type: "Tasks", id },
                 "Tasks", // Invalidate all tasks to refresh subtask relationships
+                "Sprints", // Invalidate sprints when task sprint associations change
             ],
+        }),
+
+        deleteTask: build.mutation<void, number>({
+            query: (taskId) => ({
+                url: `tasks/${taskId}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: ["Tasks"],
         }),
 
         // users
@@ -257,8 +266,14 @@ export const api = createApi({
         }),
 
         // search
-        search: build.query<SearchResults, string>({
-            query: (query) => `search?query=${query}`,
+        search: build.query<SearchResults, { query: string; categories?: string[] }>({
+            query: ({ query, categories }) => {
+                const params = new URLSearchParams({ query });
+                if (categories && categories.length > 0) {
+                    params.set('categories', categories.join(','));
+                }
+                return `search?${params.toString()}`;
+            },
         }),
 
         // tags
@@ -405,6 +420,7 @@ export const {
     useCreateTaskMutation,
     useUpdateTaskStatusMutation,
     useUpdateTaskMutation,
+    useDeleteTaskMutation,
     useSearchQuery,
     useGetUsersQuery,
     useGetUserByIdQuery,

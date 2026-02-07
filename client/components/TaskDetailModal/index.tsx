@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Modal from "../Modal";
 import SubtaskHierarchy from "@/components/SubtaskHierarchy";
-import { Task, Priority, Status, useUpdateTaskMutation, useGetUsersQuery, useGetTagsQuery, useCreateCommentMutation, useGetAuthUserQuery, useGetProjectsQuery, getAttachmentS3Key, getUserProfileS3Key } from "@/state/api";
+import { Task, Priority, Status, useUpdateTaskMutation, useDeleteTaskMutation, useGetUsersQuery, useGetTagsQuery, useCreateCommentMutation, useGetAuthUserQuery, useGetProjectsQuery, useGetSprintsQuery, getAttachmentS3Key, getUserProfileS3Key, User as UserType, Project, Sprint } from "@/state/api";
 import { format } from "date-fns";
-import { Calendar, MessageSquareMore, User, Users, Tag, Award, Pencil, X, Plus, Paperclip, Zap, Flag } from "lucide-react";
+import { Calendar, MessageSquareMore, User, Users, Tag, Award, Pencil, X, Plus, Paperclip, Zap, Flag, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 import UserIcon from "@/components/UserIcon";
 import S3Image from "@/components/S3Image";
 import { BiColumns } from "react-icons/bi";
+import ConfirmationMenu from "@/components/ConfirmationMenu";
 
 interface TaskDetailModalProps {
   isOpen: boolean;
@@ -59,11 +60,14 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
   const [isEditing, setIsEditing] = useState(false);
   const [displayedTaskId, setDisplayedTaskId] = useState<number | null>(null);
   const [saveMessage, setSaveMessage] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation();
+  const [deleteTask, { isLoading: isDeleting }] = useDeleteTaskMutation();
   const [createComment, { isLoading: isAddingComment }] = useCreateCommentMutation();
   const { data: users } = useGetUsersQuery();
   const { data: allTags } = useGetTagsQuery();
   const { data: projects } = useGetProjectsQuery();
+  const { data: sprints } = useGetSprintsQuery();
   const { data: authData } = useGetAuthUserQuery({});
   const [previewAttachmentId, setPreviewAttachmentId] = useState<number | null>(null);
   const [newComment, setNewComment] = useState("");
@@ -76,9 +80,25 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
   const [editStartDate, setEditStartDate] = useState("");
   const [editDueDate, setEditDueDate] = useState("");
   const [editPoints, setEditPoints] = useState("");
-  const [editAssignedUserId, setEditAssignedUserId] = useState("");
   const [editTagIds, setEditTagIds] = useState<number[]>([]);
   const [editSubtaskIds, setEditSubtaskIds] = useState<number[]>([]);
+
+  // Autofill dropdown states
+  const [selectedAssignee, setSelectedAssignee] = useState<UserType | null>(null);
+  const [assigneeSearch, setAssigneeSearch] = useState("");
+  const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [projectSearch, setProjectSearch] = useState("");
+  const [showProjectDropdown, setShowProjectDropdown] = useState(false);
+  const [selectedSprints, setSelectedSprints] = useState<Sprint[]>([]);
+  const [sprintSearch, setSprintSearch] = useState("");
+  const [showSprintDropdown, setShowSprintDropdown] = useState(false);
+  const [subtasksExpanded, setSubtasksExpanded] = useState(false);
+
+  // Dropdown refs
+  const assigneeDropdownRef = useRef<HTMLDivElement>(null);
+  const projectDropdownRef = useRef<HTMLDivElement>(null);
+  const sprintDropdownRef = useRef<HTMLDivElement>(null);
 
   // Sync displayedTaskId and reset edit mode when the modal opens with a new task
   useEffect(() => {
@@ -87,6 +107,23 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
       setIsEditing(false);
     }
   }, [task]);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (assigneeDropdownRef.current && !assigneeDropdownRef.current.contains(event.target as Node)) {
+        setShowAssigneeDropdown(false);
+      }
+      if (projectDropdownRef.current && !projectDropdownRef.current.contains(event.target as Node)) {
+        setShowProjectDropdown(false);
+      }
+      if (sprintDropdownRef.current && !sprintDropdownRef.current.contains(event.target as Node)) {
+        setShowSprintDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Reset edit mode when navigating to a different task
   const handleTaskNavigation = (taskId: number) => {
@@ -125,9 +162,22 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
     setEditStartDate(currentTask.startDate ? new Date(currentTask.startDate).toISOString().split("T")[0] : "");
     setEditDueDate(currentTask.dueDate ? new Date(currentTask.dueDate).toISOString().split("T")[0] : "");
     setEditPoints(currentTask.points?.toString() || "");
-    setEditAssignedUserId(currentTask.assignedUserId?.toString() || "");
     setEditTagIds(currentTask.taskTags?.map((tt) => tt.tag.id) || []);
     setEditSubtaskIds(currentTask.subtasks?.map((s) => s.id) || []);
+    
+    // Initialize autofill states
+    const assignee = users?.find(u => u.userId === currentTask.assignedUserId);
+    setSelectedAssignee(assignee || null);
+    setAssigneeSearch("");
+    
+    const project = projects?.find(p => p.id === currentTask.projectId);
+    setSelectedProject(project || null);
+    setProjectSearch("");
+    
+    const taskSprints = currentTask.sprints?.map(s => sprints?.find(sp => sp.id === s.id)).filter(Boolean) as Sprint[] || [];
+    setSelectedSprints(taskSprints);
+    setSprintSearch("");
+    
     setIsEditing(true);
   };
 
@@ -141,9 +191,11 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
       startDate: editStartDate || undefined,
       dueDate: editDueDate || undefined,
       points: editPoints ? Number(editPoints) : undefined,
-      assignedUserId: editAssignedUserId ? Number(editAssignedUserId) : undefined,
+      assignedUserId: selectedAssignee?.userId || undefined,
       tagIds: editTagIds,
       subtaskIds: editSubtaskIds,
+      projectId: selectedProject?.id || undefined,
+      sprintIds: selectedSprints.map(s => s.id),
     }).unwrap();
     setIsEditing(false);
     setSaveMessage(true);
@@ -160,6 +212,47 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
     setEditSubtaskIds((prev) =>
       prev.includes(subtaskId) ? prev.filter((id) => id !== subtaskId) : [...prev, subtaskId]
     );
+  };
+
+  // Autofill helper functions
+  const filteredUsers = users?.filter(user => {
+    const searchLower = assigneeSearch.toLowerCase().replace("@", "");
+    return user.username.toLowerCase().includes(searchLower) ||
+      (user.email?.toLowerCase().includes(searchLower) ?? false);
+  }) || [];
+
+  const filteredProjects = projects?.filter(project => {
+    const searchLower = projectSearch.toLowerCase();
+    return project.name.toLowerCase().includes(searchLower);
+  }) || [];
+
+  const filteredSprints = sprints?.filter(sprint => {
+    const searchLower = sprintSearch.toLowerCase();
+    const matchesSearch = sprint.title.toLowerCase().includes(searchLower);
+    const notAlreadySelected = !selectedSprints.some(s => s.id === sprint.id);
+    return matchesSearch && notAlreadySelected;
+  }) || [];
+
+  const selectAssignee = (user: UserType) => {
+    setSelectedAssignee(user);
+    setAssigneeSearch("");
+    setShowAssigneeDropdown(false);
+  };
+
+  const selectProject = (project: Project) => {
+    setSelectedProject(project);
+    setProjectSearch("");
+    setShowProjectDropdown(false);
+  };
+
+  const addSprint = (sprint: Sprint) => {
+    setSelectedSprints(prev => [...prev, sprint]);
+    setSprintSearch("");
+    setShowSprintDropdown(false);
+  };
+
+  const removeSprint = (sprintId: number) => {
+    setSelectedSprints(prev => prev.filter(s => s.id !== sprintId));
   };
 
   const handleCancel = () => {
@@ -237,12 +330,15 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
             {tags.length > 0 && (
               <div className="flex items-start gap-2">
                 <div className="flex flex-wrap gap-1 justify-end">
-                  {tags.map((tag) => (
+                  {currentTask.taskTags?.map((tt) => (
                     <span
-                      key={tag}
-                      className="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                      key={tt.tag.id}
+                      className="rounded-full px-2.5 py-1 text-xs font-semibold text-white"
+                      style={{
+                        backgroundColor: tt.tag.color || '#3b82f6',
+                      }}
                     >
-                      {tag}
+                      {tt.tag.name}
                     </span>
                   ))}
                 </div>
@@ -272,13 +368,108 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
               </div>
             )}
           </div>
-        ) : undefined
+        ) : (
+          /* Edit mode left panel - Status, Priority, Tags */
+          <div className="flex flex-col gap-6 pt-4 items-end animate-slide-in-left">
+            {/* Priority */}
+            <div className="flex items-start gap-2">
+              <div className="flex flex-wrap gap-1 justify-end max-w-[180px]">
+                {Object.values(Priority).map((p) => {
+                  const isSelected = editPriority === p;
+                  const priorityColors: Record<string, { bg: string; text: string; darkBg: string; darkText: string }> = {
+                    Urgent: { bg: "bg-red-200", text: "text-red-700", darkBg: "dark:bg-red-900", darkText: "dark:text-red-200" },
+                    High: { bg: "bg-yellow-200", text: "text-yellow-700", darkBg: "dark:bg-yellow-900", darkText: "dark:text-yellow-200" },
+                    Medium: { bg: "bg-green-200", text: "text-green-700", darkBg: "dark:bg-green-900", darkText: "dark:text-green-200" },
+                    Low: { bg: "bg-blue-200", text: "text-blue-700", darkBg: "dark:bg-blue-900", darkText: "dark:text-blue-200" },
+                    Backlog: { bg: "bg-gray-200", text: "text-gray-700", darkBg: "dark:bg-dark-tertiary", darkText: "dark:text-gray-200" },
+                  };
+                  const colors = priorityColors[p] || priorityColors.Backlog;
+                  return (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setEditPriority(p)}
+                      className={`rounded-full px-2.5 py-1 text-xs font-semibold transition-all ${colors.bg} ${colors.text} ${colors.darkBg} ${colors.darkText} ${
+                        isSelected ? "ring-2 ring-offset-1 ring-gray-800 dark:ring-white dark:ring-offset-dark-bg" : "opacity-50 hover:opacity-75"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="relative group">
+                <Flag className="h-4 w-4 text-white dark:text-neutral-500 mt-0.5" />
+              </div>
+            </div>
+
+            {/* Status */}
+            <div className="flex items-start gap-2">
+              <div className="flex flex-wrap gap-1 justify-end max-w-[180px]">
+                {Object.values(Status).map((s) => {
+                  const isSelected = editStatus === s;
+                  const statusColors: Record<string, string> = {
+                    "Input Queue": "bg-[#7f97cb] text-white",
+                    "Work In Progress": "bg-[#65d6b3] text-white",
+                    "Review": "bg-[#d1ac1e] text-white",
+                    "Done": "bg-[#31aa00] text-white",
+                  };
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setEditStatus(s)}
+                      className={`rounded-full px-2.5 py-1 text-xs font-semibold transition-all ${statusColors[s] || "bg-gray-200 text-gray-700"} ${
+                        isSelected ? "ring-2 ring-offset-1 ring-gray-800 dark:ring-white dark:ring-offset-dark-bg" : "opacity-50 hover:opacity-75"
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="relative group">
+                <Award className="h-4 w-4 text-white dark:text-neutral-500 mt-0.5" />
+              </div>
+            </div>
+
+            {/* Tags */}
+            <div className="flex items-start gap-2">
+              <div className="flex flex-wrap gap-1 justify-end max-w-[180px]">
+                {allTags?.map((tag) => {
+                  const isSelected = editTagIds.includes(tag.id);
+                  return (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      onClick={() => handleTagToggle(tag.id)}
+                      className={`rounded-full px-2.5 py-1 text-xs font-semibold text-white transition-all ${
+                        isSelected ? "ring-2 ring-offset-1 ring-gray-800 dark:ring-white dark:ring-offset-dark-bg" : "opacity-40 hover:opacity-70"
+                      }`}
+                      style={{
+                        backgroundColor: tag.color || '#3b82f6',
+                      }}
+                    >
+                      {tag.name}
+                    </button>
+                  );
+                })}
+                {(!allTags || allTags.length === 0) && (
+                  <span className="text-xs text-gray-400">No tags</span>
+                )}
+              </div>
+              <div className="relative group">
+                <Tag className="h-4 w-4 text-white dark:text-neutral-500 mt-0.5" />
+              </div>
+            </div>
+          </div>
+        )
       }
       rightPanel={
         !isEditing ? (
-          <div className="flex h-full flex-col">
+          <div className="flex flex-col h-full max-h-[90vh]">
             {/* Header */}
-            <div className="flex items-center gap-2 border-b border-gray-200 px-4 py-3 dark:border-stroke-dark">
+            <div className="flex-shrink-0 flex items-center gap-2 border-b border-gray-200 px-4 py-3 dark:border-stroke-dark">
               <MessageSquareMore className="h-4 w-4 text-gray-600 dark:text-neutral-400" />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 {numberOfComments} {numberOfComments === 1 ? "comment" : "comments"}
@@ -286,7 +477,7 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
             </div>
             
             {/* Comments list */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+            <div className="flex-1 overflow-y-auto min-h-0 p-3 space-y-3">
               {currentTask.comments && currentTask.comments.length > 0 ? (
                 currentTask.comments.map((comment) => (
                   <div key={comment.id} className="group">
@@ -304,13 +495,16 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
                           {comment.user?.username?.charAt(0).toUpperCase() || "?"}
                         </div>
                       )}
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 overflow-hidden">
                         <div className="flex items-baseline gap-2">
                           <span className="text-xs font-medium text-gray-900 dark:text-white">
                             {comment.user?.username || "Unknown"}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-700 dark:text-neutral-300 mt-0.5 break-words">
+                        <p 
+                          className="text-sm text-gray-700 dark:text-neutral-300 mt-0.5 break-all"
+                          style={{ overflowWrap: 'anywhere' }}
+                        >
                           {comment.text}
                         </p>
                       </div>
@@ -327,7 +521,7 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
             </div>
             
             {/* Add comment input - Google style */}
-            <div className="border-t border-gray-200 p-3 dark:border-stroke-dark">
+            <div className="flex-shrink-0 border-t border-gray-200 p-3 dark:border-stroke-dark">
               <div className="flex gap-2">
                 {authData?.userDetails?.profilePictureExt && authData?.userDetails?.userId ? (
                   <S3Image
@@ -481,30 +675,7 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
 
         {/* Edit mode metadata */}
         {isEditing && (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {/* Status */}
-            <div className="flex items-center gap-2">
-              <Award className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
-              <select className={selectClass} value={editStatus} onChange={(e) => setEditStatus(e.target.value)}>
-                <option value="">Select Status</option>
-                {Object.values(Status).map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Priority */}
-            <div className="flex items-center gap-2">
-              <Award className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
-              <span className="text-sm text-gray-600 dark:text-neutral-400">Priority:</span>
-              <select className={selectClass} value={editPriority} onChange={(e) => setEditPriority(e.target.value)}>
-                <option value="">Select Priority</option>
-                {Object.values(Priority).map((p) => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
-              </select>
-            </div>
-
+          <div className="space-y-4">
             {/* Points */}
             <div className="flex items-center gap-2">
               <Award className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
@@ -517,16 +688,201 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
               />
             </div>
 
-            {/* Assignee */}
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
-              <span className="text-sm text-gray-600 dark:text-neutral-400">Assignee:</span>
-              <select className={selectClass} value={editAssignedUserId} onChange={(e) => setEditAssignedUserId(e.target.value)}>
-                <option value="">Unassigned</option>
-                {users?.map((u) => (
-                  <option key={u.userId} value={u.userId}>{u.username}</option>
-                ))}
-              </select>
+            {/* Board/Project Autofill */}
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-neutral-300">
+                <span className="flex items-center gap-1.5">
+                  <BiColumns className="h-4 w-4" />
+                  Board
+                </span>
+              </label>
+              <div className="relative" ref={projectDropdownRef}>
+                {selectedProject ? (
+                  <div className={`${inputClass} flex items-center justify-between`}>
+                    <span>{selectedProject.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedProject(null)}
+                      className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        className={inputClass}
+                        placeholder="Search boards..."
+                        value={projectSearch}
+                        onChange={(e) => {
+                          setProjectSearch(e.target.value);
+                          setShowProjectDropdown(true);
+                        }}
+                        onFocus={() => setShowProjectDropdown(true)}
+                      />
+                      <ChevronDown
+                        size={16}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                      />
+                    </div>
+                    {showProjectDropdown && (
+                      <div className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg dark:border-dark-tertiary dark:bg-dark-secondary">
+                        {filteredProjects.length > 0 ? (
+                          filteredProjects.map((project) => (
+                            <button
+                              key={project.id}
+                              type="button"
+                              onClick={() => selectProject(project)}
+                              className="flex w-full flex-col px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-dark-tertiary"
+                            >
+                              <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                {project.name}
+                              </span>
+                              {project.description && (
+                                <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                  {project.description}
+                                </span>
+                              )}
+                            </button>
+                          ))
+                        ) : (
+                          <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
+                            No boards found
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Assignee Autofill */}
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-neutral-300">
+                <span className="flex items-center gap-1.5">
+                  <Users className="h-4 w-4" />
+                  Assignee
+                </span>
+              </label>
+              <div className="relative" ref={assigneeDropdownRef}>
+                {selectedAssignee ? (
+                  <div className={`${inputClass} flex items-center justify-between`}>
+                    <span>@{selectedAssignee.username}</span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedAssignee(null)}
+                      className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        className={inputClass}
+                        placeholder="Type @ to search users..."
+                        value={assigneeSearch}
+                        onChange={(e) => {
+                          setAssigneeSearch(e.target.value);
+                          setShowAssigneeDropdown(true);
+                        }}
+                        onFocus={() => setShowAssigneeDropdown(true)}
+                      />
+                      <ChevronDown
+                        size={16}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                      />
+                    </div>
+                    {showAssigneeDropdown && (
+                      <div className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg dark:border-dark-tertiary dark:bg-dark-secondary">
+                        {filteredUsers.length > 0 ? (
+                          filteredUsers.slice(0, 8).map((user) => (
+                            <button
+                              key={user.userId}
+                              type="button"
+                              onClick={() => selectAssignee(user)}
+                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-dark-tertiary"
+                            >
+                              <span className="font-medium text-gray-900 dark:text-white">@{user.username}</span>
+                              {user.email && <span className="text-gray-500 dark:text-gray-400">{user.email}</span>}
+                            </button>
+                          ))
+                        ) : (
+                          <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
+                            No users found
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Sprints Autofill */}
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-neutral-300">
+                <span className="flex items-center gap-1.5">
+                  <Zap className="h-4 w-4" />
+                  Sprints
+                </span>
+              </label>
+              <div className="relative" ref={sprintDropdownRef}>
+                <div className={`${inputClass} flex flex-wrap gap-2 min-h-[42px] items-center`}>
+                  {selectedSprints.map((sprint) => (
+                    <span
+                      key={sprint.id}
+                      className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-1 text-xs font-medium text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
+                    >
+                      {sprint.title}
+                      <button
+                        type="button"
+                        onClick={() => removeSprint(sprint.id)}
+                        className="ml-0.5 hover:text-purple-600 dark:hover:text-purple-200"
+                      >
+                        <X size={12} />
+                      </button>
+                    </span>
+                  ))}
+                  <input
+                    type="text"
+                    className="flex-1 min-w-[120px] border-none bg-transparent p-0 text-sm focus:outline-none focus:ring-0 dark:text-white"
+                    placeholder={selectedSprints.length === 0 ? "Search sprints..." : "Add more..."}
+                    value={sprintSearch}
+                    onChange={(e) => {
+                      setSprintSearch(e.target.value);
+                      setShowSprintDropdown(true);
+                    }}
+                    onFocus={() => setShowSprintDropdown(true)}
+                  />
+                </div>
+                {showSprintDropdown && (
+                  <div className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg dark:border-dark-tertiary dark:bg-dark-secondary">
+                    {filteredSprints.length > 0 ? (
+                      filteredSprints.slice(0, 8).map((sprint) => (
+                        <button
+                          key={sprint.id}
+                          type="button"
+                          onClick={() => addSprint(sprint)}
+                          className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-dark-tertiary"
+                        >
+                          <Zap size={14} className="text-purple-500" />
+                          <span className="font-medium text-gray-900 dark:text-white">{sprint.title}</span>
+                        </button>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
+                        {sprints?.length === 0 ? "No sprints available" : "No matching sprints"}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -542,115 +898,123 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
           </div>
         )}
 
-        {/* Tags (edit mode only) */}
-        {isEditing && (
-          <div>
-            <div className="mb-2 flex items-center gap-2">
-              <Tag className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Tags</h3>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {allTags?.map((tag) => {
-                const isSelected = editTagIds.includes(tag.id);
-                return (
-                  <button
-                    key={tag.id}
-                    type="button"
-                    onClick={() => handleTagToggle(tag.id)}
-                    className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-                      isSelected
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-dark-tertiary dark:text-gray-300 dark:hover:bg-gray-600"
-                    }`}
-                  >
-                    {tag.name}
-                    {isSelected && <X size={12} />}
-                  </button>
-                );
-              })}
-              {(!allTags || allTags.length === 0) && (
-                <span className="text-sm text-gray-500 dark:text-neutral-400">No tags available</span>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Subtasks Management (edit mode only) */}
         {isEditing && tasks && (
           <div>
-            <div className="mb-2 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => setSubtasksExpanded(!subtasksExpanded)}
+              className="mb-2 flex w-full items-center justify-between rounded-lg px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-dark-tertiary"
+            >
               <div className="flex items-center gap-2">
+                {subtasksExpanded ? (
+                  <ChevronDown className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
+                ) : (
+                  <ChevronRight className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
+                )}
                 <Award className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
                 <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Subtasks</h3>
+                {editSubtaskIds.length > 0 && (
+                  <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-600 dark:bg-dark-tertiary dark:text-gray-400">
+                    {editSubtaskIds.length}
+                  </span>
+                )}
               </div>
               <span className="text-xs text-gray-500 dark:text-neutral-400">
                 Click to add/remove
               </span>
-            </div>
-            <div className="space-y-2">
-              {/* Show currently selected subtasks first */}
-              {editSubtaskIds.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Current Subtasks:</p>
-                  {tasks
-                    .filter((t) => editSubtaskIds.includes(t.id))
-                    .map((task) => (
-                      <button
-                        key={task.id}
-                        type="button"
-                        onClick={() => handleSubtaskToggle(task.id)}
-                        className="flex w-full items-center justify-between rounded-lg border border-blue-500 bg-blue-50 px-3 py-2 text-left text-sm transition-colors hover:bg-blue-100 dark:border-blue-400 dark:bg-blue-900/30 dark:hover:bg-blue-900/50"
-                      >
-                        <span className="font-medium dark:text-white">{task.title}</span>
-                        <X size={16} className="text-blue-500 dark:text-blue-400" />
-                      </button>
-                    ))}
-                </div>
-              )}
-              {/* Show available tasks to add as subtasks */}
-              {tasks.filter((t) => t.id !== currentTask.id && t.id !== currentTask.parentTask?.id && !t.parentTask && t.projectId === currentTask.projectId && !editSubtaskIds.includes(t.id)).length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Available Tasks:</p>
-                  {tasks
-                    .filter((t) => t.id !== currentTask.id && t.id !== currentTask.parentTask?.id && !t.parentTask && t.projectId === currentTask.projectId && !editSubtaskIds.includes(t.id))
-                    .map((task) => (
-                      <button
-                        key={task.id}
-                        type="button"
-                        onClick={() => handleSubtaskToggle(task.id)}
-                        className="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 text-left text-sm transition-colors hover:bg-gray-50 dark:border-stroke-dark dark:bg-dark-tertiary dark:hover:bg-gray-700"
-                      >
-                        <span className="font-medium dark:text-white">{task.title}</span>
-                        <Plus size={16} className="text-gray-400" />
-                      </button>
-                    ))}
-                </div>
-              )}
-              {tasks.filter((t) => t.id !== currentTask.id && t.id !== currentTask.parentTask?.id && !t.parentTask && t.projectId === currentTask.projectId).length === 0 && (
-                <span className="text-sm text-gray-500 dark:text-neutral-400">No available tasks to add as subtasks</span>
-              )}
-            </div>
+            </button>
+            {subtasksExpanded && (
+              <div className="space-y-2 pl-2">
+                {/* Show currently selected subtasks first */}
+                {editSubtaskIds.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Current Subtasks:</p>
+                    {tasks
+                      .filter((t) => editSubtaskIds.includes(t.id))
+                      .map((task) => (
+                        <button
+                          key={task.id}
+                          type="button"
+                          onClick={() => handleSubtaskToggle(task.id)}
+                          className="flex w-full items-center justify-between rounded-lg border border-blue-500 bg-blue-50 px-3 py-2 text-left text-sm transition-colors hover:bg-blue-100 dark:border-blue-400 dark:bg-blue-900/30 dark:hover:bg-blue-900/50"
+                        >
+                          <span className="font-medium dark:text-white">{task.title}</span>
+                          <X size={16} className="text-blue-500 dark:text-blue-400" />
+                        </button>
+                      ))}
+                  </div>
+                )}
+                {/* Show available tasks to add as subtasks */}
+                {tasks.filter((t) => t.id !== currentTask.id && t.id !== currentTask.parentTask?.id && !t.parentTask && t.projectId === currentTask.projectId && !editSubtaskIds.includes(t.id)).length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Available Tasks:</p>
+                    {tasks
+                      .filter((t) => t.id !== currentTask.id && t.id !== currentTask.parentTask?.id && !t.parentTask && t.projectId === currentTask.projectId && !editSubtaskIds.includes(t.id))
+                      .map((task) => (
+                        <button
+                          key={task.id}
+                          type="button"
+                          onClick={() => handleSubtaskToggle(task.id)}
+                          className="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 text-left text-sm transition-colors hover:bg-gray-50 dark:border-stroke-dark dark:bg-dark-tertiary dark:hover:bg-gray-700"
+                        >
+                          <span className="font-medium dark:text-white">{task.title}</span>
+                          <Plus size={16} className="text-gray-400" />
+                        </button>
+                      ))}
+                  </div>
+                )}
+                {tasks.filter((t) => t.id !== currentTask.id && t.id !== currentTask.parentTask?.id && !t.parentTask && t.projectId === currentTask.projectId).length === 0 && (
+                  <span className="text-sm text-gray-500 dark:text-neutral-400">No available tasks to add as subtasks</span>
+                )}
+              </div>
+            )}
           </div>
         )}
 
-        {/* Save / Cancel buttons */}
+        {/* Save / Cancel / Delete buttons */}
         {isEditing && (
-          <div className="flex gap-3">
+          <div className="flex items-center justify-between">
+            <div className="flex gap-3">
+              <button
+                onClick={handleSave}
+                disabled={isUpdating}
+                className="rounded bg-gray-800 px-4 py-2 text-sm text-white hover:bg-gray-700 disabled:opacity-50 dark:bg-white dark:text-gray-800 dark:hover:bg-gray-200"
+              >
+                {isUpdating ? "Saving..." : "Save"}
+              </button>
+              <button
+                onClick={handleCancel}
+                className="rounded bg-gray-200 px-4 py-2 text-sm dark:bg-dark-tertiary dark:text-white"
+              >
+                Back
+              </button>
+            </div>
             <button
-              onClick={handleSave}
-              disabled={isUpdating}
-              className="rounded bg-gray-800 px-4 py-2 text-sm text-white hover:bg-gray-700 disabled:opacity-50 dark:bg-white dark:text-gray-800 dark:hover:bg-gray-200"
+              onClick={() => setShowDeleteConfirm(true)}
+              className="flex items-center gap-1.5 rounded px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
             >
-              {isUpdating ? "Saving..." : "Save"}
-            </button>
-            <button
-              onClick={handleCancel}
-              className="rounded bg-gray-200 px-4 py-2 text-sm dark:bg-dark-tertiary dark:text-white"
-            >
-              Back
+              <Trash2 size={16} />
+              Delete
             </button>
           </div>
         )}
+
+        {/* Delete Confirmation */}
+        <ConfirmationMenu
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={async () => {
+            await deleteTask(currentTask.id);
+            setShowDeleteConfirm(false);
+            onClose();
+          }}
+          title="Delete Task"
+          message={`Are you sure you want to delete "${currentTask.title}"? This action cannot be undone.`}
+          confirmLabel="Delete"
+          isLoading={isDeleting}
+          variant="danger"
+        />
 
         {/* Subtask Hierarchy — visible in view mode only */}
         {!isEditing && hasHierarchy && (

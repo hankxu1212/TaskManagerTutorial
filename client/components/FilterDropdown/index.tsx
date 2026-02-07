@@ -31,9 +31,9 @@ const FilterDropdown = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   
   // State for collapsible sections
-  const [isLabelsExpanded, setIsLabelsExpanded] = useState(true);
-  const [isPriorityExpanded, setIsPriorityExpanded] = useState(true);
-  const [isDueDateExpanded, setIsDueDateExpanded] = useState(true);
+  const [isLabelsExpanded, setIsLabelsExpanded] = useState(false);
+  const [isPriorityExpanded, setIsPriorityExpanded] = useState(false);
+  const [isDueDateExpanded, setIsDueDateExpanded] = useState(false);
 
   // Priority options for the filter
   // Validates: Requirement 3.1

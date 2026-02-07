@@ -7,7 +7,7 @@ type Props = {
     children: React.ReactNode;
     isOpen: boolean;
     onClose: () => void;
-    name: string;
+    name: React.ReactNode;
     headerRight?: React.ReactNode;
     hideClose?: boolean;
     hideHeader?: boolean;
@@ -43,7 +43,7 @@ const Modal = ({ children, isOpen, onClose, name, headerRight, hideClose, hideHe
                 {/* Left floating panel */}
                 {leftPanel && (
                     <div 
-                        className="w-48 flex-shrink-0 max-h-[90vh] animate-scale-in overflow-hidden"
+                        className="w-48 flex-shrink-0 max-h-[90vh] animate-scale-in overflow-visible"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {leftPanel}

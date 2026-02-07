@@ -51,6 +51,7 @@ const SprintPage = () => {
             <ModalNewTask
                 isOpen={isModalNewTaskOpen}
                 onClose={() => setIsModalNewTaskOpen(false)}
+                sprintId={sprintId}
             />
             <SprintHeader
                 activeTab={activeTab}
