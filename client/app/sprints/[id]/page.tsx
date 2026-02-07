@@ -8,13 +8,14 @@ import { isFilterActive } from "@/lib/filterUtils";
 import SprintHeader from "@/app/sprints/SprintHeader";
 import BoardView from "@/app/sprints/BoardView";
 import TableView from "@/app/sprints/TableView";
+import TimelineView from "@/app/sprints/TimelineView";
 import ModalNewTask from "@/components/ModalNewTask";
 
 const SprintPage = () => {
     const params = useParams();
     const sprintId = Number(params.id);
     
-    const [activeTab, setActiveTab] = useState<"Board" | "Table">("Board");
+    const [activeTab, setActiveTab] = useState<"Board" | "Table" | "Timeline">("Board");
     const [isModalNewTaskOpen, setIsModalNewTaskOpen] = useState(false);
     const [filterState, setFilterState] = useState<FilterState>(initialFilterState);
     
@@ -79,6 +80,16 @@ const SprintPage = () => {
                     tasks={sprint.tasks || []}
                     setIsModalNewTaskOpen={setIsModalNewTaskOpen}
                     filterState={filterState}
+                />
+            )}
+            {activeTab === "Timeline" && (
+                <TimelineView
+                    sprintId={sprintId}
+                    tasks={sprint.tasks || []}
+                    setIsModalNewTaskOpen={setIsModalNewTaskOpen}
+                    filterState={filterState}
+                    sprintStartDate={sprint.startDate}
+                    sprintDueDate={sprint.dueDate}
                 />
             )}
         </div>

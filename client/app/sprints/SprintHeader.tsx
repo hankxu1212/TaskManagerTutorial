@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar, Filter, Table } from "lucide-react";
+import { Calendar, Filter, Settings, Table } from "lucide-react";
 import { BiColumns } from "react-icons/bi";
+import { MdTimeline } from "react-icons/md";
+import Link from "next/link";
 import { FilterState } from "@/lib/filterTypes";
 import { Tag } from "@/state/api";
 import FilterDropdown from "@/components/FilterDropdown";
 
 type Props = {
-  activeTab: "Board" | "Table";
-  setActiveTab: (tab: "Board" | "Table") => void;
+  activeTab: "Board" | "Table" | "Timeline";
+  setActiveTab: (tab: "Board" | "Table" | "Timeline") => void;
   sprintTitle: string;
   sprintStartDate?: string;
   sprintDueDate?: string;
@@ -33,6 +35,7 @@ const SprintHeader = ({
   sprintTitle,
   sprintStartDate,
   sprintDueDate,
+  sprintId,
   filterState,
   onFilterChange,
   tags,
@@ -65,8 +68,15 @@ const SprintHeader = ({
           <h1 className="flex items-center gap-3 text-2xl font-bold text-gray-800 dark:text-white">
             {sprintTitle}
             <span className="inline-block rounded-full bg-gray-200 px-2 py-1 text-sm font-medium text-gray-700 dark:bg-dark-tertiary dark:text-white">
-              {totalTasks} / {totalPoints}pts
+              {totalTasks} tasks · {totalPoints} pts
             </span>
+            <Link
+              href={`/sprints/${sprintId}/settings`}
+              className="text-gray-500 hover:text-gray-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+              aria-label="Settings"
+            >
+              <Settings className="h-5 w-5" />
+            </Link>
           </h1>
           {/* Date display with calendar icon */}
           <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
@@ -98,6 +108,12 @@ const SprintHeader = ({
           <TabButton
             name="Table"
             icon={<Table className="h-5 w-5" />}
+            setActiveTab={setActiveTab}
+            activeTab={activeTab}
+          />
+          <TabButton
+            name="Timeline"
+            icon={<MdTimeline className="h-5 w-5" />}
             setActiveTab={setActiveTab}
             activeTab={activeTab}
           />
@@ -133,9 +149,9 @@ const SprintHeader = ({
 };
 
 type TabButtonProps = {
-  name: "Board" | "Table";
+  name: "Board" | "Table" | "Timeline";
   icon: React.ReactNode;
-  setActiveTab: (tabName: "Board" | "Table") => void;
+  setActiveTab: (tabName: "Board" | "Table" | "Timeline") => void;
   activeTab: string;
 };
 

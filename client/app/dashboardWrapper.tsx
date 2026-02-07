@@ -17,22 +17,32 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         <div className="flex min-h-screen w-full bg-gray-50 text-gray-900">
             <Sidebar />
             <main
-                className={`flex w-full flex-col bg-gray-50 dark:bg-dark-bg ${
+                className={`relative flex w-full flex-col bg-gray-50 dark:bg-dark-bg ${
                     isSidebarCollapsed ? "" : "md:pl-64"
                 }`}
             >
-                {children}
+                {/* Dot background pattern */}
+                <div 
+                    className="absolute inset-0 opacity-40 dark:opacity-25 pointer-events-none"
+                    style={{
+                        backgroundImage: `radial-gradient(circle, rgba(156, 163, 175, 0.4) 1px, transparent 1px)`,
+                        backgroundSize: '20px 20px'
+                    }}
+                />
+                <div className="relative z-10">
+                    {children}
+                </div>
             </main>
         </div>
     );
 };
 
 const DashboardWrapper = ({ children }: { children: React.ReactNode }) => (
-    <AuthProvider>
-        <StoreProvider>
+    <StoreProvider>
+        <AuthProvider>
             <DashboardLayout>{children}</DashboardLayout>
-        </StoreProvider>
-    </AuthProvider>
+        </AuthProvider>
+    </StoreProvider>
 );
 
 export default DashboardWrapper;

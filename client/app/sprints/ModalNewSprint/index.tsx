@@ -11,10 +11,18 @@ type Props = {
 
 const ModalNewSprint = ({ isOpen, onClose }: Props) => {
   const [createSprint, { isLoading }] = useCreateSprintMutation();
+  
+  // Get today's date in YYYY-MM-DD format
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+  
   const [title, setTitle] = useState("");
-  const [startDate, setStartDate] = useState("");
+  const [startDate, setStartDate] = useState(getTodayDate());
   const [dueDate, setDueDate] = useState("");
   const [titleError, setTitleError] = useState("");
+  const [dateError, setDateError] = useState("");
 
   const handleSubmit = async () => {
     // Validate title is not empty
@@ -24,17 +32,30 @@ const ModalNewSprint = ({ isOpen, onClose }: Props) => {
       return;
     }
 
+    // Validate dates are provided
+    if (!startDate || !dueDate) {
+      setDateError("Both start date and due date are required");
+      return;
+    }
+
+    // Validate due date is after start date
+    if (new Date(dueDate) < new Date(startDate)) {
+      setDateError("Due date must be after start date");
+      return;
+    }
+
     setTitleError("");
+    setDateError("");
 
     try {
       await createSprint({
         title: trimmedTitle,
-        startDate: startDate || undefined,
-        dueDate: dueDate || undefined,
+        startDate,
+        dueDate,
       });
       // Reset form and close modal on success
       setTitle("");
-      setStartDate("");
+      setStartDate(getTodayDate());
       setDueDate("");
       onClose();
     } catch (error) {
@@ -46,16 +67,17 @@ const ModalNewSprint = ({ isOpen, onClose }: Props) => {
   const handleClose = () => {
     // Reset form state when closing
     setTitle("");
-    setStartDate("");
+    setStartDate(getTodayDate());
     setDueDate("");
     setTitleError("");
+    setDateError("");
     onClose();
   };
 
   const inputStyles =
     "w-full rounded border border-gray-300 p-2 shadow-sm dark:border-dark-tertiary dark:bg-dark-tertiary dark:text-white dark:focus:outline-none";
 
-  const isFormValid = title.trim().length > 0;
+  const isFormValid = title.trim().length > 0 && startDate && dueDate;
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} name="Create New Sprint">
@@ -83,25 +105,36 @@ const ModalNewSprint = ({ isOpen, onClose }: Props) => {
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Start Date (optional)
+            Start Date *
           </label>
           <input
             type="date"
-            className={inputStyles}
+            className={`${inputStyles} ${dateError ? "border-red-500 dark:border-red-500" : ""}`}
             value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
+            onChange={(e) => {
+              setStartDate(e.target.value);
+              if (dateError) setDateError("");
+            }}
+            required
           />
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Due Date (optional)
+            Due Date *
           </label>
           <input
             type="date"
-            className={inputStyles}
+            className={`${inputStyles} ${dateError ? "border-red-500 dark:border-red-500" : ""}`}
             value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
+            onChange={(e) => {
+              setDueDate(e.target.value);
+              if (dateError) setDateError("");
+            }}
+            required
           />
+          {dateError && (
+            <p className="mt-1 text-sm text-red-500">{dateError}</p>
+          )}
         </div>
         <button
           type="submit"

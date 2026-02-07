@@ -54,7 +54,7 @@ const BoardHeader = ({
             {boardName}
           </h1>
           <span className="inline-block rounded-full bg-gray-200 px-2 py-1 text-sm font-medium text-gray-700 dark:bg-dark-tertiary dark:text-white">
-            {totalTasks} / {totalPoints}pts
+            {totalTasks} tasks · {totalPoints} pts
           </span>
           <Link
             href={`/boards/${boardId}/settings`}

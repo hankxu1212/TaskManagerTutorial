@@ -42,35 +42,28 @@ const BoardView = ({ tasks, setIsModalNewTaskOpen, filterState }: BoardViewProps
     setSelectedTaskId(null);
   };
 
-  const moveTask = (taskId: number, toStatus: string) => {
-    updateTaskStatus({ taskId, status: toStatus });
+  const moveTask = async (taskId: number, toStatus: string) => {
+    try {
+      await updateTaskStatus({ taskId, status: toStatus }).unwrap();
+    } catch (error) {
+      console.error("Failed to update task status:", error);
+      // Optionally show an error message to the user
+    }
   };
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="relative min-h-full bg-gray-50 dark:bg-dark-bg">
-        {/* Dot background pattern */}
-        <div 
-          className="absolute inset-0 opacity-40 dark:opacity-25"
-          style={{
-            backgroundImage: `radial-gradient(circle, rgba(156, 163, 175, 0.4) 1px, transparent 1px)`,
-            backgroundSize: '20px 20px'
-          }}
-        />
-        
-        {/* Kanban columns */}
-        <div className="relative grid grid-cols-1 gap-4 p-4 md:grid-cols-2 xl:grid-cols-4">
-          {taskStatus.map((status) => (
-            <TaskColumn
-              key={status}
-              status={status}
-              tasks={filteredTasks}
-              moveTask={moveTask}
-              setIsModalNewTaskOpen={setIsModalNewTaskOpen}
-              onTaskClick={handleTaskClick}
-            />
-          ))}
-        </div>
+      <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2 xl:grid-cols-4">
+        {taskStatus.map((status) => (
+          <TaskColumn
+            key={status}
+            status={status}
+            tasks={filteredTasks}
+            moveTask={moveTask}
+            setIsModalNewTaskOpen={setIsModalNewTaskOpen}
+            onTaskClick={handleTaskClick}
+          />
+        ))}
       </div>
       <TaskDetailModal
         isOpen={isTaskDetailModalOpen}
@@ -131,7 +124,7 @@ const TaskColumn = ({
           />
           {status}{" "}
           <span className="ml-2 inline-block rounded-full bg-gray-100 px-2 py-1 text-center text-xs font-medium leading-none text-gray-600 dark:bg-dark-tertiary dark:text-gray-300">
-            {tasksCount} / {totalPoints}pts
+            {tasksCount} tasks · {totalPoints} pts
           </span>
         </h3>
         <div className="mt-3 h-px bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-stroke-dark dark:via-gray-600 dark:to-stroke-dark" />

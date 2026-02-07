@@ -173,10 +173,14 @@ export const api = createApi({
         // tasks
         getTasks: build.query<Task[], { projectId: number }>({
             query: ({ projectId }) => `tasks?projectId=${projectId}`,
-            providesTags: (result) =>
+            providesTags: (result, error, { projectId }) =>
                 result
-                    ? result.map(({ id }) => ({ type: "Tasks" as const, id }))
-                    : [{ type: "Tasks" as const }],
+                    ? [
+                          ...result.map(({ id }) => ({ type: "Tasks" as const, id })),
+                          { type: "Tasks" as const, id: `PROJECT-${projectId}` },
+                          "Tasks",
+                      ]
+                    : ["Tasks"],
         }),
 
         getTasksByUser: build.query<Task[], number>({
@@ -204,6 +208,8 @@ export const api = createApi({
             }),
             invalidatesTags: (result, error, { taskId }) => [
                 { type: "Tasks", id: taskId },
+                "Tasks", // Invalidate all task queries to refresh the board
+                "Sprints", // Invalidate sprints to refresh sprint board views
             ],
         }),
 
