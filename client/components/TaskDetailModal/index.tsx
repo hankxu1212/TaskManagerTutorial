@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Modal from "../Modal";
 import SubtaskHierarchy from "@/components/SubtaskHierarchy";
-import { Task, Priority, Status, useUpdateTaskMutation, useGetUsersQuery, useGetTagsQuery } from "@/state/api";
+import { Task, Priority, Status, useUpdateTaskMutation, useGetUsersQuery, useGetTagsQuery, useCreateCommentMutation, useGetAuthUserQuery } from "@/state/api";
 import { format } from "date-fns";
 import { Calendar, MessageSquareMore, User, Users, Tag, Award, Pencil, X, Plus, Paperclip } from "lucide-react";
 import Image from "next/image";
@@ -57,9 +57,12 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
   const [displayedTaskId, setDisplayedTaskId] = useState<number | null>(null);
   const [saveMessage, setSaveMessage] = useState(false);
   const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation();
+  const [createComment, { isLoading: isAddingComment }] = useCreateCommentMutation();
   const { data: users } = useGetUsersQuery();
   const { data: allTags } = useGetTagsQuery();
+  const { data: authData } = useGetAuthUserQuery({});
   const [previewAttachmentId, setPreviewAttachmentId] = useState<number | null>(null);
+  const [newComment, setNewComment] = useState("");
 
   // Edit form state
   const [editTitle, setEditTitle] = useState("");
@@ -182,6 +185,124 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
             <Pencil size={16} />
           </button>
         </div>
+      }
+      rightPanel={
+        !isEditing ? (
+          <div className="flex h-full flex-col">
+            {/* Header */}
+            <div className="flex items-center gap-2 border-b border-gray-200 px-4 py-3 dark:border-stroke-dark">
+              <MessageSquareMore className="h-4 w-4 text-gray-600 dark:text-neutral-400" />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {numberOfComments} {numberOfComments === 1 ? "comment" : "comments"}
+              </span>
+            </div>
+            
+            {/* Comments list */}
+            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+              {currentTask.comments && currentTask.comments.length > 0 ? (
+                currentTask.comments.map((comment) => (
+                  <div key={comment.id} className="group">
+                    <div className="flex gap-2">
+                      {comment.user?.profilePictureUrl ? (
+                        <Image
+                          src={`https://ninghuax-tm-demo-bucket-us-west-2.s3.us-east-1.amazonaws.com/${comment.user.profilePictureUrl}`}
+                          alt={comment.user.username}
+                          width={28}
+                          height={28}
+                          className="h-7 w-7 rounded-full object-cover flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-500 text-white text-xs font-medium flex-shrink-0">
+                          {comment.user?.username?.charAt(0).toUpperCase() || "?"}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-xs font-medium text-gray-900 dark:text-white">
+                            {comment.user?.username || "Unknown"}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-700 dark:text-neutral-300 mt-0.5 break-words">
+                          {comment.text}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <MessageSquareMore className="h-8 w-8 text-gray-300 dark:text-gray-600 mb-2" />
+                  <p className="text-sm text-gray-500 dark:text-neutral-400">No comments yet</p>
+                  <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">Be the first to comment</p>
+                </div>
+              )}
+            </div>
+            
+            {/* Add comment input - Google style */}
+            <div className="border-t border-gray-200 p-3 dark:border-stroke-dark">
+              <div className="flex gap-2">
+                {authData?.userDetails?.profilePictureUrl ? (
+                  <Image
+                    src={`https://ninghuax-tm-demo-bucket-us-west-2.s3.us-east-1.amazonaws.com/${authData.userDetails.profilePictureUrl}`}
+                    alt="You"
+                    width={28}
+                    height={28}
+                    className="h-7 w-7 rounded-full object-cover flex-shrink-0"
+                  />
+                ) : (
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-400 text-white text-xs font-medium flex-shrink-0">
+                    {authData?.userDetails?.username?.charAt(0).toUpperCase() || "?"}
+                  </div>
+                )}
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    className="w-full rounded-full border border-gray-300 bg-white px-3 py-1.5 text-sm placeholder-gray-400 focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-dark-secondary dark:text-white dark:placeholder-gray-500"
+                    placeholder="Add a comment..."
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && newComment.trim() && authData?.userDetails?.userId && typeof authData.userDetails.userId === 'number') {
+                        createComment({
+                          taskId: currentTask.id,
+                          userId: authData.userDetails.userId,
+                          text: newComment.trim(),
+                        });
+                        setNewComment("");
+                      }
+                    }}
+                  />
+                  {newComment.trim() && (
+                    <div className="mt-2 flex justify-end gap-2">
+                      <button
+                        onClick={() => setNewComment("")}
+                        className="rounded px-3 py-1 text-xs text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (newComment.trim() && authData?.userDetails?.userId && typeof authData.userDetails.userId === 'number') {
+                            createComment({
+                              taskId: currentTask.id,
+                              userId: authData.userDetails.userId,
+                              text: newComment.trim(),
+                            });
+                            setNewComment("");
+                          }
+                        }}
+                        disabled={isAddingComment || !authData?.userDetails?.userId || typeof authData?.userDetails?.userId !== 'number'}
+                        className="rounded bg-blue-500 px-3 py-1 text-xs text-white hover:bg-blue-600 disabled:opacity-50"
+                      >
+                        Comment
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : undefined
       }
     >
       <div className="space-y-6 dark:text-white">
@@ -534,50 +655,6 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
                 </div>
               ))}
             </div>
-          </div>
-        )}
-
-        {/* Comments */}
-        {!isEditing && (
-          <div className="border-t border-gray-200 pt-4 dark:border-stroke-dark">
-            <div className="mb-3 flex items-center gap-2">
-              <MessageSquareMore className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                Comments ({numberOfComments})
-              </h3>
-            </div>
-            {currentTask.comments && currentTask.comments.length > 0 ? (
-              <div className="space-y-3">
-                {currentTask.comments.map((comment) => (
-                  <div
-                    key={comment.id}
-                    className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-stroke-dark dark:bg-dark-tertiary"
-                  >
-                    <div className="mb-2 flex items-center gap-2">
-                      {comment.user?.profilePictureUrl ? (
-                        <Image
-                          src={`https://ninghuax-tm-demo-bucket-us-west-2.s3.us-east-1.amazonaws.com/${comment.user.profilePictureUrl}`}
-                          alt={comment.user.username}
-                          width={24}
-                          height={24}
-                          className="h-6 w-6 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-200 dark:bg-dark-bg">
-                          <User className="h-3 w-3 text-gray-500 dark:text-neutral-500" />
-                        </div>
-                      )}
-                      <span className="text-xs font-semibold text-gray-900 dark:text-white">
-                        {comment.user?.username || "Unknown"}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-700 dark:text-neutral-300">{comment.text}</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500 dark:text-neutral-400">No comments yet</p>
-            )}
           </div>
         )}
       </div>

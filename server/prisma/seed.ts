@@ -28,6 +28,31 @@ async function deleteAllData(orderedFileNames: string[]) {
     }
 }
 
+async function resetSequences() {
+    // Reset PostgreSQL sequences to max ID + 1 for all tables with auto-increment
+    const sequences = [
+        { table: 'User', column: 'userId' },
+        { table: 'Project', column: 'id' },
+        { table: 'Task', column: 'id' },
+        { table: 'Tag', column: 'id' },
+        { table: 'TaskTag', column: 'id' },
+        { table: 'TaskAssignment', column: 'id' },
+        { table: 'Attachment', column: 'id' },
+        { table: 'Comment', column: 'id' },
+    ];
+
+    for (const { table, column } of sequences) {
+        try {
+            await prisma.$executeRawUnsafe(
+                `SELECT setval(pg_get_serial_sequence('"${table}"', '${column}'), COALESCE((SELECT MAX("${column}") FROM "${table}"), 0) + 1, false)`
+            );
+            console.log(`Reset sequence for ${table}.${column}`);
+        } catch (error) {
+            console.error(`Error resetting sequence for ${table}.${column}:`, error);
+        }
+    }
+}
+
 async function main() {
     const dataDirectory = path.join(__dirname, "seedData");
 
@@ -58,6 +83,9 @@ async function main() {
             console.error(`Error seeding data for ${modelName}:`, error);
         }
     }
+
+    // Reset sequences after seeding to prevent ID conflicts
+    await resetSequences();
 }
 
 main()

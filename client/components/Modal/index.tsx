@@ -11,9 +11,10 @@ type Props = {
     headerRight?: React.ReactNode;
     hideClose?: boolean;
     hideHeader?: boolean;
+    rightPanel?: React.ReactNode;
 };
 
-const Modal = ({ children, isOpen, onClose, name, headerRight, hideClose, hideHeader }: Props) => {
+const Modal = ({ children, isOpen, onClose, name, headerRight, hideClose, hideHeader, rightPanel }: Props) => {
     useEffect(() => {
         if (!isOpen) return;
 
@@ -37,34 +38,46 @@ const Modal = ({ children, isOpen, onClose, name, headerRight, hideClose, hideHe
             className="fixed inset-0 z-50 flex h-full w-full items-center justify-center overflow-y-auto bg-black/40 backdrop-blur-sm p-4 animate-fade-in"
             onClick={onClose}
         >
-            <div 
-                className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-lg bg-white shadow-lg dark:bg-dark-secondary animate-scale-in"
-                onClick={(e) => e.stopPropagation()}
-            >
-                {!hideHeader && (
-                    <div className="flex-shrink-0 px-4 py-3 border-b border-gray-200 dark:border-stroke-dark">
-                        <Header
-                            name={name}
-                            buttonComponent={
-                                <div className="flex items-center gap-2">
-                                    {headerRight}
-                                    {!hideClose && (
-                                        <button
-                                            className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-800 text-white hover:bg-gray-700 dark:bg-white dark:text-gray-800 dark:hover:bg-gray-200"
-                                            onClick={onClose}
-                                        >
-                                            <X size={18} />
-                                        </button>
-                                    )}
-                                </div>
-                            }
-                            isSmallText
-                        />
+            <div className={`flex items-start gap-3 ${rightPanel ? "max-w-4xl" : "max-w-2xl"} w-full max-h-[90vh]`}>
+                {/* Main modal */}
+                <div 
+                    className="flex-1 min-w-0 flex flex-col max-h-[90vh] rounded-lg bg-white shadow-lg dark:bg-dark-secondary animate-scale-in"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    {!hideHeader && (
+                        <div className="flex-shrink-0 px-4 py-3 border-b border-gray-200 dark:border-stroke-dark">
+                            <Header
+                                name={name}
+                                buttonComponent={
+                                    <div className="flex items-center gap-2">
+                                        {headerRight}
+                                        {!hideClose && (
+                                            <button
+                                                className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-800 text-white hover:bg-gray-700 dark:bg-white dark:text-gray-800 dark:hover:bg-gray-200"
+                                                onClick={onClose}
+                                            >
+                                                <X size={18} />
+                                            </button>
+                                        )}
+                                    </div>
+                                }
+                                isSmallText
+                            />
+                        </div>
+                    )}
+                    <div className="flex-1 overflow-y-auto p-4">
+                        {children}
+                    </div>
+                </div>
+                {/* Right floating panel */}
+                {rightPanel && (
+                    <div 
+                        className="w-72 flex-shrink-0 max-h-[90vh] rounded-lg bg-white shadow-lg dark:bg-dark-secondary animate-scale-in overflow-hidden"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {rightPanel}
                     </div>
                 )}
-                <div className="flex-1 overflow-y-auto p-4">
-                    {children}
-                </div>
             </div>
         </div>,
         document.body,

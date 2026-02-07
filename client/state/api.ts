@@ -257,6 +257,16 @@ export const api = createApi({
             }),
             invalidatesTags: ["Tags"],
         }),
+
+        // comments
+        createComment: build.mutation<Comment, { taskId: number; userId: number; text: string }>({
+            query: (body) => ({
+                url: "comments",
+                method: "POST",
+                body,
+            }),
+            invalidatesTags: ["Tasks"],
+        }),
     }),
 });
 
@@ -277,4 +287,5 @@ export const {
     useCreateTagMutation,
     useUpdateTagMutation,
     useDeleteTagMutation,
+    useCreateCommentMutation,
 } = api;

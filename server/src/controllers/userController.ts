@@ -27,12 +27,29 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
 
 export const getUser = async (req: Request, res: Response): Promise<void> => {
     const { cognitoId } = req.params;
+    
+    if (!cognitoId || typeof cognitoId !== 'string') {
+        res.status(400).json({ message: 'Invalid cognitoId parameter' });
+        return;
+    }
+    
     try {
-        const user = await getPrismaClient().user.findUnique({
+        let user = await getPrismaClient().user.findUnique({
             where: {
-                cognitoId: String(cognitoId),
+                cognitoId: cognitoId,
             },
         });
+
+        // Auto-create user if they don't exist (for local dev without Lambda trigger)
+        if (!user) {
+            user = await getPrismaClient().user.create({
+                data: {
+                    cognitoId: cognitoId,
+                    username: `user_${cognitoId.substring(0, 8)}`,
+                    profilePictureUrl: "i1.jpg",
+                },
+            });
+        }
 
         res.json(user);
     } catch (error: any) {

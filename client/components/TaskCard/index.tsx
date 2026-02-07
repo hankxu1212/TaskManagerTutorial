@@ -158,15 +158,6 @@ const TaskCard = ({ task, onClick, className = "" }: Props) => {
                 className="h-6 w-6 rounded-full border-2 border-white object-cover dark:border-dark-secondary"
               />
             )}
-            {task.author?.profilePictureUrl && (
-              <Image
-                src={`https://ninghuax-tm-demo-bucket-us-west-2.s3.us-east-1.amazonaws.com/${task.author.profilePictureUrl}`}
-                alt={task.author.username}
-                width={24}
-                height={24}
-                className="h-6 w-6 rounded-full border-2 border-white object-cover dark:border-dark-secondary"
-              />
-            )}
           </div>
           <div className="flex items-center gap-2">
             {/* Priority with inline edit */}
