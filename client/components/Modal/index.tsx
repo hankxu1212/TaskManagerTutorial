@@ -10,9 +10,10 @@ type Props = {
     name: string;
     headerRight?: React.ReactNode;
     hideClose?: boolean;
+    hideHeader?: boolean;
 };
 
-const Modal = ({ children, isOpen, onClose, name, headerRight, hideClose }: Props) => {
+const Modal = ({ children, isOpen, onClose, name, headerRight, hideClose, hideHeader }: Props) => {
     useEffect(() => {
         if (!isOpen) return;
 
@@ -37,27 +38,33 @@ const Modal = ({ children, isOpen, onClose, name, headerRight, hideClose }: Prop
             onClick={onClose}
         >
             <div 
-                className="w-full max-w-2xl rounded-lg bg-white p-4 shadow-lg dark:bg-dark-secondary animate-scale-in"
+                className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-lg bg-white shadow-lg dark:bg-dark-secondary animate-scale-in"
                 onClick={(e) => e.stopPropagation()}
             >
-                <Header
-                    name={name}
-                    buttonComponent={
-                        <div className="flex items-center gap-2">
-                            {headerRight}
-                            {!hideClose && (
-                                <button
-                                    className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-800 text-white hover:bg-gray-700 dark:bg-white dark:text-gray-800 dark:hover:bg-gray-200"
-                                    onClick={onClose}
-                                >
-                                    <X size={18} />
-                                </button>
-                            )}
-                        </div>
-                    }
-                    isSmallText
-                />
-                {children}
+                {!hideHeader && (
+                    <div className="flex-shrink-0 px-4 py-3 border-b border-gray-200 dark:border-stroke-dark">
+                        <Header
+                            name={name}
+                            buttonComponent={
+                                <div className="flex items-center gap-2">
+                                    {headerRight}
+                                    {!hideClose && (
+                                        <button
+                                            className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-800 text-white hover:bg-gray-700 dark:bg-white dark:text-gray-800 dark:hover:bg-gray-200"
+                                            onClick={onClose}
+                                        >
+                                            <X size={18} />
+                                        </button>
+                                    )}
+                                </div>
+                            }
+                            isSmallText
+                        />
+                    </div>
+                )}
+                <div className="flex-1 overflow-y-auto p-4">
+                    {children}
+                </div>
             </div>
         </div>,
         document.body,

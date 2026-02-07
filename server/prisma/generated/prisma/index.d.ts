@@ -3989,6 +3989,7 @@ export namespace Prisma {
 
   export type TaskAvgAggregateOutputType = {
     id: number | null
+    status: number | null
     points: number | null
     projectId: number | null
     authorUserId: number | null
@@ -3998,6 +3999,7 @@ export namespace Prisma {
 
   export type TaskSumAggregateOutputType = {
     id: number | null
+    status: number | null
     points: number | null
     projectId: number | null
     authorUserId: number | null
@@ -4009,7 +4011,7 @@ export namespace Prisma {
     id: number | null
     title: string | null
     description: string | null
-    status: string | null
+    status: number | null
     priority: string | null
     startDate: Date | null
     dueDate: Date | null
@@ -4024,7 +4026,7 @@ export namespace Prisma {
     id: number | null
     title: string | null
     description: string | null
-    status: string | null
+    status: number | null
     priority: string | null
     startDate: Date | null
     dueDate: Date | null
@@ -4054,6 +4056,7 @@ export namespace Prisma {
 
   export type TaskAvgAggregateInputType = {
     id?: true
+    status?: true
     points?: true
     projectId?: true
     authorUserId?: true
@@ -4063,6 +4066,7 @@ export namespace Prisma {
 
   export type TaskSumAggregateInputType = {
     id?: true
+    status?: true
     points?: true
     projectId?: true
     authorUserId?: true
@@ -4206,7 +4210,7 @@ export namespace Prisma {
     id: number
     title: string
     description: string | null
-    status: string | null
+    status: number | null
     priority: string | null
     startDate: Date | null
     dueDate: Date | null
@@ -4357,7 +4361,7 @@ export namespace Prisma {
       id: number
       title: string
       description: string | null
-      status: string | null
+      status: number | null
       priority: string | null
       startDate: Date | null
       dueDate: Date | null
@@ -4801,7 +4805,7 @@ export namespace Prisma {
     readonly id: FieldRef<"Task", 'Int'>
     readonly title: FieldRef<"Task", 'String'>
     readonly description: FieldRef<"Task", 'String'>
-    readonly status: FieldRef<"Task", 'String'>
+    readonly status: FieldRef<"Task", 'Int'>
     readonly priority: FieldRef<"Task", 'String'>
     readonly startDate: FieldRef<"Task", 'DateTime'>
     readonly dueDate: FieldRef<"Task", 'DateTime'>
@@ -11132,7 +11136,7 @@ export namespace Prisma {
     id?: IntFilter<"Task"> | number
     title?: StringFilter<"Task"> | string
     description?: StringNullableFilter<"Task"> | string | null
-    status?: StringNullableFilter<"Task"> | string | null
+    status?: IntNullableFilter<"Task"> | number | null
     priority?: StringNullableFilter<"Task"> | string | null
     startDate?: DateTimeNullableFilter<"Task"> | Date | string | null
     dueDate?: DateTimeNullableFilter<"Task"> | Date | string | null
@@ -11183,7 +11187,7 @@ export namespace Prisma {
     NOT?: TaskWhereInput | TaskWhereInput[]
     title?: StringFilter<"Task"> | string
     description?: StringNullableFilter<"Task"> | string | null
-    status?: StringNullableFilter<"Task"> | string | null
+    status?: IntNullableFilter<"Task"> | number | null
     priority?: StringNullableFilter<"Task"> | string | null
     startDate?: DateTimeNullableFilter<"Task"> | Date | string | null
     dueDate?: DateTimeNullableFilter<"Task"> | Date | string | null
@@ -11230,7 +11234,7 @@ export namespace Prisma {
     id?: IntWithAggregatesFilter<"Task"> | number
     title?: StringWithAggregatesFilter<"Task"> | string
     description?: StringNullableWithAggregatesFilter<"Task"> | string | null
-    status?: StringNullableWithAggregatesFilter<"Task"> | string | null
+    status?: IntNullableWithAggregatesFilter<"Task"> | number | null
     priority?: StringNullableWithAggregatesFilter<"Task"> | string | null
     startDate?: DateTimeNullableWithAggregatesFilter<"Task"> | Date | string | null
     dueDate?: DateTimeNullableWithAggregatesFilter<"Task"> | Date | string | null
@@ -11616,7 +11620,7 @@ export namespace Prisma {
   export type TaskCreateInput = {
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -11636,7 +11640,7 @@ export namespace Prisma {
     id?: number
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -11655,7 +11659,7 @@ export namespace Prisma {
   export type TaskUpdateInput = {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -11675,7 +11679,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -11695,7 +11699,7 @@ export namespace Prisma {
     id?: number
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -11709,7 +11713,7 @@ export namespace Prisma {
   export type TaskUpdateManyMutationInput = {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -11720,7 +11724,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -12138,17 +12142,6 @@ export namespace Prisma {
     id?: SortOrder
   }
 
-  export type DateTimeNullableFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
-  }
-
   export type IntNullableFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel> | null
     in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
@@ -12158,6 +12151,17 @@ export namespace Prisma {
     gt?: number | IntFieldRefInput<$PrismaModel>
     gte?: number | IntFieldRefInput<$PrismaModel>
     not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type DateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
   }
 
   export type ProjectScalarRelationFilter = {
@@ -12207,6 +12211,7 @@ export namespace Prisma {
 
   export type TaskAvgOrderByAggregateInput = {
     id?: SortOrder
+    status?: SortOrder
     points?: SortOrder
     projectId?: SortOrder
     authorUserId?: SortOrder
@@ -12246,25 +12251,12 @@ export namespace Prisma {
 
   export type TaskSumOrderByAggregateInput = {
     id?: SortOrder
+    status?: SortOrder
     points?: SortOrder
     projectId?: SortOrder
     authorUserId?: SortOrder
     assignedUserId?: SortOrder
     parentTaskId?: SortOrder
-  }
-
-  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedDateTimeNullableFilter<$PrismaModel>
-    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
   export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -12281,6 +12273,20 @@ export namespace Prisma {
     _sum?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedIntNullableFilter<$PrismaModel>
     _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
+  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
   export type TagCountOrderByAggregateInput = {
@@ -12815,16 +12821,16 @@ export namespace Prisma {
     connect?: TaskTagWhereUniqueInput | TaskTagWhereUniqueInput[]
   }
 
-  export type NullableDateTimeFieldUpdateOperationsInput = {
-    set?: Date | string | null
-  }
-
   export type NullableIntFieldUpdateOperationsInput = {
     set?: number | null
     increment?: number
     decrement?: number
     multiply?: number
     divide?: number
+  }
+
+  export type NullableDateTimeFieldUpdateOperationsInput = {
+    set?: Date | string | null
   }
 
   export type ProjectUpdateOneRequiredWithoutTasksNestedInput = {
@@ -13279,20 +13285,6 @@ export namespace Prisma {
     not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
   }
 
-  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedDateTimeNullableFilter<$PrismaModel>
-    _max?: NestedDateTimeNullableFilter<$PrismaModel>
-  }
-
   export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel> | null
     in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
@@ -13320,10 +13312,24 @@ export namespace Prisma {
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
+  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
   export type TaskCreateWithoutAuthorInput = {
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -13342,7 +13348,7 @@ export namespace Prisma {
     id?: number
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -13370,7 +13376,7 @@ export namespace Prisma {
   export type TaskCreateWithoutAssigneeInput = {
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -13389,7 +13395,7 @@ export namespace Prisma {
     id?: number
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -13500,7 +13506,7 @@ export namespace Prisma {
     id?: IntFilter<"Task"> | number
     title?: StringFilter<"Task"> | string
     description?: StringNullableFilter<"Task"> | string | null
-    status?: StringNullableFilter<"Task"> | string | null
+    status?: IntNullableFilter<"Task"> | number | null
     priority?: StringNullableFilter<"Task"> | string | null
     startDate?: DateTimeNullableFilter<"Task"> | Date | string | null
     dueDate?: DateTimeNullableFilter<"Task"> | Date | string | null
@@ -13608,7 +13614,7 @@ export namespace Prisma {
   export type TaskCreateWithoutProjectInput = {
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -13627,7 +13633,7 @@ export namespace Prisma {
     id?: number
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -13739,7 +13745,7 @@ export namespace Prisma {
   export type TaskCreateWithoutSubtasksInput = {
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -13758,7 +13764,7 @@ export namespace Prisma {
     id?: number
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -13781,7 +13787,7 @@ export namespace Prisma {
   export type TaskCreateWithoutParentTaskInput = {
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -13800,7 +13806,7 @@ export namespace Prisma {
     id?: number
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -14007,7 +14013,7 @@ export namespace Prisma {
   export type TaskUpdateWithoutSubtasksInput = {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -14026,7 +14032,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -14168,7 +14174,7 @@ export namespace Prisma {
   export type TaskCreateWithoutTaskTagsInput = {
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -14187,7 +14193,7 @@ export namespace Prisma {
     id?: number
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -14237,7 +14243,7 @@ export namespace Prisma {
   export type TaskUpdateWithoutTaskTagsInput = {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -14256,7 +14262,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -14322,7 +14328,7 @@ export namespace Prisma {
   export type TaskCreateWithoutTaskAssignmentsInput = {
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -14341,7 +14347,7 @@ export namespace Prisma {
     id?: number
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -14407,7 +14413,7 @@ export namespace Prisma {
   export type TaskUpdateWithoutTaskAssignmentsInput = {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -14426,7 +14432,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -14444,7 +14450,7 @@ export namespace Prisma {
   export type TaskCreateWithoutAttachmentsInput = {
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -14463,7 +14469,7 @@ export namespace Prisma {
     id?: number
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -14523,7 +14529,7 @@ export namespace Prisma {
   export type TaskUpdateWithoutAttachmentsInput = {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -14542,7 +14548,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -14592,7 +14598,7 @@ export namespace Prisma {
   export type TaskCreateWithoutCommentsInput = {
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -14611,7 +14617,7 @@ export namespace Prisma {
     id?: number
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -14671,7 +14677,7 @@ export namespace Prisma {
   export type TaskUpdateWithoutCommentsInput = {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -14690,7 +14696,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -14741,7 +14747,7 @@ export namespace Prisma {
     id?: number
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -14755,7 +14761,7 @@ export namespace Prisma {
     id?: number
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -14786,7 +14792,7 @@ export namespace Prisma {
   export type TaskUpdateWithoutAuthorInput = {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -14805,7 +14811,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -14824,7 +14830,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -14837,7 +14843,7 @@ export namespace Prisma {
   export type TaskUpdateWithoutAssigneeInput = {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -14856,7 +14862,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -14875,7 +14881,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -14940,7 +14946,7 @@ export namespace Prisma {
     id?: number
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -14953,7 +14959,7 @@ export namespace Prisma {
   export type TaskUpdateWithoutProjectInput = {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -14972,7 +14978,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -14991,7 +14997,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -15005,7 +15011,7 @@ export namespace Prisma {
     id?: number
     title: string
     description?: string | null
-    status?: string | null
+    status?: number | null
     priority?: string | null
     startDate?: Date | string | null
     dueDate?: Date | string | null
@@ -15041,7 +15047,7 @@ export namespace Prisma {
   export type TaskUpdateWithoutParentTaskInput = {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -15060,7 +15066,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -15079,7 +15085,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: NullableIntFieldUpdateOperationsInput | number | null
     priority?: NullableStringFieldUpdateOperationsInput | string | null
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     dueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null

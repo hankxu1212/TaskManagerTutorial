@@ -5,7 +5,7 @@ import Modal from "../Modal";
 import SubtaskHierarchy from "@/components/SubtaskHierarchy";
 import { Task, Priority, Status, useUpdateTaskMutation, useGetUsersQuery, useGetTagsQuery } from "@/state/api";
 import { format } from "date-fns";
-import { Calendar, MessageSquareMore, User, Users, Tag, Award, Pencil, X } from "lucide-react";
+import { Calendar, MessageSquareMore, User, Users, Tag, Award, Pencil, X, Plus, Paperclip } from "lucide-react";
 import Image from "next/image";
 
 interface TaskDetailModalProps {
@@ -35,10 +35,10 @@ const PriorityTag = ({ priority }: { priority: Task["priority"] }) => (
 
 const StatusBadge = ({ status }: { status: Task["status"] }) => {
   const statusColor: Record<string, string> = {
-    "To Do": "bg-[#7f97cb] text-white",
+    "Input Queue": "bg-[#7f97cb] text-white",
     "Work In Progress": "bg-[#65d6b3] text-white",
-    "Under Review": "bg-[#d1ac1e] text-white",
-    Completed: "bg-[#31aa00] text-white",
+    "Review": "bg-[#d1ac1e] text-white",
+    "Done": "bg-[#31aa00] text-white",
   };
 
   return (
@@ -59,6 +59,7 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
   const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation();
   const { data: users } = useGetUsersQuery();
   const { data: allTags } = useGetTagsQuery();
+  const [previewAttachmentId, setPreviewAttachmentId] = useState<number | null>(null);
 
   // Edit form state
   const [editTitle, setEditTitle] = useState("");
@@ -70,6 +71,7 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
   const [editPoints, setEditPoints] = useState("");
   const [editAssignedUserId, setEditAssignedUserId] = useState("");
   const [editTagIds, setEditTagIds] = useState<number[]>([]);
+  const [editSubtaskIds, setEditSubtaskIds] = useState<number[]>([]);
 
   // Sync displayedTaskId and reset edit mode when the modal opens with a new task
   useEffect(() => {
@@ -118,6 +120,7 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
     setEditPoints(currentTask.points?.toString() || "");
     setEditAssignedUserId(currentTask.assignedUserId?.toString() || "");
     setEditTagIds(currentTask.taskTags?.map((tt) => tt.tag.id) || []);
+    setEditSubtaskIds(currentTask.subtasks?.map((s) => s.id) || []);
     setIsEditing(true);
   };
 
@@ -133,6 +136,7 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
       points: editPoints ? Number(editPoints) : undefined,
       assignedUserId: editAssignedUserId ? Number(editAssignedUserId) : undefined,
       tagIds: editTagIds,
+      subtaskIds: editSubtaskIds,
     }).unwrap();
     setIsEditing(false);
     setSaveMessage(true);
@@ -142,6 +146,12 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
   const handleTagToggle = (tagId: number) => {
     setEditTagIds((prev) =>
       prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]
+    );
+  };
+
+  const handleSubtaskToggle = (subtaskId: number) => {
+    setEditSubtaskIds((prev) =>
+      prev.includes(subtaskId) ? prev.filter((id) => id !== subtaskId) : [...prev, subtaskId]
     );
   };
 
@@ -158,24 +168,23 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      name={isEditing ? "" : currentTask.title}
+      name={currentTask.title}
       hideClose={isEditing}
+      hideHeader={isEditing}
       headerRight={
         <div className="flex items-center gap-2">
-          {!isEditing && currentTask.priority && <PriorityTag priority={currentTask.priority} />}
-          {!isEditing && (
-            <button
-              onClick={handleEditClick}
-              className="flex h-7 w-7 items-center justify-center rounded text-gray-600 hover:bg-gray-100 dark:text-neutral-300 dark:hover:bg-dark-tertiary"
-              title="Edit task"
-            >
-              <Pencil size={16} />
-            </button>
-          )}
+          {currentTask.priority && <PriorityTag priority={currentTask.priority} />}
+          <button
+            onClick={handleEditClick}
+            className="flex h-7 w-7 items-center justify-center rounded text-gray-600 hover:bg-gray-100 dark:text-neutral-300 dark:hover:bg-dark-tertiary"
+            title="Edit task"
+          >
+            <Pencil size={16} />
+          </button>
         </div>
       }
     >
-      <div className="mt-4 space-y-6 dark:text-white">
+      <div className="space-y-6 dark:text-white">
         {/* Save success message */}
         {saveMessage && (
           <div className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-300">
@@ -263,26 +272,26 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
             </div>
           )}
 
-          {/* Start Date */}
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
-            <span className="text-sm text-gray-600 dark:text-neutral-400">Start Date:</span>
-            {isEditing ? (
-              <input type="date" className={selectClass} value={editStartDate} onChange={(e) => setEditStartDate(e.target.value)} />
-            ) : (
-              <span className="text-sm text-gray-900 dark:text-white">{formattedStartDate}</span>
-            )}
-          </div>
-
-          {/* Due Date */}
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
-            <span className="text-sm text-gray-600 dark:text-neutral-400">Due Date:</span>
-            {isEditing ? (
-              <input type="date" className={selectClass} value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} />
-            ) : (
-              <span className="text-sm text-gray-900 dark:text-white">{formattedDueDate}</span>
-            )}
+          {/* Start Date & Due Date */}
+          <div className="col-span-1 md:col-span-2 flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
+              <span className="text-sm text-gray-600 dark:text-neutral-400">Start:</span>
+              {isEditing ? (
+                <input type="date" className={selectClass} value={editStartDate} onChange={(e) => setEditStartDate(e.target.value)} />
+              ) : (
+                <span className="text-sm text-gray-900 dark:text-white">{formattedStartDate}</span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
+              <span className="text-sm text-gray-600 dark:text-neutral-400">Due:</span>
+              {isEditing ? (
+                <input type="date" className={selectClass} value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} />
+              ) : (
+                <span className="text-sm text-gray-900 dark:text-white">{formattedDueDate}</span>
+              )}
+            </div>
           </div>
 
           {/* Assignee (edit mode) */}
@@ -344,6 +353,64 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
           )}
         </div>
 
+        {/* Subtasks Management (edit mode only) */}
+        {isEditing && tasks && (
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Award className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Subtasks</h3>
+              </div>
+              <span className="text-xs text-gray-500 dark:text-neutral-400">
+                Click to add/remove
+              </span>
+            </div>
+            <div className="space-y-2">
+              {/* Show currently selected subtasks first */}
+              {editSubtaskIds.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Current Subtasks:</p>
+                  {tasks
+                    .filter((t) => editSubtaskIds.includes(t.id))
+                    .map((task) => (
+                      <button
+                        key={task.id}
+                        type="button"
+                        onClick={() => handleSubtaskToggle(task.id)}
+                        className="flex w-full items-center justify-between rounded-lg border border-blue-500 bg-blue-50 px-3 py-2 text-left text-sm transition-colors hover:bg-blue-100 dark:border-blue-400 dark:bg-blue-900/30 dark:hover:bg-blue-900/50"
+                      >
+                        <span className="font-medium dark:text-white">{task.title}</span>
+                        <X size={16} className="text-blue-500 dark:text-blue-400" />
+                      </button>
+                    ))}
+                </div>
+              )}
+              {/* Show available tasks to add as subtasks */}
+              {tasks.filter((t) => t.id !== currentTask.id && t.id !== currentTask.parentTask?.id && !t.parentTask && t.projectId === currentTask.projectId && !editSubtaskIds.includes(t.id)).length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Available Tasks:</p>
+                  {tasks
+                    .filter((t) => t.id !== currentTask.id && t.id !== currentTask.parentTask?.id && !t.parentTask && t.projectId === currentTask.projectId && !editSubtaskIds.includes(t.id))
+                    .map((task) => (
+                      <button
+                        key={task.id}
+                        type="button"
+                        onClick={() => handleSubtaskToggle(task.id)}
+                        className="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 text-left text-sm transition-colors hover:bg-gray-50 dark:border-stroke-dark dark:bg-dark-tertiary dark:hover:bg-gray-700"
+                      >
+                        <span className="font-medium dark:text-white">{task.title}</span>
+                        <Plus size={16} className="text-gray-400" />
+                      </button>
+                    ))}
+                </div>
+              )}
+              {tasks.filter((t) => t.id !== currentTask.id && t.id !== currentTask.parentTask?.id && !t.parentTask && t.projectId === currentTask.projectId).length === 0 && (
+                <span className="text-sm text-gray-500 dark:text-neutral-400">No available tasks to add as subtasks</span>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Save / Cancel buttons */}
         {isEditing && (
           <div className="flex gap-3">
@@ -358,13 +425,13 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
               onClick={handleCancel}
               className="rounded bg-gray-200 px-4 py-2 text-sm dark:bg-dark-tertiary dark:text-white"
             >
-              Cancel
+              Back
             </button>
           </div>
         )}
 
-        {/* Subtask Hierarchy — visible in both view and edit modes */}
-        {hasHierarchy && (
+        {/* Subtask Hierarchy — visible in view mode only */}
+        {!isEditing && hasHierarchy && (
           <div className="border-t border-gray-200 pt-4 dark:border-stroke-dark">
             <SubtaskHierarchy
               parentTask={currentTask.parentTask}
@@ -433,27 +500,37 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
         {/* Attachments */}
         {!isEditing && currentTask.attachments && currentTask.attachments.length > 0 && (
           <div className="border-t border-gray-200 pt-4 dark:border-stroke-dark">
-            <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
-              Attachments ({currentTask.attachments.length})
-            </h3>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="mb-3 flex items-center gap-2">
+              <Paperclip className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                Attachments ({currentTask.attachments.length})
+              </h3>
+            </div>
+            <div className="space-y-2">
               {currentTask.attachments.map((attachment) => (
-                <div
-                  key={attachment.id}
-                  className="overflow-hidden rounded-lg border border-gray-200 dark:border-stroke-dark"
-                >
-                  <Image
-                    src={`https://ninghuax-tm-demo-bucket-us-west-2.s3.us-east-1.amazonaws.com/${attachment.fileURL}`}
-                    alt={attachment.fileName}
-                    width={400}
-                    height={200}
-                    className="h-auto w-full object-cover"
-                  />
-                  <div className="bg-gray-50 px-3 py-2 dark:bg-dark-tertiary">
-                    <p className="truncate text-xs text-gray-600 dark:text-neutral-400">
+                <div key={attachment.id} className="rounded-lg border border-gray-200 dark:border-stroke-dark">
+                  <div className="flex items-center justify-between bg-gray-50 px-3 py-2 dark:bg-dark-tertiary">
+                    <p className="truncate text-sm text-gray-700 dark:text-neutral-300">
                       {attachment.fileName}
                     </p>
+                    <button
+                      onClick={() => setPreviewAttachmentId(previewAttachmentId === attachment.id ? null : attachment.id)}
+                      className="ml-2 rounded bg-gray-200 px-2 py-1 text-xs text-gray-700 hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500"
+                    >
+                      {previewAttachmentId === attachment.id ? "Hide" : "Preview"}
+                    </button>
                   </div>
+                  {previewAttachmentId === attachment.id && (
+                    <div className="p-2">
+                      <Image
+                        src={`https://ninghuax-tm-demo-bucket-us-west-2.s3.us-east-1.amazonaws.com/${attachment.fileURL}`}
+                        alt={attachment.fileName}
+                        width={600}
+                        height={400}
+                        className="h-auto w-full rounded object-contain"
+                      />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -461,12 +538,48 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
         )}
 
         {/* Comments */}
-        <div className="flex items-center gap-2 border-t border-gray-200 pt-4 dark:border-stroke-dark">
-          <MessageSquareMore className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
-          <span className="text-sm text-gray-600 dark:text-neutral-400">
-            {numberOfComments} {numberOfComments === 1 ? "comment" : "comments"}
-          </span>
-        </div>
+        {!isEditing && (
+          <div className="border-t border-gray-200 pt-4 dark:border-stroke-dark">
+            <div className="mb-3 flex items-center gap-2">
+              <MessageSquareMore className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                Comments ({numberOfComments})
+              </h3>
+            </div>
+            {currentTask.comments && currentTask.comments.length > 0 ? (
+              <div className="space-y-3">
+                {currentTask.comments.map((comment) => (
+                  <div
+                    key={comment.id}
+                    className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-stroke-dark dark:bg-dark-tertiary"
+                  >
+                    <div className="mb-2 flex items-center gap-2">
+                      {comment.user?.profilePictureUrl ? (
+                        <Image
+                          src={`https://ninghuax-tm-demo-bucket-us-west-2.s3.us-east-1.amazonaws.com/${comment.user.profilePictureUrl}`}
+                          alt={comment.user.username}
+                          width={24}
+                          height={24}
+                          className="h-6 w-6 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-200 dark:bg-dark-bg">
+                          <User className="h-3 w-3 text-gray-500 dark:text-neutral-500" />
+                        </div>
+                      )}
+                      <span className="text-xs font-semibold text-gray-900 dark:text-white">
+                        {comment.user?.username || "Unknown"}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-700 dark:text-neutral-300">{comment.text}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 dark:text-neutral-400">No comments yet</p>
+            )}
+          </div>
+        )}
       </div>
     </Modal>
   );

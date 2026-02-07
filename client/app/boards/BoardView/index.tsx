@@ -16,7 +16,7 @@ type BoardProps = {
   filterState: FilterState;
 };
 
-const taskStatus = ["To Do", "Work In Progress", "Under Review", "Completed"];
+const taskStatus = ["Input Queue", "Work In Progress", "Review", "Done"];
 
 const BoardView = ({ id, setIsModalNewTaskOpen, filterState }: BoardProps) => {
   const {
@@ -103,10 +103,10 @@ const TaskColumn = ({
   const tasksCount = tasks.filter((task) => task.status === status).length;
 
   const statusColor: Record<string, string> = {
-    "To Do": "#7f97cb",
+    "Input Queue": "#7f97cb",
     "Work In Progress": "#65d6b3",
-    "Under Review": "#d1ac1e",
-    Completed: "#31aa00",
+    "Review": "#d1ac1e",
+    "Done": "#31aa00",
   };
 
   return (
@@ -116,24 +116,19 @@ const TaskColumn = ({
       }}
       className={`rounded-lg py-2 px-2 xl:px-2 bg-gray-100 dark:bg-dark-secondary/50 ${isOver ? "bg-gray-200 dark:bg-dark-tertiary" : ""}`}
     >
-      <div className="mb-2 flex w-full">
-        <div
-          className={`w-1.5 !bg-[${statusColor[status]}] rounded-s-lg`}
-          style={{ backgroundColor: statusColor[status] }}
-        />
-        <div className="flex w-full items-center justify-between rounded-e-lg bg-white px-3 py-2 dark:bg-dark-secondary">
-          <h3 className="flex items-center text-base font-semibold dark:text-white">
-            {status}{" "}
-            <span
-              className="ml-1.5 inline-block rounded-full bg-gray-200 px-1.5 py-0.5 text-center text-xs leading-none dark:bg-dark-tertiary"
-            >
-              {tasksCount}
-            </span>
-          </h3>
-        </div>
+      <div className="mb-3 flex w-full flex-col">
+        <h3 className="flex items-center text-base font-semibold text-gray-700 dark:text-white">
+          {status}{" "}
+          <span
+            className="ml-1.5 inline-block rounded-full bg-gray-200 px-1.5 py-0.5 text-center text-xs leading-none dark:bg-dark-tertiary"
+          >
+            {tasksCount}
+          </span>
+        </h3>
+        <div className="mt-2 h-px bg-gray-300 dark:bg-stroke-dark" />
       </div>
 
-      {status === "To Do" && (
+      {status === "Input Queue" && (
         <button
           onClick={() => setIsModalNewTaskOpen(true)}
           className="mb-2 flex w-full items-center gap-2 rounded-md border-2 border-dashed border-gray-300 bg-white/50 p-3 text-gray-500 transition-colors hover:border-gray-400 hover:bg-white hover:text-gray-700 dark:border-stroke-dark dark:bg-dark-secondary/50 dark:text-neutral-500 dark:hover:border-neutral-500 dark:hover:bg-dark-secondary dark:hover:text-neutral-300"

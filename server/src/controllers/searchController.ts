@@ -14,6 +14,17 @@ function getPrismaClient() {
   return prisma;
 }
 
+// Status mapping: 0=Input Queue, 1=Work In Progress, 2=Review, 3=Done
+const statusIntToString = (status: number | null): string | null => {
+    const statusMap: Record<number, string> = {
+        0: "Input Queue",
+        1: "Work In Progress",
+        2: "Review",
+        3: "Done",
+    };
+    return status !== null ? statusMap[status] || null : null;
+};
+
 export const search = async (req: Request, res: Response): Promise<void> => {
   const { query } = req.query;
   try {
@@ -40,7 +51,14 @@ export const search = async (req: Request, res: Response): Promise<void> => {
         OR: [{ username: { contains: query as string, mode: "insensitive" } }],
       },
     });
-    res.json({ tasks, projects, users });
+    
+    // Map integer status to string for frontend
+    const tasksWithStringStatus = tasks.map(task => ({
+        ...task,
+        status: statusIntToString(task.status),
+    }));
+    
+    res.json({ tasks: tasksWithStringStatus, projects, users });
   } catch (error: any) {
     res
       .status(500)

@@ -14,6 +14,27 @@ function getPrismaClient() {
     return prisma;
 }
 
+// Status mapping: 0=Input Queue, 1=Work In Progress, 2=Review, 3=Done
+const statusIntToString = (status: number | null): string | null => {
+    const statusMap: Record<number, string> = {
+        0: "Input Queue",
+        1: "Work In Progress",
+        2: "Review",
+        3: "Done",
+    };
+    return status !== null ? statusMap[status] || null : null;
+};
+
+const statusStringToInt = (status: string | null | undefined): number | null => {
+    const statusMap: Record<string, number> = {
+        "Input Queue": 0,
+        "Work In Progress": 1,
+        "Review": 2,
+        "Done": 3,
+    };
+    return status ? statusMap[status] ?? null : null;
+};
+
 export const getTasks = async (_req: Request, res: Response) => {
     const {projectId} = _req.query;
 
@@ -26,7 +47,11 @@ export const getTasks = async (_req: Request, res: Response) => {
                 include: {
                     author: true,
                     assignee: true,
-                    comments: true,
+                    comments: {
+                        include: {
+                            user: true,
+                        },
+                    },
                     attachments: true,
                     taskTags: { include: { tag: true } },
                     subtasks: {
@@ -44,7 +69,18 @@ export const getTasks = async (_req: Request, res: Response) => {
                 }
             }
         );
-        res.json(tasks);
+        
+        // Map integer status to string for frontend
+        const tasksWithStringStatus = tasks.map(task => ({
+            ...task,
+            status: statusIntToString(task.status),
+            subtasks: task.subtasks?.map(subtask => ({
+                ...subtask,
+                status: statusIntToString(subtask.status),
+            })),
+        }));
+        
+        res.json(tasksWithStringStatus);
     } catch (error: any) {
         console.error("Error fetching tasks:", error.message);
         res.status(500).json({ error: "Failed to fetch tasks: " + error.message });
@@ -73,7 +109,7 @@ export const createTask = async (
             data: {
                 title,
                 description,
-                status,
+                status: statusStringToInt(status),
                 priority,
                 startDate,
                 dueDate,
@@ -91,7 +127,14 @@ export const createTask = async (
                 taskTags: { include: { tag: true } },
             },
         });
-        res.status(201).json(newTask);
+        
+        // Map integer status to string for frontend
+        const taskWithStringStatus = {
+            ...newTask,
+            status: statusIntToString(newTask.status),
+        };
+        
+        res.status(201).json(taskWithStringStatus);
     } catch (error: any) {
         res.status(500).json({ error: `Error creating a task: ${error.message}` });
     }
@@ -109,10 +152,17 @@ export const updateTaskStatus = async (
                 id: Number(taskId),
             },
             data: {
-                status: status,
+                status: statusStringToInt(status),
             },
         });
-        res.json(updatedTask);
+        
+        // Map integer status to string for frontend
+        const taskWithStringStatus = {
+            ...updatedTask,
+            status: statusIntToString(updatedTask.status),
+        };
+        
+        res.json(taskWithStringStatus);
     } catch (error: any) {
         res.status(500).json({ message: `Error updating task: ${error.message}` });
     }
@@ -123,12 +173,12 @@ export const updateTask = async (
     res: Response
 ): Promise<void> => {
     const { taskId } = req.params;
-    const { title, description, status, priority, startDate, dueDate, points, assignedUserId, tagIds } = req.body;
+    const { title, description, status, priority, startDate, dueDate, points, assignedUserId, tagIds, subtaskIds } = req.body;
     try {
         const data: Record<string, any> = {};
         if (title !== undefined) data.title = title;
         if (description !== undefined) data.description = description;
-        if (status !== undefined) data.status = status || null;
+        if (status !== undefined) data.status = statusStringToInt(status);
         if (priority !== undefined) data.priority = priority || null;
         if (startDate !== undefined) data.startDate = startDate ? new Date(startDate) : null;
         if (dueDate !== undefined) data.dueDate = dueDate ? new Date(dueDate) : null;
@@ -150,13 +200,46 @@ export const updateTask = async (
             }
         }
 
+        // Handle subtask updates: set parentTaskId for new subtasks, clear for removed ones
+        if (subtaskIds !== undefined) {
+            const currentTask = await getPrismaClient().task.findUnique({
+                where: { id: Number(taskId) },
+                include: { subtasks: { select: { id: true } } },
+            });
+            
+            const currentSubtaskIds = currentTask?.subtasks.map(s => s.id) || [];
+            const newSubtaskIds = subtaskIds as number[];
+            
+            // Tasks to add as subtasks (set parentTaskId)
+            const toAdd = newSubtaskIds.filter(id => !currentSubtaskIds.includes(id));
+            if (toAdd.length > 0) {
+                await getPrismaClient().task.updateMany({
+                    where: { id: { in: toAdd } },
+                    data: { parentTaskId: Number(taskId) },
+                });
+            }
+            
+            // Tasks to remove as subtasks (clear parentTaskId)
+            const toRemove = currentSubtaskIds.filter(id => !newSubtaskIds.includes(id));
+            if (toRemove.length > 0) {
+                await getPrismaClient().task.updateMany({
+                    where: { id: { in: toRemove } },
+                    data: { parentTaskId: null },
+                });
+            }
+        }
+
         const updatedTask = await getPrismaClient().task.update({
             where: { id: Number(taskId) },
             data,
             include: {
                 author: true,
                 assignee: true,
-                comments: true,
+                comments: {
+                    include: {
+                        user: true,
+                    },
+                },
                 attachments: true,
                 taskTags: { include: { tag: true } },
                 subtasks: {
@@ -173,7 +256,18 @@ export const updateTask = async (
                 },
             },
         });
-        res.json(updatedTask);
+        
+        // Map integer status to string for frontend
+        const taskWithStringStatus = {
+            ...updatedTask,
+            status: statusIntToString(updatedTask.status),
+            subtasks: updatedTask.subtasks?.map(subtask => ({
+                ...subtask,
+                status: statusIntToString(subtask.status),
+            })),
+        };
+        
+        res.json(taskWithStringStatus);
     } catch (error: any) {
         res.status(500).json({ error: `Error updating task: ${error.message}` });
     }
@@ -197,7 +291,14 @@ export const getUserTasks = async (
                 assignee: true,
             },
         });
-        res.json(tasks);
+        
+        // Map integer status to string for frontend
+        const tasksWithStringStatus = tasks.map(task => ({
+            ...task,
+            status: statusIntToString(task.status),
+        }));
+        
+        res.json(tasksWithStringStatus);
     } catch (error: any) {
         res.status(500).json({ error: `Error retrieving user's tasks: ${error.message}` });
     }

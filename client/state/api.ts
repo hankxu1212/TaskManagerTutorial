@@ -16,10 +16,10 @@ export enum Priority {
 }
 
 export enum Status {
-    ToDo = "To Do",
+    InputQueue = "Input Queue",
     WorkInProgress = "Work In Progress",
-    UnderReview = "Under Review",
-    Completed = "Completed",
+    Review = "Review",
+    Done = "Done",
 }
 
 export interface User {
@@ -36,6 +36,14 @@ export interface Attachment {
     fileName: string;
     taskId: number;
     uploadedById: number;
+}
+
+export interface Comment {
+    id: number;
+    text: string;
+    taskId: number;
+    userId: number;
+    user?: User;
 }
 
 export interface TaskTag {
@@ -176,7 +184,7 @@ export const api = createApi({
             ],
         }),
 
-        updateTask: build.mutation<Task, Partial<Task> & { id: number; tagIds?: number[] }>({
+        updateTask: build.mutation<Task, Partial<Task> & { id: number; tagIds?: number[]; subtaskIds?: number[] }>({
             query: ({ id, ...body }) => ({
                 url: `tasks/${id}`,
                 method: "PATCH",
@@ -184,6 +192,7 @@ export const api = createApi({
             }),
             invalidatesTags: (_, __, { id }) => [
                 { type: "Tasks", id },
+                "Tasks", // Invalidate all tasks to refresh subtask relationships
             ],
         }),
 
