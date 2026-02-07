@@ -3,6 +3,7 @@
 import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
+import ConfirmationMenu from "@/components/ConfirmationMenu";
 import {
   useGetProjectsQuery,
   useUpdateProjectMutation,
@@ -28,6 +29,7 @@ const BoardSettings = ({ params }: Props) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [saved, setSaved] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     if (project) {
@@ -44,7 +46,6 @@ const BoardSettings = ({ params }: Props) => {
   };
 
   const handleDelete = async () => {
-    if (!confirm(`Delete "${project?.name}" and all its tasks? This cannot be undone.`)) return;
     await deleteProject(Number(id));
     router.push("/");
   };
@@ -114,13 +115,23 @@ const BoardSettings = ({ params }: Props) => {
             Deleting this board will permanently remove all its tasks, comments, and attachments.
           </p>
           <button
-            onClick={handleDelete}
+            onClick={() => setShowDeleteConfirm(true)}
             disabled={isDeleting}
             className="flex items-center gap-2 rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950"
           >
             <Trash2 className="h-4 w-4" />
             {isDeleting ? "Deleting..." : "Delete Board"}
           </button>
+          <ConfirmationMenu
+            isOpen={showDeleteConfirm}
+            onClose={() => setShowDeleteConfirm(false)}
+            onConfirm={handleDelete}
+            title="Delete Board"
+            message={`Delete "${project?.name}" and all its tasks? This cannot be undone.`}
+            confirmLabel="Delete"
+            isLoading={isDeleting}
+            variant="danger"
+          />
         </div>
       </div>
     </div>

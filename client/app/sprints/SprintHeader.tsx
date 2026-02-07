@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar, Filter, Settings, Table } from "lucide-react";
+import { Calendar, Copy, Filter, Settings, Table } from "lucide-react";
 import { BiColumns } from "react-icons/bi";
 import { MdTimeline } from "react-icons/md";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FilterState } from "@/lib/filterTypes";
-import { Tag } from "@/state/api";
+import { Tag, useDuplicateSprintMutation } from "@/state/api";
 import FilterDropdown from "@/components/FilterDropdown";
+import ConfirmationMenu from "@/components/ConfirmationMenu";
 
 type Props = {
   activeTab: "Board" | "Table" | "Timeline";
@@ -43,8 +45,21 @@ const SprintHeader = ({
   totalTasks,
   totalPoints,
 }: Props) => {
+  const router = useRouter();
   // State for filter dropdown visibility
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+  const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false);
+  const [duplicateSprint, { isLoading: isDuplicating }] = useDuplicateSprintMutation();
+
+  const handleDuplicate = async () => {
+    try {
+      const newSprint = await duplicateSprint({ sprintId }).unwrap();
+      setShowDuplicateConfirm(false);
+      router.push(`/sprints/${newSprint.id}`);
+    } catch (error) {
+      console.error("Failed to duplicate sprint:", error);
+    }
+  };
 
   /**
    * Format date string to a readable format
@@ -70,6 +85,25 @@ const SprintHeader = ({
             <span className="inline-block rounded-full bg-gray-200 px-2 py-1 text-sm font-medium text-gray-700 dark:bg-dark-tertiary dark:text-white">
               {totalTasks} tasks · {totalPoints} pts
             </span>
+            <button
+              onClick={() => setShowDuplicateConfirm(true)}
+              disabled={isDuplicating}
+              className="text-gray-500 hover:text-gray-700 dark:text-neutral-400 dark:hover:text-neutral-200 disabled:opacity-50"
+              aria-label="Duplicate sprint"
+              title="Duplicate sprint"
+            >
+              <Copy className="h-5 w-5" />
+            </button>
+            <ConfirmationMenu
+              isOpen={showDuplicateConfirm}
+              onClose={() => setShowDuplicateConfirm(false)}
+              onConfirm={handleDuplicate}
+              title="Duplicate Sprint"
+              message={`Create a copy of "${sprintTitle}" with all ${totalTasks} tasks?`}
+              confirmLabel="Duplicate"
+              isLoading={isDuplicating}
+              variant="info"
+            />
             <Link
               href={`/sprints/${sprintId}/settings`}
               className="text-gray-500 hover:text-gray-700 dark:text-neutral-400 dark:hover:text-neutral-200"

@@ -3,6 +3,7 @@
 import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
+import ConfirmationMenu from "@/components/ConfirmationMenu";
 import {
   useGetSprintsQuery,
   useUpdateSprintMutation,
@@ -29,6 +30,7 @@ const SprintSettings = ({ params }: Props) => {
   const [startDate, setStartDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [saved, setSaved] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     if (sprint) {
@@ -51,7 +53,6 @@ const SprintSettings = ({ params }: Props) => {
   };
 
   const handleDelete = async () => {
-    if (!confirm(`Delete "${sprint?.title}" and remove all task associations? This cannot be undone.`)) return;
     await deleteSprint(Number(id));
     router.push("/");
   };
@@ -133,13 +134,23 @@ const SprintSettings = ({ params }: Props) => {
             Deleting this sprint will remove all task associations but will not delete the tasks themselves.
           </p>
           <button
-            onClick={handleDelete}
+            onClick={() => setShowDeleteConfirm(true)}
             disabled={isDeleting}
             className="flex items-center gap-2 rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950"
           >
             <Trash2 className="h-4 w-4" />
             {isDeleting ? "Deleting..." : "Delete Sprint"}
           </button>
+          <ConfirmationMenu
+            isOpen={showDeleteConfirm}
+            onClose={() => setShowDeleteConfirm(false)}
+            onConfirm={handleDelete}
+            title="Delete Sprint"
+            message={`Delete "${sprint?.title}" and remove all task associations? This cannot be undone.`}
+            confirmLabel="Delete"
+            isLoading={isDeleting}
+            variant="danger"
+          />
         </div>
       </div>
     </div>

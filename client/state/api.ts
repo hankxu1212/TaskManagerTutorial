@@ -360,6 +360,15 @@ export const api = createApi({
             ],
         }),
 
+        duplicateSprint: build.mutation<Sprint, { sprintId: number; title?: string }>({
+            query: ({ sprintId, title }) => ({
+                url: `sprints/${sprintId}/duplicate`,
+                method: "POST",
+                body: title ? { title } : {},
+            }),
+            invalidatesTags: ["Sprints"],
+        }),
+
         // comments
         createComment: build.mutation<Comment, { taskId: number; userId: number; text: string }>({
             query: (body) => ({
@@ -414,4 +423,5 @@ export const {
     useDeleteSprintMutation,
     useAddTaskToSprintMutation,
     useRemoveTaskFromSprintMutation,
+    useDuplicateSprintMutation,
 } = api;

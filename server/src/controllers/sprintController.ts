@@ -367,3 +367,69 @@ export const removeTaskFromSprint = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to remove task from sprint: " + error.message });
   }
 };
+
+/**
+ * Duplicate a sprint with all its tasks
+ * POST /sprints/:sprintId/duplicate
+ * Body: { title?: string } - optional new title, defaults to "Copy of {original title}"
+ */
+export const duplicateSprint = async (req: Request, res: Response) => {
+  try {
+    const { sprintId } = req.params;
+    const { title } = req.body;
+    const id = Number(sprintId);
+
+    if (isNaN(id)) {
+      res.status(400).json({ error: "Invalid sprint ID" });
+      return;
+    }
+
+    // Get the original sprint with its tasks
+    const originalSprint = await getPrismaClient().sprint.findUnique({
+      where: { id },
+      include: {
+        sprintTasks: true
+      }
+    });
+
+    if (!originalSprint) {
+      res.status(404).json({ error: "Sprint not found" });
+      return;
+    }
+
+    // Create the new sprint
+    const newTitle = title?.trim() || `Copy of ${originalSprint.title}`;
+    const newSprint = await getPrismaClient().sprint.create({
+      data: {
+        title: newTitle,
+        startDate: originalSprint.startDate,
+        dueDate: originalSprint.dueDate
+      }
+    });
+
+    // Copy all task associations to the new sprint
+    if (originalSprint.sprintTasks.length > 0) {
+      await getPrismaClient().sprintTask.createMany({
+        data: originalSprint.sprintTasks.map(st => ({
+          sprintId: newSprint.id,
+          taskId: st.taskId
+        }))
+      });
+    }
+
+    // Return the new sprint with task count
+    const result = await getPrismaClient().sprint.findUnique({
+      where: { id: newSprint.id },
+      include: {
+        _count: {
+          select: { sprintTasks: true }
+        }
+      }
+    });
+
+    res.status(201).json(result);
+  } catch (error: any) {
+    console.error("Error duplicating sprint:", error.message);
+    res.status(500).json({ error: "Failed to duplicate sprint: " + error.message });
+  }
+};
