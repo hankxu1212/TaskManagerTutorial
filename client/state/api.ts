@@ -89,6 +89,7 @@ export interface SearchResults {
 export interface Tag {
     id: number;
     name: string;
+    color?: string;
 }
 
 export const api = createApi({
@@ -175,13 +176,13 @@ export const api = createApi({
             ],
         }),
 
-        updateTask: build.mutation<Task, Partial<Task> & { id: number }>({
+        updateTask: build.mutation<Task, Partial<Task> & { id: number; tagIds?: number[] }>({
             query: ({ id, ...body }) => ({
                 url: `tasks/${id}`,
                 method: "PATCH",
                 body,
             }),
-            invalidatesTags: (result, error, { id }) => [
+            invalidatesTags: (_, __, { id }) => [
                 { type: "Tasks", id },
             ],
         }),
@@ -222,7 +223,7 @@ export const api = createApi({
             providesTags: ["Tags"],
         }),
 
-        createTag: build.mutation<Tag, { name: string }>({
+        createTag: build.mutation<Tag, { name: string; color?: string }>({
             query: (body) => ({
                 url: "tags",
                 method: "POST",
@@ -231,7 +232,7 @@ export const api = createApi({
             invalidatesTags: ["Tags"],
         }),
 
-        updateTag: build.mutation<Tag, { tagId: number; name: string }>({
+        updateTag: build.mutation<Tag, { tagId: number; name?: string; color?: string }>({
             query: ({ tagId, ...body }) => ({
                 url: `tags/${tagId}`,
                 method: "PATCH",

@@ -25,6 +25,7 @@ import ModalNewBoard from "@/app/boards/ModalNewBoard";
 const Sidebar = () => {
     const [showBoards, setShowBoards] = useState(true);
     const [isModalNewBoardOpen, setIsModalNewBoardOpen] = useState(false);
+    const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
 
     const { data: projects } = useGetProjectsQuery();
     const dispatch = useAppDispatch();
@@ -45,8 +46,7 @@ const Sidebar = () => {
 
     const sidebarClassNames = `fixed flex flex-col h-[100%] justify-between shadow-xl
     transition-all duration-300 h-full z-40 dark:bg-dark-secondary overflow-y-auto bg-white
-    ${isSidebarCollapsed ? "w-0 hidden" : "w-64"}
-  `;
+    ${isSidebarCollapsed ? "w-0 hidden" : "w-64"}`;
 
     return (
         <div className={sidebarClassNames}>
@@ -54,44 +54,40 @@ const Sidebar = () => {
                 isOpen={isModalNewBoardOpen}
                 onClose={() => setIsModalNewBoardOpen(false)}
             />
-            <div className="flex h-[100%] w-full flex-col justify-start">
-                {/* TOP LOGO */}
-                <div className="z-50 flex min-h-[48px] w-64 items-center justify-between bg-white px-6 pt-2 dark:bg-dark-secondary">
-                    <div className="text-lg font-bold text-gray-800 dark:text-white">
-                        EDLIST
+            <div className="flex h-full w-full flex-col justify-start">
+                {/* TOP LOGO & HEADER */}
+                {/* Added border-b for separation and uniform vertical padding (py-4) */}
+                <div className="sticky top-0 z-50 flex w-full items-center justify-between border-b border-gray-100 bg-white px-6 py-4 dark:border-gray-800 dark:bg-dark-secondary">
+                    <div className="flex items-center gap-3">
+                        <Image
+                            src={isDarkMode ? "/tc_logo_rounded_w_on_b.png" : "/tc_logo_rounded_b_on_w.png"}
+                            alt="Logo"
+                            width={32}
+                            height={32}
+                            className="h-8 w-8 object-contain"
+                        />
+                        <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+                            Quest
+                        </span>
                     </div>
-                    {isSidebarCollapsed ? null : (
+
+                    {/* Collapse Button */}
+                    {!isSidebarCollapsed && (
                         <button
-                            className="py-3"
+                            className="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
                             onClick={() => {
-                                dispatch(setIsSidebarCollapsed(!isSidebarCollapsed));
+                                dispatch(setIsSidebarCollapsed(!isSidebarCollapsed))
                             }}
                         >
-                            <X className="h-6 w-6 text-gray-800 hover:text-gray-500 dark:text-white" />
+                            <X className="h-5 w-5" />
                         </button>
                     )}
                 </div>
-                {/* WORKSPACE */}
-                <div className="flex items-center gap-4 border-y-[1.5px] border-gray-200 px-6 py-2.5 dark:border-stroke-dark">
-                    <Image
-                        src="https://ninghuax-tm-demo-bucket-us-west-2.s3.us-east-1.amazonaws.com/logo.png"
-                        alt="Logo"
-                        width={40}
-                        height={40}
-                    />
-                    <div>
-                        <h3 className="text-md font-bold tracking-wide dark:text-gray-200">
-                            My Workspace
-                        </h3>
-                        <div className="mt-1 flex items-start gap-2">
-                            <LockIcon className="mt-[0.1rem] h-3 w-3 text-gray-500 dark:text-gray-400" />
-                            <p className="text-xs text-gray-500">Private</p>
-                        </div>
-                    </div>
-                </div>
+
                 {/* NAVBAR LINKS */}
-                <nav className="z-10 w-full">
-                    <SidebarLink icon={Home} label="Home" href="/" />
+                {/* Added flex-col, gap for rhythm, and margin-top */}
+                <nav className="mt-6 flex w-full flex-col gap-y-1 px-4">
+                    <SidebarLink icon={Home} label="Overview" href="/" />
                     <SidebarLink icon={Search} label="Search" href="/search" />
                     <SidebarLink icon={Tag} label="Tags" href="/tags" />
                     <SidebarLink icon={User} label="Team" href="/users" />

@@ -18,30 +18,36 @@ const TagsPage = () => {
   const [deleteTag] = useDeleteTagMutation();
 
   const [newTagName, setNewTagName] = useState("");
+  const [newTagColor, setNewTagColor] = useState("#3b82f6");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [editingColor, setEditingColor] = useState("");
 
   const handleCreate = async () => {
     if (!newTagName.trim()) return;
-    await createTag({ name: newTagName.trim() });
+    await createTag({ name: newTagName.trim(), color: newTagColor });
     setNewTagName("");
+    setNewTagColor("#3b82f6");
   };
 
   const handleStartEdit = (tag: Tag) => {
     setEditingId(tag.id);
     setEditingName(tag.name);
+    setEditingColor(tag.color || "#3b82f6");
   };
 
   const handleSaveEdit = async () => {
     if (!editingName.trim() || editingId === null) return;
-    await updateTag({ tagId: editingId, name: editingName.trim() });
+    await updateTag({ tagId: editingId, name: editingName.trim(), color: editingColor });
     setEditingId(null);
     setEditingName("");
+    setEditingColor("");
   };
 
   const handleCancelEdit = () => {
     setEditingId(null);
     setEditingName("");
+    setEditingColor("");
   };
 
   const handleDelete = async (tagId: number, tagName: string) => {
@@ -64,6 +70,13 @@ const TagsPage = () => {
           value={newTagName}
           onChange={(e) => setNewTagName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleCreate()}
+        />
+        <input
+          type="color"
+          value={newTagColor}
+          onChange={(e) => setNewTagColor(e.target.value)}
+          className="h-10 w-10 cursor-pointer rounded border border-gray-300 p-0.5 dark:border-dark-tertiary"
+          title="Tag color"
         />
         <button
           onClick={handleCreate}
@@ -99,6 +112,12 @@ const TagsPage = () => {
                   }}
                   autoFocus
                 />
+                <input
+                  type="color"
+                  value={editingColor}
+                  onChange={(e) => setEditingColor(e.target.value)}
+                  className="h-8 w-8 cursor-pointer rounded border border-gray-300 p-0.5 dark:border-dark-tertiary"
+                />
                 <button
                   onClick={handleSaveEdit}
                   className="rounded p-1 text-green-600 hover:bg-green-50 dark:hover:bg-green-950"
@@ -114,9 +133,15 @@ const TagsPage = () => {
               </div>
             ) : (
               <>
-                <span className="text-sm font-medium text-gray-800 dark:text-white">
-                  {tag.name}
-                </span>
+                <div className="flex items-center gap-2">
+                  <div
+                    className="h-4 w-4 rounded-full"
+                    style={{ backgroundColor: tag.color || "#3b82f6" }}
+                  />
+                  <span className="text-sm font-medium text-gray-800 dark:text-white">
+                    {tag.name}
+                  </span>
+                </div>
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => handleStartEdit(tag)}

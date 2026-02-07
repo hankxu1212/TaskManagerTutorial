@@ -4,10 +4,13 @@ import { dataGridClassNames, dataGridSxStyles } from "@/lib/utils";
 import { useGetTasksQuery } from "@/state/api";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import TaskDetailModal from "@/components/TaskDetailModal";
+import { applyFilters } from "@/lib/filterUtils";
+import { FilterState } from "@/lib/filterTypes";
 
 type Props = {
   id: string;
   setIsModalNewTaskOpen: (isOpen: boolean) => void;
+  filterState: FilterState;
 };
 
 const columns: GridColDef[] = [
@@ -60,13 +63,16 @@ const columns: GridColDef[] = [
   },
 ];
 
-const TableView = ({ id, setIsModalNewTaskOpen }: Props) => {
+const TableView = ({ id, setIsModalNewTaskOpen, filterState }: Props) => {
   const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
   const {
     data: tasks,
     error,
     isLoading,
   } = useGetTasksQuery({ projectId: Number(id) });
+
+  // Apply filters to tasks
+  const filteredTasks = applyFilters(tasks ?? [], filterState);
 
   // Modal state management for task detail modal
   const [isTaskDetailModalOpen, setIsTaskDetailModalOpen] = useState(false);
@@ -90,7 +96,7 @@ const TableView = ({ id, setIsModalNewTaskOpen }: Props) => {
   return (
     <div className="h-[500px] w-full px-4 pb-8 xl:px-6">
       <DataGrid
-        rows={tasks || []}
+        rows={filteredTasks}
         columns={columns}
         className={dataGridClassNames}
         sx={dataGridSxStyles(isDarkMode)}

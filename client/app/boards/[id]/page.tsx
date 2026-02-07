@@ -5,7 +5,9 @@ import BoardHeader from "@/app/boards/BoardHeader";
 import Board from "../BoardView";
 import Table from "../TableView";
 import ModalNewTask from "@/components/ModalNewTask";
-import { useGetProjectsQuery } from "@/state/api";
+import { useGetProjectsQuery, useGetTagsQuery } from "@/state/api";
+import { FilterState, initialFilterState } from "@/lib/filterTypes";
+import { isFilterActive } from "@/lib/filterUtils";
 
 type Props = {
     params: Promise<{ id: string }>;
@@ -15,9 +17,13 @@ const BoardPage = ({ params }: Props) => {
     const { id } = use(params);
     const [activeTab, setActiveTab] = useState("Board");
     const [isModalNewTaskOpen, setIsModalNewTaskOpen] = useState(false);
+    const [filterState, setFilterState] = useState<FilterState>(initialFilterState);
     
     const { data: projects } = useGetProjectsQuery();
+    const { data: tags = [] } = useGetTagsQuery();
     const project = projects?.find((p) => p.id === Number(id));
+    
+    const handleFilterChange = (newState: FilterState) => setFilterState(newState);
 
     return (
         <div>
@@ -31,12 +37,16 @@ const BoardPage = ({ params }: Props) => {
                 setActiveTab={setActiveTab} 
                 boardName={project?.name || "Board"}
                 boardId={id}
+                filterState={filterState}
+                onFilterChange={handleFilterChange}
+                tags={tags}
+                isFilterActive={isFilterActive(filterState)}
             />
             {activeTab === "Board" && (
-                <Board id={id} setIsModalNewTaskOpen={setIsModalNewTaskOpen} />
+                <Board id={id} setIsModalNewTaskOpen={setIsModalNewTaskOpen} filterState={filterState} />
             )}
             {activeTab === "Table" && (
-                <Table id={id} setIsModalNewTaskOpen={setIsModalNewTaskOpen} />
+                <Table id={id} setIsModalNewTaskOpen={setIsModalNewTaskOpen} filterState={filterState} />
             )}
         </div>
     );

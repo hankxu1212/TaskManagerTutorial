@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import Modal from "../Modal";
 import SubtaskHierarchy from "@/components/SubtaskHierarchy";
-import { Task, Priority, Status, useUpdateTaskMutation, useGetUsersQuery } from "@/state/api";
+import { Task, Priority, Status, useUpdateTaskMutation, useGetUsersQuery, useGetTagsQuery } from "@/state/api";
 import { format } from "date-fns";
-import { Calendar, MessageSquareMore, User, Users, Tag, Award, Pencil } from "lucide-react";
+import { Calendar, MessageSquareMore, User, Users, Tag, Award, Pencil, X } from "lucide-react";
 import Image from "next/image";
 
 interface TaskDetailModalProps {
@@ -58,6 +58,7 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
   const [saveMessage, setSaveMessage] = useState(false);
   const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation();
   const { data: users } = useGetUsersQuery();
+  const { data: allTags } = useGetTagsQuery();
 
   // Edit form state
   const [editTitle, setEditTitle] = useState("");
@@ -68,6 +69,7 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
   const [editDueDate, setEditDueDate] = useState("");
   const [editPoints, setEditPoints] = useState("");
   const [editAssignedUserId, setEditAssignedUserId] = useState("");
+  const [editTagIds, setEditTagIds] = useState<number[]>([]);
 
   // Sync displayedTaskId and reset edit mode when the modal opens with a new task
   useEffect(() => {
@@ -115,6 +117,7 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
     setEditDueDate(currentTask.dueDate ? new Date(currentTask.dueDate).toISOString().split("T")[0] : "");
     setEditPoints(currentTask.points?.toString() || "");
     setEditAssignedUserId(currentTask.assignedUserId?.toString() || "");
+    setEditTagIds(currentTask.taskTags?.map((tt) => tt.tag.id) || []);
     setIsEditing(true);
   };
 
@@ -129,10 +132,17 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
       dueDate: editDueDate || undefined,
       points: editPoints ? Number(editPoints) : undefined,
       assignedUserId: editAssignedUserId ? Number(editAssignedUserId) : undefined,
+      tagIds: editTagIds,
     }).unwrap();
     setIsEditing(false);
     setSaveMessage(true);
     setTimeout(() => setSaveMessage(false), 2000);
+  };
+
+  const handleTagToggle = (tagId: number) => {
+    setEditTagIds((prev) =>
+      prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]
+    );
   };
 
   const handleCancel = () => {
@@ -289,6 +299,50 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
             </div>
           )}
         </div>
+        <div>
+          <div className="mb-2 flex items-center gap-2">
+            <Tag className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Tags</h3>
+          </div>
+          {isEditing ? (
+            <div className="flex flex-wrap gap-2">
+              {allTags?.map((tag) => {
+                const isSelected = editTagIds.includes(tag.id);
+                return (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    onClick={() => handleTagToggle(tag.id)}
+                    className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+                      isSelected
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-dark-tertiary dark:text-gray-300 dark:hover:bg-gray-600"
+                    }`}
+                  >
+                    {tag.name}
+                    {isSelected && <X size={12} />}
+                  </button>
+                );
+              })}
+              {(!allTags || allTags.length === 0) && (
+                <span className="text-sm text-gray-500 dark:text-neutral-400">No tags available</span>
+              )}
+            </div>
+          ) : tags.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <span className="text-sm text-gray-500 dark:text-neutral-400">No tags</span>
+          )}
+        </div>
 
         {/* Save / Cancel buttons */}
         {isEditing && (
@@ -306,26 +360,6 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
             >
               Cancel
             </button>
-          </div>
-        )}
-
-        {/* Tags */}
-        {!isEditing && tags.length > 0 && (
-          <div>
-            <div className="mb-2 flex items-center gap-2">
-              <Tag className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Tags</h3>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
           </div>
         )}
 

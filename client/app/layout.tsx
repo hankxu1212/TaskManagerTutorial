@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Que",
+  title: "Q",
   description: "Internal task management tool for Team Crescendo",
 };
 

@@ -5405,16 +5405,19 @@ export namespace Prisma {
   export type TagMinAggregateOutputType = {
     id: number | null
     name: string | null
+    color: string | null
   }
 
   export type TagMaxAggregateOutputType = {
     id: number | null
     name: string | null
+    color: string | null
   }
 
   export type TagCountAggregateOutputType = {
     id: number
     name: number
+    color: number
     _all: number
   }
 
@@ -5430,16 +5433,19 @@ export namespace Prisma {
   export type TagMinAggregateInputType = {
     id?: true
     name?: true
+    color?: true
   }
 
   export type TagMaxAggregateInputType = {
     id?: true
     name?: true
+    color?: true
   }
 
   export type TagCountAggregateInputType = {
     id?: true
     name?: true
+    color?: true
     _all?: true
   }
 
@@ -5532,6 +5538,7 @@ export namespace Prisma {
   export type TagGroupByOutputType = {
     id: number
     name: string
+    color: string | null
     _count: TagCountAggregateOutputType | null
     _avg: TagAvgAggregateOutputType | null
     _sum: TagSumAggregateOutputType | null
@@ -5556,6 +5563,7 @@ export namespace Prisma {
   export type TagSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
+    color?: boolean
     taskTags?: boolean | Tag$taskTagsArgs<ExtArgs>
     _count?: boolean | TagCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["tag"]>
@@ -5563,19 +5571,22 @@ export namespace Prisma {
   export type TagSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
+    color?: boolean
   }, ExtArgs["result"]["tag"]>
 
   export type TagSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
+    color?: boolean
   }, ExtArgs["result"]["tag"]>
 
   export type TagSelectScalar = {
     id?: boolean
     name?: boolean
+    color?: boolean
   }
 
-  export type TagOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name", ExtArgs["result"]["tag"]>
+  export type TagOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "color", ExtArgs["result"]["tag"]>
   export type TagInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     taskTags?: boolean | Tag$taskTagsArgs<ExtArgs>
     _count?: boolean | TagCountOutputTypeDefaultArgs<ExtArgs>
@@ -5591,6 +5602,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: number
       name: string
+      color: string | null
     }, ExtArgs["result"]["tag"]>
     composites: {}
   }
@@ -6017,6 +6029,7 @@ export namespace Prisma {
   interface TagFieldRefs {
     readonly id: FieldRef<"Tag", 'Int'>
     readonly name: FieldRef<"Tag", 'String'>
+    readonly color: FieldRef<"Tag", 'String'>
   }
     
 
@@ -10867,7 +10880,8 @@ export namespace Prisma {
 
   export const TagScalarFieldEnum: {
     id: 'id',
-    name: 'name'
+    name: 'name',
+    color: 'color'
   };
 
   export type TagScalarFieldEnum = (typeof TagScalarFieldEnum)[keyof typeof TagScalarFieldEnum]
@@ -11233,12 +11247,14 @@ export namespace Prisma {
     NOT?: TagWhereInput | TagWhereInput[]
     id?: IntFilter<"Tag"> | number
     name?: StringFilter<"Tag"> | string
+    color?: StringNullableFilter<"Tag"> | string | null
     taskTags?: TaskTagListRelationFilter
   }
 
   export type TagOrderByWithRelationInput = {
     id?: SortOrder
     name?: SortOrder
+    color?: SortOrderInput | SortOrder
     taskTags?: TaskTagOrderByRelationAggregateInput
   }
 
@@ -11248,12 +11264,14 @@ export namespace Prisma {
     AND?: TagWhereInput | TagWhereInput[]
     OR?: TagWhereInput[]
     NOT?: TagWhereInput | TagWhereInput[]
+    color?: StringNullableFilter<"Tag"> | string | null
     taskTags?: TaskTagListRelationFilter
   }, "id" | "name">
 
   export type TagOrderByWithAggregationInput = {
     id?: SortOrder
     name?: SortOrder
+    color?: SortOrderInput | SortOrder
     _count?: TagCountOrderByAggregateInput
     _avg?: TagAvgOrderByAggregateInput
     _max?: TagMaxOrderByAggregateInput
@@ -11267,6 +11285,7 @@ export namespace Prisma {
     NOT?: TagScalarWhereWithAggregatesInput | TagScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"Tag"> | number
     name?: StringWithAggregatesFilter<"Tag"> | string
+    color?: StringNullableWithAggregatesFilter<"Tag"> | string | null
   }
 
   export type TaskTagWhereInput = {
@@ -11714,38 +11733,45 @@ export namespace Prisma {
 
   export type TagCreateInput = {
     name: string
+    color?: string | null
     taskTags?: TaskTagCreateNestedManyWithoutTagInput
   }
 
   export type TagUncheckedCreateInput = {
     id?: number
     name: string
+    color?: string | null
     taskTags?: TaskTagUncheckedCreateNestedManyWithoutTagInput
   }
 
   export type TagUpdateInput = {
     name?: StringFieldUpdateOperationsInput | string
+    color?: NullableStringFieldUpdateOperationsInput | string | null
     taskTags?: TaskTagUpdateManyWithoutTagNestedInput
   }
 
   export type TagUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
+    color?: NullableStringFieldUpdateOperationsInput | string | null
     taskTags?: TaskTagUncheckedUpdateManyWithoutTagNestedInput
   }
 
   export type TagCreateManyInput = {
     id?: number
     name: string
+    color?: string | null
   }
 
   export type TagUpdateManyMutationInput = {
     name?: StringFieldUpdateOperationsInput | string
+    color?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type TagUncheckedUpdateManyInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
+    color?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type TaskTagCreateInput = {
@@ -12260,6 +12286,7 @@ export namespace Prisma {
   export type TagCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
+    color?: SortOrder
   }
 
   export type TagAvgOrderByAggregateInput = {
@@ -12269,11 +12296,13 @@ export namespace Prisma {
   export type TagMaxOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
+    color?: SortOrder
   }
 
   export type TagMinOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
+    color?: SortOrder
   }
 
   export type TagSumOrderByAggregateInput = {
@@ -14180,11 +14209,13 @@ export namespace Prisma {
 
   export type TagCreateWithoutTaskTagsInput = {
     name: string
+    color?: string | null
   }
 
   export type TagUncheckedCreateWithoutTaskTagsInput = {
     id?: number
     name: string
+    color?: string | null
   }
 
   export type TagCreateOrConnectWithoutTaskTagsInput = {
@@ -14253,11 +14284,13 @@ export namespace Prisma {
 
   export type TagUpdateWithoutTaskTagsInput = {
     name?: StringFieldUpdateOperationsInput | string
+    color?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type TagUncheckedUpdateWithoutTaskTagsInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
+    color?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type UserCreateWithoutTaskAssignmentsInput = {

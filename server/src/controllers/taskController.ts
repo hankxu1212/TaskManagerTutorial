@@ -123,7 +123,7 @@ export const updateTask = async (
     res: Response
 ): Promise<void> => {
     const { taskId } = req.params;
-    const { title, description, status, priority, startDate, dueDate, points, assignedUserId } = req.body;
+    const { title, description, status, priority, startDate, dueDate, points, assignedUserId, tagIds } = req.body;
     try {
         const data: Record<string, any> = {};
         if (title !== undefined) data.title = title;
@@ -134,6 +134,21 @@ export const updateTask = async (
         if (dueDate !== undefined) data.dueDate = dueDate ? new Date(dueDate) : null;
         if (points !== undefined) data.points = points !== null && points !== "" ? Number(points) : null;
         if (assignedUserId !== undefined) data.assignedUserId = assignedUserId ? Number(assignedUserId) : null;
+
+        // Handle tag updates: delete existing and create new associations
+        if (tagIds !== undefined) {
+            await getPrismaClient().taskTag.deleteMany({
+                where: { taskId: Number(taskId) },
+            });
+            if (tagIds.length > 0) {
+                await getPrismaClient().taskTag.createMany({
+                    data: tagIds.map((tagId: number) => ({
+                        taskId: Number(taskId),
+                        tagId,
+                    })),
+                });
+            }
+        }
 
         const updatedTask = await getPrismaClient().task.update({
             where: { id: Number(taskId) },
@@ -185,5 +200,22 @@ export const getUserTasks = async (
         res.json(tasks);
     } catch (error: any) {
         res.status(500).json({ error: `Error retrieving user's tasks: ${error.message}` });
+    }
+};
+
+export const deleteTask = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    const { taskId } = req.params;
+    try {
+        await getPrismaClient().task.delete({
+            where: {
+                id: Number(taskId),
+            },
+        });
+        res.json({ message: "Task deleted successfully" });
+    } catch (error: any) {
+        res.status(500).json({ error: `Error deleting task: ${error.message}` });
     }
 };

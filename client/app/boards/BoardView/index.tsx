@@ -7,21 +7,27 @@ import { Plus } from "lucide-react";
 import type { DropTargetMonitor, DragSourceMonitor } from "react-dnd";
 import TaskDetailModal from "@/components/TaskDetailModal";
 import TaskCard from "@/components/TaskCard";
+import { applyFilters } from "@/lib/filterUtils";
+import { FilterState } from "@/lib/filterTypes";
 
 type BoardProps = {
   id: string;
   setIsModalNewTaskOpen: (isOpen: boolean) => void;
+  filterState: FilterState;
 };
 
 const taskStatus = ["To Do", "Work In Progress", "Under Review", "Completed"];
 
-const BoardView = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
+const BoardView = ({ id, setIsModalNewTaskOpen, filterState }: BoardProps) => {
   const {
     data: tasks,
     isLoading,
     error,
   } = useGetTasksQuery({ projectId: Number(id) });
   const [updateTaskStatus] = useUpdateTaskStatusMutation();
+
+  // Apply filters to tasks
+  const filteredTasks = applyFilters(tasks ?? [], filterState);
 
   // Modal state management for task detail modal
   const [isTaskDetailModalOpen, setIsTaskDetailModalOpen] = useState(false);
@@ -54,7 +60,7 @@ const BoardView = ({ id, setIsModalNewTaskOpen }: BoardProps) => {
           <TaskColumn
             key={status}
             status={status}
-            tasks={tasks || []}
+            tasks={filteredTasks}
             moveTask={moveTask}
             setIsModalNewTaskOpen={setIsModalNewTaskOpen}
             onTaskClick={handleTaskClick}

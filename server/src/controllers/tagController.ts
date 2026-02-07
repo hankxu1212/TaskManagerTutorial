@@ -27,8 +27,8 @@ export const getTags = async (_req: Request, res: Response) => {
 
 export const createTag = async (req: Request, res: Response) => {
   try {
-    const { name } = req.body;
-    const tag = await getPrismaClient().tag.create({ data: { name } });
+    const { name, color } = req.body;
+    const tag = await getPrismaClient().tag.create({ data: { name, color } });
     res.status(201).json(tag);
   } catch (error: any) {
     res.status(500).json({ error: "Failed to create tag: " + error.message });
@@ -38,10 +38,13 @@ export const createTag = async (req: Request, res: Response) => {
 export const updateTag = async (req: Request, res: Response) => {
   try {
     const { tagId } = req.params;
-    const { name } = req.body;
+    const { name, color } = req.body;
+    const data: Record<string, any> = {};
+    if (name !== undefined) data.name = name;
+    if (color !== undefined) data.color = color;
     const tag = await getPrismaClient().tag.update({
       where: { id: Number(tagId) },
-      data: { name },
+      data,
     });
     res.json(tag);
   } catch (error: any) {

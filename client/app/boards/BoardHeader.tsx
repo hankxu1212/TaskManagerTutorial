@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Header from "@/components/Header";
 import {
   Filter,
@@ -8,15 +11,37 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
+import { FilterState } from "@/lib/filterTypes";
+import { Tag } from "@/state/api";
+import FilterDropdown from "@/components/FilterDropdown";
 
 type Props = {
   activeTab: string;
   setActiveTab: (tabName: string) => void;
   boardName: string;
   boardId: string;
+  filterState: FilterState;
+  onFilterChange: (newState: FilterState) => void;
+  tags: Tag[];
+  isFilterActive: boolean;
 };
 
-const BoardHeader = ({ activeTab, setActiveTab, boardName, boardId }: Props) => {
+/**
+ * BoardHeader component with filter support.
+ * Validates: Requirements 1.1, 1.3, 6.1
+ */
+const BoardHeader = ({
+  activeTab,
+  setActiveTab,
+  boardName,
+  boardId,
+  filterState,
+  onFilterChange,
+  tags,
+  isFilterActive,
+}: Props) => {
+  // State for filter dropdown visibility
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   return (
     <div className="px-4 xl:px-6">
       <div className="pb-6 pt-6 lg:pb-4 lg:pt-8">
@@ -50,9 +75,29 @@ const BoardHeader = ({ activeTab, setActiveTab, boardName, boardId }: Props) => 
           />
         </div>
         <div className="flex items-center gap-2">
-          <button className="text-gray-500 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-gray-300">
-            <Filter className="h-5 w-5" />
-          </button>
+          {/* Filter button with dropdown - Validates: Requirements 1.1, 1.3, 6.1 */}
+          <div className="relative">
+            <button
+              className="relative text-gray-500 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-gray-300"
+              onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
+              aria-label="Toggle filter dropdown"
+              aria-expanded={isFilterDropdownOpen}
+            >
+              <Filter className="h-5 w-5" />
+              {/* Visual indicator when filters are active - Validates: Requirement 6.1 */}
+              {isFilterActive && (
+                <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-blue-600" />
+              )}
+            </button>
+            {/* Filter dropdown - Validates: Requirements 1.1, 1.2, 1.3, 1.4 */}
+            <FilterDropdown
+              isOpen={isFilterDropdownOpen}
+              onClose={() => setIsFilterDropdownOpen(false)}
+              filterState={filterState}
+              onFilterChange={onFilterChange}
+              tags={tags}
+            />
+          </div>
           <button className="text-gray-500 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-gray-300">
             <Share2 className="h-5 w-5" />
           </button>

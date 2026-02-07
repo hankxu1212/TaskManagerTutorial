@@ -10,6 +10,37 @@ type Props = {
   className?: string;
 };
 
+// Convert hex to RGB
+const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : null;
+};
+
+// Get averaged color from task tags
+const getAverageTagColor = (task: Task): string | null => {
+  const colors = task.taskTags
+    ?.map((tt) => tt.tag.color)
+    .filter((c): c is string => !!c)
+    .map(hexToRgb)
+    .filter((c): c is { r: number; g: number; b: number } => c !== null);
+
+  if (!colors || colors.length === 0) return null;
+
+  const avg = {
+    r: Math.round(colors.reduce((sum, c) => sum + c.r, 0) / colors.length),
+    g: Math.round(colors.reduce((sum, c) => sum + c.g, 0) / colors.length),
+    b: Math.round(colors.reduce((sum, c) => sum + c.b, 0) / colors.length),
+  };
+
+  return `rgba(${avg.r}, ${avg.g}, ${avg.b}, 0.15)`;
+};
+
 const PriorityTag = ({ priority }: { priority: Task["priority"] }) => (
   <div
     className={`rounded-full px-2 py-1 text-xs font-semibold ${
@@ -29,7 +60,8 @@ const PriorityTag = ({ priority }: { priority: Task["priority"] }) => (
 );
 
 const TaskCard = ({ task, onClick, className = "" }: Props) => {
-  const tags = task.taskTags?.map((tt) => tt.tag.name) || [];
+  const tags = task.taskTags?.map((tt) => tt.tag) || [];
+  const avgColor = getAverageTagColor(task);
 
   const formattedDueDate = task.dueDate
     ? format(new Date(task.dueDate), "P")
@@ -49,6 +81,7 @@ const TaskCard = ({ task, onClick, className = "" }: Props) => {
       className={`rounded-md bg-white shadow dark:bg-dark-secondary ${
         onClick ? "cursor-pointer" : ""
       } ${className}`}
+      style={avgColor ? { backgroundColor: avgColor } : undefined}
     >
       <div className="p-2 md:p-3">
         <div className="flex items-center justify-between gap-2">
@@ -67,10 +100,14 @@ const TaskCard = ({ task, onClick, className = "" }: Props) => {
           <div className="mt-1 flex flex-wrap gap-1">
             {tags.map((tag) => (
               <div
-                key={tag}
-                className="rounded-full bg-gray-100 px-1.5 py-0.5 text-xs dark:bg-dark-tertiary"
+                key={tag.id}
+                className="rounded-full px-1.5 py-0.5 text-xs"
+                style={{
+                  backgroundColor: tag.color ? `${tag.color}30` : undefined,
+                  color: tag.color || undefined,
+                }}
               >
-                {tag}
+                {tag.name}
               </div>
             ))}
           </div>

@@ -150,7 +150,8 @@ exports.Prisma.TaskScalarFieldEnum = {
 
 exports.Prisma.TagScalarFieldEnum = {
   id: 'id',
-  name: 'name'
+  name: 'name',
+  color: 'color'
 };
 
 exports.Prisma.TaskTagScalarFieldEnum = {

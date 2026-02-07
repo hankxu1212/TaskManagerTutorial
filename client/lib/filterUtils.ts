@@ -1,0 +1,242 @@
+import { Task, Priority } from "@/state/api";
+import { FilterState, DueDateOption } from "@/lib/filterTypes";
+
+/**
+ * Checks if any filters are currently active.
+ * Returns true if at least one of selectedTagIds, selectedPriorities,
+ * or selectedDueDateOptions is non-empty.
+ *
+ * @param filterState - The current filter state
+ * @returns true if any filter category has selections
+ *
+ * Validates: Requirements 6.1
+ */
+export function isFilterActive(filterState: FilterState): boolean {
+  return (
+    filterState.selectedTagIds.length > 0 ||
+    filterState.selectedPriorities.length > 0 ||
+    filterState.selectedDueDateOptions.length > 0
+  );
+}
+
+/**
+ * Checks if a task matches the tag filter criteria.
+ * Task passes if it has at least one tag whose ID is in selectedTagIds (OR logic).
+ * If selectedTagIds is empty, all tasks pass.
+ *
+ * @param task - The task to check
+ * @param selectedTagIds - Array of selected tag IDs
+ * @returns true if task matches the tag filter or no tags are selected
+ *
+ * Validates: Requirements 2.3, 2.4
+ */
+export function matchesTagFilter(
+  task: Task,
+  selectedTagIds: number[]
+): boolean {
+  // If no tags selected, all tasks pass
+  if (selectedTagIds.length === 0) {
+    return true;
+  }
+
+  // Task must have at least one tag that matches a selected tag ID
+  const taskTagIds = task.taskTags?.map((tt) => tt.tagId) ?? [];
+  return taskTagIds.some((tagId) => selectedTagIds.includes(tagId));
+}
+
+/**
+ * Checks if a task matches the priority filter criteria.
+ * Task passes if its priority is in selectedPriorities (OR logic).
+ * If selectedPriorities is empty, all tasks pass.
+ *
+ * @param task - The task to check
+ * @param selectedPriorities - Array of selected priorities
+ * @returns true if task matches the priority filter or no priorities are selected
+ *
+ * Validates: Requirements 3.3, 3.4
+ */
+export function matchesPriorityFilter(
+  task: Task,
+  selectedPriorities: Priority[]
+): boolean {
+  // If no priorities selected, all tasks pass
+  if (selectedPriorities.length === 0) {
+    return true;
+  }
+
+  // Task must have a priority that matches one of the selected priorities
+  if (!task.priority) {
+    return false;
+  }
+
+  return selectedPriorities.includes(task.priority);
+}
+
+/**
+ * Checks if a date string represents an overdue date (before today).
+ *
+ * @param dueDate - The due date string to check
+ * @returns true if the date is before today
+ *
+ * Validates: Requirements 4.3
+ */
+export function isOverdue(dueDate: string): boolean {
+  const due = new Date(dueDate);
+  const today = new Date();
+  // Set both to start of day for date-only comparison
+  due.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+  return due < today;
+}
+
+/**
+ * Checks if a date string represents today's date.
+ *
+ * @param dueDate - The due date string to check
+ * @returns true if the date is today
+ *
+ * Validates: Requirements 4.4
+ */
+export function isDueToday(dueDate: string): boolean {
+  const due = new Date(dueDate);
+  const today = new Date();
+  return (
+    due.getFullYear() === today.getFullYear() &&
+    due.getMonth() === today.getMonth() &&
+    due.getDate() === today.getDate()
+  );
+}
+
+/**
+ * Checks if a date string falls within the current week (Monday through Sunday).
+ *
+ * @param dueDate - The due date string to check
+ * @returns true if the date is within the current week
+ *
+ * Validates: Requirements 4.5
+ */
+export function isDueThisWeek(dueDate: string): boolean {
+  const due = new Date(dueDate);
+  const today = new Date();
+
+  // Get the start of the week (Monday)
+  const startOfWeek = new Date(today);
+  const dayOfWeek = today.getDay();
+  // Adjust for Monday start (Sunday = 0, so we need to go back 6 days; Monday = 1, go back 0 days)
+  const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  startOfWeek.setDate(today.getDate() - daysToMonday);
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  // Get the end of the week (Sunday)
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 6);
+  endOfWeek.setHours(23, 59, 59, 999);
+
+  // Set due date to start of day for comparison
+  due.setHours(0, 0, 0, 0);
+
+  return due >= startOfWeek && due <= endOfWeek;
+}
+
+/**
+ * Checks if a date string falls within the current month.
+ *
+ * @param dueDate - The due date string to check
+ * @returns true if the date is within the current month
+ *
+ * Validates: Requirements 4.6
+ */
+export function isDueThisMonth(dueDate: string): boolean {
+  const due = new Date(dueDate);
+  const today = new Date();
+  return (
+    due.getFullYear() === today.getFullYear() &&
+    due.getMonth() === today.getMonth()
+  );
+}
+
+/**
+ * Checks if a task matches the due date filter criteria.
+ * Task passes if it matches any of the selected due date options (OR logic).
+ * If selectedDueDateOptions is empty, all tasks pass.
+ *
+ * @param task - The task to check
+ * @param selectedDueDateOptions - Array of selected due date options
+ * @returns true if task matches the due date filter or no options are selected
+ *
+ * Validates: Requirements 4.3-4.8
+ */
+export function matchesDueDateFilter(
+  task: Task,
+  selectedDueDateOptions: DueDateOption[]
+): boolean {
+  // If no due date options selected, all tasks pass
+  if (selectedDueDateOptions.length === 0) {
+    return true;
+  }
+
+  const dueDate = task.dueDate;
+
+  // Check each selected option (OR logic - task passes if it matches ANY option)
+  for (const option of selectedDueDateOptions) {
+    switch (option) {
+      case "noDueDate":
+        // Task matches if it has no due date
+        if (!dueDate || dueDate.trim() === "") {
+          return true;
+        }
+        break;
+      case "overdue":
+        if (dueDate && isOverdue(dueDate)) {
+          return true;
+        }
+        break;
+      case "dueToday":
+        if (dueDate && isDueToday(dueDate)) {
+          return true;
+        }
+        break;
+      case "dueThisWeek":
+        if (dueDate && isDueThisWeek(dueDate)) {
+          return true;
+        }
+        break;
+      case "dueThisMonth":
+        if (dueDate && isDueThisMonth(dueDate)) {
+          return true;
+        }
+        break;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Applies all active filters to an array of tasks.
+ * Uses AND logic between categories - task must pass ALL active category filters.
+ * Uses OR logic within categories - task must match at least one selected option.
+ * If a filter category has no selections, that category passes all tasks.
+ *
+ * @param tasks - Array of tasks to filter
+ * @param filterState - The current filter state
+ * @returns Array of tasks that pass all active filters
+ *
+ * Validates: Requirements 2.3, 2.4, 3.3, 3.4, 4.3-4.8, 5.1, 5.2
+ */
+export function applyFilters(tasks: Task[], filterState: FilterState): Task[] {
+  return tasks.filter((task) => {
+    // AND logic between categories - task must pass ALL category filters
+    const passesTagFilter = matchesTagFilter(task, filterState.selectedTagIds);
+    const passesPriorityFilter = matchesPriorityFilter(
+      task,
+      filterState.selectedPriorities
+    );
+    const passesDueDateFilter = matchesDueDateFilter(
+      task,
+      filterState.selectedDueDateOptions
+    );
+
+    return passesTagFilter && passesPriorityFilter && passesDueDateFilter;
+  });
+}
