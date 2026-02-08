@@ -229,13 +229,13 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                                 <div className="flex flex-col items-center pb-6 pt-8">
                                     <Image
                                         src="/favicon.ico"
-                                        alt="Quest Logo"
+                                        alt="Logo"
                                         width={48}
                                         height={48}
                                         className="mb-3"
                                     />
                                     <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                                        Quest
+                                        Crest
                                     </h1>
                                     <p className={`mt-1 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>
                                         Team Crescendo Internal Project Manager

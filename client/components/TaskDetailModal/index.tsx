@@ -4,9 +4,9 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Modal from "../Modal";
 import SubtaskHierarchy from "@/components/SubtaskHierarchy";
-import { Task, Priority, Status, useUpdateTaskMutation, useDeleteTaskMutation, useGetUsersQuery, useGetTagsQuery, useCreateCommentMutation, useGetAuthUserQuery, useGetProjectsQuery, useGetSprintsQuery, getAttachmentS3Key, getUserProfileS3Key, User as UserType, Project, Sprint } from "@/state/api";
+import { Task, Priority, Status, useUpdateTaskMutation, useDeleteTaskMutation, useCreateTaskMutation, useGetUsersQuery, useGetTagsQuery, useCreateCommentMutation, useGetAuthUserQuery, useGetProjectsQuery, useGetSprintsQuery, getAttachmentS3Key, getUserProfileS3Key, User as UserType, Project, Sprint } from "@/state/api";
 import { format } from "date-fns";
-import { Calendar, MessageSquareMore, User, Users, Tag, Award, Pencil, X, Plus, Paperclip, Zap, Flag, Trash2, ChevronDown, ChevronRight } from "lucide-react";
+import { Calendar, MessageSquareMore, User, Users, Tag, Award, Pencil, X, Plus, Paperclip, Zap, Flag, Trash2, ChevronDown, ChevronRight, Copy, Check, ArrowLeft } from "lucide-react";
 import UserIcon from "@/components/UserIcon";
 import S3Image from "@/components/S3Image";
 import { BiColumns } from "react-icons/bi";
@@ -63,6 +63,7 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation();
   const [deleteTask, { isLoading: isDeleting }] = useDeleteTaskMutation();
+  const [createTask, { isLoading: isDuplicating }] = useCreateTaskMutation();
   const [createComment, { isLoading: isAddingComment }] = useCreateCommentMutation();
   const { data: users } = useGetUsersQuery();
   const { data: allTags } = useGetTagsQuery();
@@ -259,6 +260,23 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
     setIsEditing(false);
   };
 
+  const handleDuplicate = async () => {
+    const duplicatedTask = await createTask({
+      title: `${currentTask.title} (Copy)`,
+      description: currentTask.description,
+      status: currentTask.status,
+      priority: currentTask.priority,
+      startDate: currentTask.startDate,
+      dueDate: currentTask.dueDate,
+      points: currentTask.points,
+      projectId: currentTask.projectId,
+      assignedUserId: currentTask.assignedUserId,
+      tagIds: currentTask.taskTags?.map((tt) => tt.tag.id),
+      sprintIds: currentTask.sprints?.map((s) => s.id),
+    }).unwrap();
+    onClose();
+  };
+
   const inputClass =
     "w-full rounded border border-gray-300 p-2 text-sm dark:border-dark-tertiary dark:bg-dark-tertiary dark:text-white";
   const selectClass =
@@ -278,17 +296,66 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
           )}
         </div>
       }
-      hideClose={isEditing}
+      hideClose={true}
       hideHeader={isEditing}
-      headerRight={
-        !isEditing && (
-          <button
-            onClick={handleEditClick}
-            className="flex h-7 w-7 items-center justify-center rounded text-gray-600 hover:bg-gray-100 dark:text-neutral-300 dark:hover:bg-dark-tertiary"
-            title="Edit task"
-          >
-            <Pencil size={16} />
-          </button>
+      headerRight={undefined}
+      floatingActions={
+        isEditing ? (
+          <div className="flex items-center gap-2">
+            {/* Back button */}
+            <button
+              onClick={handleCancel}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-600 shadow-lg hover:bg-gray-100 dark:bg-dark-secondary dark:text-neutral-300 dark:hover:bg-dark-tertiary"
+              title="Back"
+            >
+              <ArrowLeft size={18} />
+            </button>
+            {/* Save button */}
+            <button
+              onClick={handleSave}
+              disabled={isUpdating}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-green-500 text-white shadow-lg hover:bg-green-600 disabled:opacity-50"
+              title={isUpdating ? "Saving..." : "Save"}
+            >
+              <Check size={18} />
+            </button>
+            {/* Delete button */}
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-red-500 shadow-lg hover:bg-red-50 dark:bg-dark-secondary dark:hover:bg-red-900/20"
+              title="Delete task"
+            >
+              <Trash2 size={18} />
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            {/* Close button */}
+            <button
+              onClick={onClose}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-600 shadow-lg hover:bg-gray-100 dark:bg-dark-secondary dark:text-neutral-300 dark:hover:bg-dark-tertiary"
+              title="Close"
+            >
+              <X size={18} />
+            </button>
+            {/* Duplicate button */}
+            <button
+              onClick={handleDuplicate}
+              disabled={isDuplicating}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-600 shadow-lg hover:bg-gray-100 dark:bg-dark-secondary dark:text-neutral-300 dark:hover:bg-dark-tertiary disabled:opacity-50"
+              title="Duplicate task"
+            >
+              <Copy size={18} />
+            </button>
+            {/* Edit button */}
+            <button
+              onClick={handleEditClick}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-600 shadow-lg hover:bg-gray-100 dark:bg-dark-secondary dark:text-neutral-300 dark:hover:bg-dark-tertiary"
+              title="Edit task"
+            >
+              <Pencil size={18} />
+            </button>
+          </div>
         )
       }
       leftPanel={
@@ -969,34 +1036,6 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
                 )}
               </div>
             )}
-          </div>
-        )}
-
-        {/* Save / Cancel / Delete buttons */}
-        {isEditing && (
-          <div className="flex items-center justify-between">
-            <div className="flex gap-3">
-              <button
-                onClick={handleSave}
-                disabled={isUpdating}
-                className="rounded bg-gray-800 px-4 py-2 text-sm text-white hover:bg-gray-700 disabled:opacity-50 dark:bg-white dark:text-gray-800 dark:hover:bg-gray-200"
-              >
-                {isUpdating ? "Saving..." : "Save"}
-              </button>
-              <button
-                onClick={handleCancel}
-                className="rounded bg-gray-200 px-4 py-2 text-sm dark:bg-dark-tertiary dark:text-white"
-              >
-                Back
-              </button>
-            </div>
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              className="flex items-center gap-1.5 rounded px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
-            >
-              <Trash2 size={16} />
-              Delete
-            </button>
           </div>
         )}
 

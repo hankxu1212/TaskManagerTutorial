@@ -85,14 +85,14 @@ const Sidebar = () => {
                 <div className="sticky top-0 z-50 flex w-full items-center justify-between border-b border-gray-100 bg-white px-6 py-4 dark:border-gray-800 dark:bg-dark-secondary">
                     <div className="flex items-center gap-3">
                         <Image
-                            src={isDarkMode ? "/tc_logo_rounded_w_on_b.png" : "/tc_logo_rounded_b_on_w.png"}
+                            src="/favicon.ico"
                             alt="Logo"
                             width={32}
                             height={32}
                             className="h-8 w-8 object-contain"
                         />
                         <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
-                            Quest
+                            Crest
                         </span>
                     </div>
 

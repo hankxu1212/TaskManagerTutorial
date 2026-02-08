@@ -392,7 +392,7 @@ export const api = createApi({
                 method: "POST",
                 body,
             }),
-            invalidatesTags: ["Tasks"],
+            invalidatesTags: ["Tasks", "Sprints"],
         }),
 
         // s3 presigned urls
