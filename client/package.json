@@ -48,5 +48,13 @@
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "overrides": {
+    "gantt-task-react": {
+      "react": "$react"
+    },
+    "@xstate/react": {
+      "react": "$react"
+    }
   }
 }
