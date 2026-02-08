@@ -42,13 +42,18 @@ export const getUser = async (req: Request, res: Response): Promise<void> => {
 
         // Auto-create user if they don't exist (for local dev without Lambda trigger)
         if (!user) {
-            user = await getPrismaClient().user.create({
-                data: {
-                    cognitoId: cognitoId,
-                    username: `user_${cognitoId.substring(0, 8)}`,
-                    profilePictureExt: "jpg",
-                },
-            });
+            if (process.env.NODE_ENV === 'development') {
+                user = await getPrismaClient().user.create({
+                    data: {
+                        cognitoId: cognitoId,
+                        username: `user_${cognitoId.substring(0, 8)}`,
+                        profilePictureExt: "jpg",
+                    },
+                });
+            } else {
+                res.status(404).json({ message: 'User not found' });
+                return;
+            }
         }
 
         res.json(user);
