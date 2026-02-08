@@ -224,6 +224,11 @@ export const api = createApi({
                     : ["Tasks"],
         }),
 
+        getTaskById: build.query<Task, number>({
+            query: (taskId) => `tasks/${taskId}`,
+            providesTags: (result, error, taskId) => [{ type: "Tasks", id: taskId }],
+        }),
+
         getTasksByUser: build.query<Task[], number>({
             query: (userId) => `tasks/user/${userId}`,
             providesTags: (result, error, userId) =>
@@ -487,6 +492,7 @@ export const {
     useDeleteProjectMutation,
     useUpdateProjectMutation,
     useGetTasksQuery,
+    useGetTaskByIdQuery,
     useCreateTaskMutation,
     useUpdateTaskStatusMutation,
     useUpdateTaskMutation,

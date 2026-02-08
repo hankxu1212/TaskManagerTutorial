@@ -10,7 +10,7 @@ import { Task, Priority, Status, useUpdateTaskMutation, useDeleteTaskMutation, u
 import { PRIORITY_BADGE_STYLES } from "@/lib/priorityColors";
 import { STATUS_BADGE_STYLES } from "@/lib/statusColors";
 import { format, isToday } from "date-fns";
-import { Calendar, MessageSquareMore, User, Users, Tag, Award, Pencil, X, Plus, Zap, Flag, Trash2, ChevronDown, ChevronRight, Copy, Check, ArrowLeft, CheckCircle } from "lucide-react";
+import { Calendar, MessageSquareMore, User, Users, Tag, Award, Pencil, X, Plus, Zap, Flag, Trash2, ChevronDown, ChevronRight, Copy, Check, ArrowLeft, CheckCircle, Link2 } from "lucide-react";
 import UserIcon from "@/components/UserIcon";
 import S3Image from "@/components/S3Image";
 import { BiColumns } from "react-icons/bi";
@@ -83,6 +83,7 @@ interface TaskDetailModalProps {
   onClose: () => void;
   task: Task | null;
   tasks?: Task[];
+  onTaskNavigate?: (taskId: number) => void;
 }
 
 const PriorityTag = ({ priority }: { priority: Task["priority"] }) => {
@@ -105,12 +106,13 @@ const StatusBadge = ({ status }: { status: Task["status"] }) => {
   );
 };
 
-const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps) => {
+const TaskDetailModal = ({ isOpen, onClose, task, tasks, onTaskNavigate }: TaskDetailModalProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [displayedTaskId, setDisplayedTaskId] = useState<number | null>(null);
   const [saveMessage, setSaveMessage] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation();
   const [deleteTask, { isLoading: isDeleting }] = useDeleteTaskMutation();
   const [createTask, { isLoading: isDuplicating }] = useCreateTaskMutation();
@@ -186,8 +188,12 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
 
   // Reset edit mode when navigating to a different task
   const handleTaskNavigation = (taskId: number) => {
-    setDisplayedTaskId(taskId);
-    setIsEditing(false);
+    if (onTaskNavigate) {
+      onTaskNavigate(taskId);
+    } else {
+      setDisplayedTaskId(taskId);
+      setIsEditing(false);
+    }
   };
 
   if (!task) return null;
@@ -396,6 +402,13 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
     }
   };
 
+  const handleCopyLink = () => {
+    const taskUrl = `${window.location.origin}/tasks/${currentTask.id}`;
+    navigator.clipboard.writeText(taskUrl);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
+  };
+
   const inputClass =
     "w-full rounded border border-gray-300 p-2 text-sm dark:border-dark-tertiary dark:bg-dark-tertiary dark:text-white";
   const selectClass =
@@ -449,6 +462,18 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
             >
               <X size={18} />
             </button>
+            {/* Share link button */}
+            <button
+              onClick={handleCopyLink}
+              className={`flex h-9 w-9 items-center justify-center rounded-full shadow-lg transition-all duration-200 hover:scale-110 active:scale-95 ${
+                linkCopied
+                  ? "bg-green-500 text-white"
+                  : "bg-white text-gray-600 hover:bg-gray-100 dark:bg-dark-secondary dark:text-neutral-300 dark:hover:bg-dark-tertiary"
+              }`}
+              title={linkCopied ? "Link copied!" : "Copy link"}
+            >
+              {linkCopied ? <Check size={18} /> : <Link2 size={18} />}
+            </button>
             {/* Duplicate button */}
             <button
               onClick={() => setShowDuplicateConfirm(true)}
@@ -483,9 +508,12 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
             {/* Board */}
             {projects && (
               <div className="flex items-center gap-2">
-                <span className="rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
+                <Link
+                  href={`/boards/${currentTask.projectId}`}
+                  className="rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-800 hover:bg-indigo-200 dark:bg-indigo-900 dark:text-indigo-200 dark:hover:bg-indigo-800"
+                >
                   {projects.find(p => p.id === currentTask.projectId)?.name || `Board ${currentTask.projectId}`}
-                </span>
+                </Link>
                 <div className="relative group">
                   <BiColumns className="h-4 w-4 text-white dark:text-neutral-500" />
                 </div>

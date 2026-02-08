@@ -36,6 +36,67 @@ const statusStringToInt = (status: string | null | undefined): number | null => 
     return status ? statusMap[status] ?? null : null;
 };
 
+// Common include object for task queries
+const taskInclude = {
+    author: true,
+    assignee: true,
+    comments: {
+        orderBy: [{ createdAt: 'asc' as const }, { id: 'asc' as const }],
+        include: {
+            user: true,
+            reactions: {
+                include: {
+                    user: {
+                        select: { userId: true, username: true },
+                    },
+                },
+            },
+        },
+    },
+    attachments: true,
+    taskTags: { include: { tag: true } },
+    subtasks: {
+        select: {
+            id: true,
+            title: true,
+            status: true,
+            priority: true,
+            assignee: { select: { userId: true, username: true, profilePictureExt: true } },
+        },
+    },
+    parentTask: {
+        select: { id: true, title: true },
+    },
+    sprintTasks: {
+        include: {
+            sprint: {
+                select: { id: true, title: true },
+            },
+        },
+    },
+    activities: {
+        include: {
+            user: {
+                select: { userId: true, username: true },
+            },
+        },
+        orderBy: {
+            createdAt: 'desc' as const,
+        },
+    },
+};
+
+// Helper to transform task for frontend
+const transformTask = (task: any) => ({
+    ...task,
+    status: statusIntToString(task.status),
+    subtasks: task.subtasks?.map((subtask: any) => ({
+        ...subtask,
+        status: statusIntToString(subtask.status),
+    })),
+    sprints: task.sprintTasks?.map((st: any) => st.sprint),
+});
+
 export const getTasks = async (_req: Request, res: Response) => {
     const {projectId} = _req.query;
 
@@ -45,72 +106,36 @@ export const getTasks = async (_req: Request, res: Response) => {
                 where: {
                     projectId: Number(projectId)
                 },
-                include: {
-                    author: true,
-                    assignee: true,
-                    comments: {
-                        orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
-                        include: {
-                            user: true,
-                            reactions: {
-                                include: {
-                                    user: {
-                                        select: { userId: true, username: true },
-                                    },
-                                },
-                            },
-                        },
-                    },
-                    attachments: true,
-                    taskTags: { include: { tag: true } },
-                    subtasks: {
-                        select: {
-                            id: true,
-                            title: true,
-                            status: true,
-                            priority: true,
-                            assignee: { select: { userId: true, username: true, profilePictureExt: true } },
-                        },
-                    },
-                    parentTask: {
-                        select: { id: true, title: true },
-                    },
-                    sprintTasks: {
-                        include: {
-                            sprint: {
-                                select: { id: true, title: true },
-                            },
-                        },
-                    },
-                    activities: {
-                        include: {
-                            user: {
-                                select: { userId: true, username: true },
-                            },
-                        },
-                        orderBy: {
-                            createdAt: 'desc',
-                        },
-                    },
-                }
+                include: taskInclude,
             }
         );
         
-        // Map integer status to string for frontend
-        const tasksWithStringStatus = tasks.map(task => ({
-            ...task,
-            status: statusIntToString(task.status),
-            subtasks: task.subtasks?.map(subtask => ({
-                ...subtask,
-                status: statusIntToString(subtask.status),
-            })),
-            sprints: task.sprintTasks?.map(st => st.sprint),
-        }));
-        
+        const tasksWithStringStatus = tasks.map(transformTask);
         res.json(tasksWithStringStatus);
     } catch (error: any) {
         console.error("Error fetching tasks:", error.message);
         res.status(500).json({ error: "Failed to fetch tasks: " + error.message });
+    }
+};
+
+export const getTaskById = async (req: Request, res: Response) => {
+    const { taskId } = req.params;
+
+    try {
+        const task = await getPrismaClient().task.findUnique({
+            where: { id: Number(taskId) },
+            include: taskInclude,
+        });
+
+        if (!task) {
+            res.status(404).json({ error: "Task not found" });
+            return;
+        }
+
+        res.json(transformTask(task));
+    } catch (error: any) {
+        console.error("Error fetching task:", error.message);
+        res.status(500).json({ error: "Failed to fetch task: " + error.message });
     }
 };
 
@@ -177,10 +202,8 @@ export const createTask = async (
             });
         } catch (activityError: any) {
             console.error("Error creating activity for new task:", activityError.message);
-            // Don't fail the task creation if activity creation fails
         }
         
-        // Map integer status to string for frontend
         const taskWithStringStatus = {
             ...newTask,
             status: statusIntToString(newTask.status),
@@ -200,7 +223,6 @@ export const updateTaskStatus = async (
     const { taskId } = req.params;
     const { status, userId } = req.body;
     try {
-        // Fetch the current task to get the previous status (Requirement 2.2)
         const currentTask = await getPrismaClient().task.findUnique({
             where: { id: Number(taskId) },
             select: { status: true },
@@ -217,7 +239,6 @@ export const updateTaskStatus = async (
             },
         });
         
-        // Create a Move Task activity if status actually changed (Requirement 2.2)
         if (previousStatus && previousStatus !== status && userId) {
             try {
                 await createActivity({
@@ -229,11 +250,9 @@ export const updateTaskStatus = async (
                 });
             } catch (activityError: any) {
                 console.error("Error creating activity for status update:", activityError.message);
-                // Don't fail the status update if activity creation fails
             }
         }
         
-        // Map integer status to string for frontend
         const taskWithStringStatus = {
             ...updatedTask,
             status: statusIntToString(updatedTask.status),
@@ -252,7 +271,6 @@ export const updateTask = async (
     const { taskId } = req.params;
     const { title, description, status, priority, startDate, dueDate, points, assignedUserId, tagIds, subtaskIds, projectId, sprintIds, userId } = req.body;
     try {
-        // Fetch the current task to track changes (Requirement 2.3)
         const currentTask = await getPrismaClient().task.findUnique({
             where: { id: Number(taskId) },
             include: {
@@ -343,12 +361,10 @@ export const updateTask = async (
         }
         if (projectId !== undefined) data.projectId = projectId ? Number(projectId) : null;
 
-        // Handle tag updates: delete existing and create new associations
         if (tagIds !== undefined) {
             const currentTagIds = currentTask?.taskTags?.map(tt => tt.tagId) || [];
             const newTagIds = tagIds as number[];
             
-            // Check for added tags
             const addedTags = newTagIds.filter(id => !currentTagIds.includes(id));
             const removedTags = currentTagIds.filter(id => !newTagIds.includes(id));
             
@@ -369,9 +385,7 @@ export const updateTask = async (
             }
         }
 
-        // Handle sprint updates: delete existing and create new associations
         if (sprintIds !== undefined) {
-            // Get current sprint IDs to track changes
             const currentSprintTask = await getPrismaClient().sprintTask.findMany({
                 where: { taskId: Number(taskId) },
                 select: { sprintId: true },
@@ -379,7 +393,6 @@ export const updateTask = async (
             const currentSprintIds = currentSprintTask.map(st => st.sprintId);
             const newSprintIds = sprintIds as number[];
             
-            // Check for added or removed sprints
             const addedSprints = newSprintIds.filter(id => !currentSprintIds.includes(id));
             const removedSprints = currentSprintIds.filter(id => !newSprintIds.includes(id));
             
@@ -400,7 +413,6 @@ export const updateTask = async (
             }
         }
 
-        // Handle subtask updates: set parentTaskId for new subtasks, clear for removed ones
         if (subtaskIds !== undefined) {
             const currentSubtaskTask = await getPrismaClient().task.findUnique({
                 where: { id: Number(taskId) },
@@ -410,7 +422,6 @@ export const updateTask = async (
             const currentSubtaskIds = currentSubtaskTask?.subtasks.map(s => s.id) || [];
             const newSubtaskIds = subtaskIds as number[];
             
-            // Tasks to add as subtasks (set parentTaskId)
             const toAdd = newSubtaskIds.filter(id => !currentSubtaskIds.includes(id));
             if (toAdd.length > 0) {
                 await getPrismaClient().task.updateMany({
@@ -419,7 +430,6 @@ export const updateTask = async (
                 });
             }
             
-            // Tasks to remove as subtasks (clear parentTaskId)
             const toRemove = currentSubtaskIds.filter(id => !newSubtaskIds.includes(id));
             if (toRemove.length > 0) {
                 await getPrismaClient().task.updateMany({
@@ -432,57 +442,9 @@ export const updateTask = async (
         const updatedTask = await getPrismaClient().task.update({
             where: { id: Number(taskId) },
             data,
-            include: {
-                author: true,
-                assignee: true,
-                comments: {
-                    orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
-                    include: {
-                        user: true,
-                        reactions: {
-                            include: {
-                                user: {
-                                    select: { userId: true, username: true },
-                                },
-                            },
-                        },
-                    },
-                },
-                attachments: true,
-                taskTags: { include: { tag: true } },
-                subtasks: {
-                    select: {
-                        id: true,
-                        title: true,
-                        status: true,
-                        priority: true,
-                        assignee: { select: { userId: true, username: true, profilePictureExt: true } },
-                    },
-                },
-                parentTask: {
-                    select: { id: true, title: true },
-                },
-                sprintTasks: {
-                    include: {
-                        sprint: {
-                            select: { id: true, title: true },
-                        },
-                    },
-                },
-                activities: {
-                    include: {
-                        user: {
-                            select: { userId: true, username: true },
-                        },
-                    },
-                    orderBy: {
-                        createdAt: 'desc',
-                    },
-                },
-            },
+            include: taskInclude,
         });
         
-        // Create Edit Task activities for each changed field (Requirement 2.3)
         if (userId && editActivities.length > 0) {
             for (const editField of editActivities) {
                 try {
@@ -494,23 +456,11 @@ export const updateTask = async (
                     });
                 } catch (activityError: any) {
                     console.error("Error creating activity for task edit:", activityError.message);
-                    // Don't fail the task update if activity creation fails
                 }
             }
         }
         
-        // Map integer status to string for frontend
-        const taskWithStringStatus = {
-            ...updatedTask,
-            status: statusIntToString(updatedTask.status),
-            subtasks: updatedTask.subtasks?.map(subtask => ({
-                ...subtask,
-                status: statusIntToString(subtask.status),
-            })),
-            sprints: updatedTask.sprintTasks?.map(st => st.sprint),
-        };
-        
-        res.json(taskWithStringStatus);
+        res.json(transformTask(updatedTask));
     } catch (error: any) {
         res.status(500).json({ error: `Error updating task: ${error.message}` });
     }
@@ -529,67 +479,10 @@ export const getUserTasks = async (
                     { assignedUserId: Number(userId) },
                 ],
             },
-            include: {
-                author: true,
-                assignee: true,
-                comments: {
-                    orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
-                    include: {
-                        user: true,
-                        reactions: {
-                            include: {
-                                user: {
-                                    select: { userId: true, username: true },
-                                },
-                            },
-                        },
-                    },
-                },
-                attachments: true,
-                taskTags: { include: { tag: true } },
-                subtasks: {
-                    select: {
-                        id: true,
-                        title: true,
-                        status: true,
-                        priority: true,
-                        assignee: { select: { userId: true, username: true, profilePictureExt: true } },
-                    },
-                },
-                parentTask: {
-                    select: { id: true, title: true },
-                },
-                sprintTasks: {
-                    include: {
-                        sprint: {
-                            select: { id: true, title: true },
-                        },
-                    },
-                },
-                activities: {
-                    include: {
-                        user: {
-                            select: { userId: true, username: true },
-                        },
-                    },
-                    orderBy: {
-                        createdAt: 'desc',
-                    },
-                },
-            },
+            include: taskInclude,
         });
         
-        // Map integer status to string for frontend
-        const tasksWithStringStatus = tasks.map(task => ({
-            ...task,
-            status: statusIntToString(task.status),
-            subtasks: task.subtasks?.map(subtask => ({
-                ...subtask,
-                status: statusIntToString(subtask.status),
-            })),
-            sprints: task.sprintTasks?.map(st => st.sprint),
-        }));
-        
+        const tasksWithStringStatus = tasks.map(transformTask);
         res.json(tasksWithStringStatus);
     } catch (error: any) {
         res.status(500).json({ error: `Error retrieving user's tasks: ${error.message}` });
