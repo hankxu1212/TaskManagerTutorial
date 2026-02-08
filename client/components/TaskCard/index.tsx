@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Task, Priority, useUpdateTaskMutation, useGetTagsQuery } from "@/state/api";
 import { PRIORITY_COLORS_BY_NAME } from "@/lib/priorityColors";
 import { APP_ACCENT_LIGHT } from "@/lib/entityColors";
 import RadialProgress from "@/components/RadialProgress";
+import DatePicker from "@/components/DatePicker";
 import { format } from "date-fns";
-import { MessageSquareMore, X, Plus, Diamond } from "lucide-react";
+import { MessageSquareMore, X, Plus, Diamond, Calendar } from "lucide-react";
 import { Paperclip } from "lucide-react";
 import UserIcon from "@/components/UserIcon";
 
@@ -15,6 +17,30 @@ type Props = {
   onClick?: () => void;
   className?: string;
   highlighted?: boolean;
+};
+
+// Portal wrapper for dropdowns
+const DropdownPortal = ({ children, anchorRef, isOpen }: { children: React.ReactNode; anchorRef: React.RefObject<HTMLElement | null>; isOpen: boolean }) => {
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (isOpen && anchorRef.current) {
+      const rect = anchorRef.current.getBoundingClientRect();
+      setPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+      });
+    }
+  }, [isOpen, anchorRef]);
+
+  if (!isOpen || typeof document === "undefined") return null;
+
+  return createPortal(
+    <div style={{ position: "absolute", top: position.top, left: position.left, zIndex: 50 }}>
+      {children}
+    </div>,
+    document.body
+  );
 };
 
 const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
@@ -44,13 +70,17 @@ const TaskCard = ({ task, onClick, className = "", highlighted = false }: Props)
   const { data: allTags } = useGetTagsQuery();
   const [showPriorityMenu, setShowPriorityMenu] = useState(false);
   const [showTagMenu, setShowTagMenu] = useState(false);
+  const [isHoveringDueDate, setIsHoveringDueDate] = useState(false);
+  const [isEditingDueDate, setIsEditingDueDate] = useState(false);
   const priorityRef = useRef<HTMLDivElement>(null);
   const tagRef = useRef<HTMLDivElement>(null);
+  const dueDateRef = useRef<HTMLDivElement>(null);
 
   const tags = task.taskTags?.map((tt) => tt.tag) || [];
   const tagIds = tags.map((t) => t.id);
   const avgColor = getAverageTagColor(task);
   const formattedDueDate = task.dueDate ? format(new Date(task.dueDate), "P") : "";
+  const dueDateValue = task.dueDate ? new Date(task.dueDate).toISOString().split("T")[0] : "";
   const numberOfComments = task.comments?.length || 0;
   const numberOfAttachments = task.attachments?.length || 0;
   const subtasks = task.subtasks ?? [];
@@ -80,6 +110,11 @@ const TaskCard = ({ task, onClick, className = "", highlighted = false }: Props)
     setShowTagMenu(false);
   };
 
+  const handleDueDateChange = async (newDate: string) => {
+    await updateTask({ id: task.id, dueDate: newDate || undefined });
+    setIsEditingDueDate(false);
+  };
+
   const availableTags = allTags?.filter((t) => !tagIds.includes(t.id)) || [];
 
   return (
@@ -98,30 +133,29 @@ const TaskCard = ({ task, onClick, className = "", highlighted = false }: Props)
         style={{ backgroundColor: task.priority ? `${PRIORITY_COLORS_BY_NAME[task.priority]}99` : undefined }}
         onClick={(e) => { e.stopPropagation(); setShowPriorityMenu(!showPriorityMenu); }}
         title={task.priority || "Set priority"}
-      >
-        {showPriorityMenu && (
-          <div className="absolute left-full top-0 z-20 ml-1 rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-dark-tertiary dark:bg-dark-secondary">
-            {Object.values(Priority).map((p) => (
-              <button
-                key={p}
-                onClick={(e) => { e.stopPropagation(); handlePriorityChange(p); }}
-                className="flex w-full items-center gap-2 px-3 py-1 text-left text-xs hover:bg-gray-100 dark:hover:bg-dark-tertiary"
-              >
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: PRIORITY_COLORS_BY_NAME[p] }} />
-                {p}
-              </button>
-            ))}
-            {task.priority && (
-              <button
-                onClick={(e) => { e.stopPropagation(); handlePriorityChange(null); }}
-                className="block w-full px-3 py-1 text-left text-xs text-gray-500 hover:bg-gray-100 dark:hover:bg-dark-tertiary"
-              >
-                Clear
-              </button>
-            )}
-          </div>
-        )}
-      </div>
+      />
+      <DropdownPortal anchorRef={priorityRef} isOpen={showPriorityMenu}>
+        <div className="ml-1 rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-dark-tertiary dark:bg-dark-secondary">
+          {Object.values(Priority).map((p) => (
+            <button
+              key={p}
+              onClick={(e) => { e.stopPropagation(); handlePriorityChange(p); }}
+              className="flex w-full items-center gap-2 px-3 py-1 text-left text-xs hover:bg-gray-100 dark:hover:bg-dark-tertiary"
+            >
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: PRIORITY_COLORS_BY_NAME[p] }} />
+              {p}
+            </button>
+          ))}
+          {task.priority && (
+            <button
+              onClick={(e) => { e.stopPropagation(); handlePriorityChange(null); }}
+              className="block w-full px-3 py-1 text-left text-xs text-gray-500 hover:bg-gray-100 dark:hover:bg-dark-tertiary"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      </DropdownPortal>
 
       {/* Comment indicator triangle (Google Sheets style) */}
       {numberOfComments > 0 && (
@@ -177,21 +211,21 @@ const TaskCard = ({ task, onClick, className = "", highlighted = false }: Props)
             >
               <Plus size={12} />
             </button>
-            {showTagMenu && availableTags.length > 0 && (
-              <div className="absolute left-0 top-full z-20 mt-1 max-h-32 overflow-y-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-dark-tertiary dark:bg-dark-secondary">
-                {availableTags.map((tag) => (
-                  <button
-                    key={tag.id}
-                    onClick={(e) => { e.stopPropagation(); handleAddTag(tag.id); }}
-                    className="flex w-full items-center gap-2 px-3 py-1 text-left text-xs hover:bg-gray-100 dark:hover:bg-dark-tertiary"
-                  >
-                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: tag.color || "#3b82f6" }} />
-                    {tag.name}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
+          <DropdownPortal anchorRef={tagRef} isOpen={showTagMenu && availableTags.length > 0}>
+            <div className="mt-1 max-h-32 overflow-y-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-dark-tertiary dark:bg-dark-secondary">
+              {availableTags.map((tag) => (
+                <button
+                  key={tag.id}
+                  onClick={(e) => { e.stopPropagation(); handleAddTag(tag.id); }}
+                  className="flex w-full items-center gap-2 px-3 py-1 text-left text-xs hover:bg-gray-100 dark:hover:bg-dark-tertiary"
+                >
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: tag.color || "#3b82f6" }} />
+                  {tag.name}
+                </button>
+              ))}
+            </div>
+          </DropdownPortal>
         </div>
 
         <div className="mt-2 border-t border-gray-200 dark:border-stroke-dark" />
@@ -217,8 +251,61 @@ const TaskCard = ({ task, onClick, className = "", highlighted = false }: Props)
               )}
             </div>
             {formattedDueDate && (
-              <div className="text-xs text-gray-500 dark:text-neutral-500">{formattedDueDate}</div>
+              <div
+                ref={dueDateRef}
+                className="relative"
+                onMouseEnter={() => setIsHoveringDueDate(true)}
+                onMouseLeave={() => !isEditingDueDate && setIsHoveringDueDate(false)}
+              >
+                <button
+                  onClick={(e) => { e.stopPropagation(); setIsEditingDueDate(true); }}
+                  className={`flex items-center gap-1 rounded px-1 py-0.5 text-xs transition-all ${
+                    isHoveringDueDate
+                      ? "bg-gray-100 text-gray-700 dark:bg-dark-tertiary dark:text-white"
+                      : "text-gray-500 dark:text-neutral-500"
+                  }`}
+                  title="Click to edit due date"
+                >
+                  {isHoveringDueDate && <Calendar size={10} />}
+                  {formattedDueDate}
+                </button>
+              </div>
             )}
+            <DropdownPortal anchorRef={dueDateRef} isOpen={isEditingDueDate && !!formattedDueDate}>
+              <DatePicker
+                value={dueDateValue}
+                onChange={(date) => handleDueDateChange(date || "")}
+                onClose={() => { setIsEditingDueDate(false); setIsHoveringDueDate(false); }}
+                className="relative mt-0"
+              />
+            </DropdownPortal>
+            {!formattedDueDate && (
+              <div
+                ref={dueDateRef}
+                className="relative"
+                onMouseEnter={() => setIsHoveringDueDate(true)}
+                onMouseLeave={() => !isEditingDueDate && setIsHoveringDueDate(false)}
+              >
+                {isHoveringDueDate && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setIsEditingDueDate(true); }}
+                    className="flex items-center gap-1 rounded bg-gray-100 px-1 py-0.5 text-xs text-gray-500 dark:bg-dark-tertiary dark:text-neutral-400"
+                    title="Set due date"
+                  >
+                    <Calendar size={10} />
+                    Due
+                  </button>
+                )}
+              </div>
+            )}
+            <DropdownPortal anchorRef={dueDateRef} isOpen={isEditingDueDate && !formattedDueDate}>
+              <DatePicker
+                value={undefined}
+                onChange={(date) => handleDueDateChange(date || "")}
+                onClose={() => { setIsEditingDueDate(false); setIsHoveringDueDate(false); }}
+                className="relative mt-0"
+              />
+            </DropdownPortal>
           </div>
           <div className="flex items-center gap-2">
             {numberOfAttachments > 0 && (

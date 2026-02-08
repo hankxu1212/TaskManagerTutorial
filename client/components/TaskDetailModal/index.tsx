@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import Modal from "../Modal";
 import SubtaskHierarchy from "@/components/SubtaskHierarchy";
 import ActivityList from "@/components/ActivityList";
 import CommentsPanel from "@/components/CommentsPanel";
+import DatePicker from "@/components/DatePicker";
 import { Task, Priority, Status, useUpdateTaskMutation, useDeleteTaskMutation, useCreateTaskMutation, useGetUsersQuery, useGetTagsQuery, useGetAuthUserQuery, useGetProjectsQuery, useGetSprintsQuery, getAttachmentS3Key, User as UserType, Project, Sprint } from "@/state/api";
 import { PRIORITY_BADGE_STYLES } from "@/lib/priorityColors";
 import { STATUS_BADGE_STYLES } from "@/lib/statusColors";
@@ -16,6 +18,30 @@ import AssigneeAvatarGroup from "@/components/AssigneeAvatarGroup";
 import S3Image from "@/components/S3Image";
 import { BiColumns } from "react-icons/bi";
 import ConfirmationMenu from "@/components/ConfirmationMenu";
+
+// Portal wrapper for dropdowns
+const DropdownPortal = ({ children, anchorRef, isOpen }: { children: React.ReactNode; anchorRef: React.RefObject<HTMLElement | null>; isOpen: boolean }) => {
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (isOpen && anchorRef.current) {
+      const rect = anchorRef.current.getBoundingClientRect();
+      setPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+      });
+    }
+  }, [isOpen, anchorRef]);
+
+  if (!isOpen || typeof document === "undefined") return null;
+
+  return createPortal(
+    <div style={{ position: "absolute", top: position.top, left: position.left, zIndex: 9999 }}>
+      {children}
+    </div>,
+    document.body
+  );
+};
 
 // Left panel edit mode section container styles
 const LEFT_PANEL_SECTION_CLASS = "flex flex-wrap gap-1 justify-end max-w-[400px]";
@@ -121,10 +147,16 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks, onTaskNavigate }: TaskD
   const [showSprintDropdown, setShowSprintDropdown] = useState(false);
   const [subtasksExpanded, setSubtasksExpanded] = useState(false);
 
+  // Date picker states
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showDueDatePicker, setShowDueDatePicker] = useState(false);
+
   // Dropdown refs
   const assigneeDropdownRef = useRef<HTMLDivElement>(null);
   const projectDropdownRef = useRef<HTMLDivElement>(null);
   const sprintDropdownRef = useRef<HTMLDivElement>(null);
+  const startDateRef = useRef<HTMLDivElement>(null);
+  const dueDateRef = useRef<HTMLDivElement>(null);
 
   // Sync displayedTaskId and reset edit mode when the modal opens with a new task
   useEffect(() => {
@@ -655,25 +687,76 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks, onTaskNavigate }: TaskD
         </div>
 
         {/* Schedule - Start Date & Due Date */}
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
-            <span className="text-sm text-gray-600 dark:text-neutral-400">Start:</span>
-            {isEditing ? (
-              <input type="date" className={selectClass} value={editStartDate} onChange={(e) => setEditStartDate(e.target.value)} />
-            ) : (
-              <span className="text-sm text-gray-900 dark:text-white">{formattedStartDate}</span>
-            )}
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
+              <span className="text-sm text-gray-600 dark:text-neutral-400">Start:</span>
+              {isEditing ? (
+                <div ref={startDateRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowStartDatePicker(!showStartDatePicker)}
+                    className={`${selectClass} min-w-[120px] text-left`}
+                  >
+                    {editStartDate ? format(new Date(editStartDate), "MMM d, yyyy") : "Select date"}
+                  </button>
+                  <DropdownPortal anchorRef={startDateRef} isOpen={showStartDatePicker}>
+                    <DatePicker
+                      value={editStartDate || undefined}
+                      onChange={(date) => {
+                        setEditStartDate(date || "");
+                        // If due date exists and is before new start date, clear it
+                        if (date && editDueDate && new Date(date) > new Date(editDueDate)) {
+                          setEditDueDate("");
+                        }
+                        setShowStartDatePicker(false);
+                      }}
+                      onClose={() => setShowStartDatePicker(false)}
+                    />
+                  </DropdownPortal>
+                </div>
+              ) : (
+                <span className="text-sm text-gray-900 dark:text-white">{formattedStartDate}</span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
+              <span className="text-sm text-gray-600 dark:text-neutral-400">Due:</span>
+              {isEditing ? (
+                <div ref={dueDateRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowDueDatePicker(!showDueDatePicker)}
+                    className={`${selectClass} min-w-[120px] text-left`}
+                  >
+                    {editDueDate ? format(new Date(editDueDate), "MMM d, yyyy") : "Select date"}
+                  </button>
+                  <DropdownPortal anchorRef={dueDateRef} isOpen={showDueDatePicker}>
+                    <DatePicker
+                      value={editDueDate || undefined}
+                      onChange={(date) => {
+                        // Validate: due date must be after start date
+                        if (date && editStartDate && new Date(date) < new Date(editStartDate)) {
+                          // Don't allow setting due date before start date
+                          return;
+                        }
+                        setEditDueDate(date || "");
+                        setShowDueDatePicker(false);
+                      }}
+                      onClose={() => setShowDueDatePicker(false)}
+                    />
+                  </DropdownPortal>
+                </div>
+              ) : (
+                <span className="text-sm text-gray-900 dark:text-white">{formattedDueDate}</span>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
-            <span className="text-sm text-gray-600 dark:text-neutral-400">Due:</span>
-            {isEditing ? (
-              <input type="date" className={selectClass} value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} />
-            ) : (
-              <span className="text-sm text-gray-900 dark:text-white">{formattedDueDate}</span>
-            )}
-          </div>
+          {/* Date validation message */}
+          {isEditing && editStartDate && editDueDate && new Date(editDueDate) < new Date(editStartDate) && (
+            <p className="text-xs text-red-500 dark:text-red-400">Due date must be after start date</p>
+          )}
         </div>
 
         {/* People Section - Assignee and Author */}
@@ -715,15 +798,27 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks, onTaskNavigate }: TaskD
         {isEditing && (
           <div className="space-y-4">
             {/* Points */}
-            <div className="flex items-center gap-2">
-              <Award className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
-              <span className="text-sm text-gray-600 dark:text-neutral-400">Points:</span>
-              <input
-                type="number"
-                className={`${selectClass} w-20`}
-                value={editPoints}
-                onChange={(e) => setEditPoints(e.target.value)}
-              />
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <Award className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
+                <span className="text-sm text-gray-600 dark:text-neutral-400">Points:</span>
+                <input
+                  type="number"
+                  min="0"
+                  className={`${selectClass} w-20`}
+                  value={editPoints}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    // Allow empty or non-negative values only
+                    if (val === "" || Number(val) >= 0) {
+                      setEditPoints(val);
+                    }
+                  }}
+                />
+              </div>
+              {editPoints && Number(editPoints) < 0 && (
+                <p className="text-xs text-red-500 dark:text-red-400">Points cannot be negative</p>
+              )}
             </div>
 
             {/* Board/Project Autofill */}
@@ -735,64 +830,66 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks, onTaskNavigate }: TaskD
                 </span>
               </label>
               <div className="relative" ref={projectDropdownRef}>
-                {selectedProject ? (
-                  <div className={`${inputClass} flex items-center justify-between`}>
-                    <span>{selectedProject.name}</span>
+                <div className="relative">
+                  <input
+                    type="text"
+                    className={inputClass}
+                    placeholder="Search boards..."
+                    value={projectSearch || selectedProject?.name || ""}
+                    onChange={(e) => {
+                      setProjectSearch(e.target.value);
+                      // Clear selection when user starts typing something different
+                      if (selectedProject && e.target.value !== selectedProject.name) {
+                        setSelectedProject(null);
+                      }
+                      setShowProjectDropdown(true);
+                    }}
+                    onFocus={() => setShowProjectDropdown(true)}
+                  />
+                  {selectedProject ? (
                     <button
                       type="button"
-                      onClick={() => setSelectedProject(null)}
-                      className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                      onClick={() => {
+                        setSelectedProject(null);
+                        setProjectSearch("");
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
                     >
                       <X size={16} />
                     </button>
-                  </div>
-                ) : (
-                  <>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        className={inputClass}
-                        placeholder="Search boards..."
-                        value={projectSearch}
-                        onChange={(e) => {
-                          setProjectSearch(e.target.value);
-                          setShowProjectDropdown(true);
-                        }}
-                        onFocus={() => setShowProjectDropdown(true)}
-                      />
-                      <ChevronDown
-                        size={16}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-                      />
-                    </div>
-                    {showProjectDropdown && (
-                      <div className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg dark:border-dark-tertiary dark:bg-dark-secondary">
-                        {filteredProjects.length > 0 ? (
-                          filteredProjects.map((project) => (
-                            <button
-                              key={project.id}
-                              type="button"
-                              onClick={() => selectProject(project)}
-                              className="flex w-full flex-col px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-dark-tertiary"
-                            >
-                              <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                {project.name}
-                              </span>
-                              {project.description && (
-                                <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                  {project.description}
-                                </span>
-                              )}
-                            </button>
-                          ))
-                        ) : (
-                          <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
-                            No boards found
-                          </div>
-                        )}
+                  ) : (
+                    <ChevronDown
+                      size={16}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    />
+                  )}
+                </div>
+                {showProjectDropdown && (
+                  <div className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg dark:border-dark-tertiary dark:bg-dark-secondary">
+                    {filteredProjects.length > 0 ? (
+                      filteredProjects.map((project) => (
+                        <button
+                          key={project.id}
+                          type="button"
+                          onClick={() => selectProject(project)}
+                          className="flex w-full flex-col px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-dark-tertiary"
+                        >
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">
+                            {project.name}
+                          </span>
+                          {project.description && (
+                            <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                              {project.description}
+                            </span>
+                          )}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
+                        No boards found
                       </div>
                     )}
-                  </>
+                  </div>
                 )}
               </div>
             </div>
