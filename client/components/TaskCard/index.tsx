@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Task, Priority, useUpdateTaskMutation, useGetTagsQuery } from "@/state/api";
+import { PRIORITY_COLORS_BY_NAME } from "@/lib/priorityColors";
 import RadialProgress from "@/components/RadialProgress";
 import { format } from "date-fns";
 import { MessageSquareMore, X, Plus } from "lucide-react";
@@ -34,14 +35,6 @@ const getAverageTagColor = (task: Task): string | null => {
     b: Math.round(colors.reduce((sum, c) => sum + c.b, 0) / colors.length),
   };
   return `rgba(${avg.r}, ${avg.g}, ${avg.b}, 0.15)`;
-};
-
-const priorityBarColors: Record<string, string> = {
-  Urgent: "bg-red-500",
-  High: "bg-yellow-500",
-  Medium: "bg-green-500",
-  Low: "bg-gray-400",
-  Backlog: "bg-gray-300",
 };
 
 const TaskCard = ({ task, onClick, className = "" }: Props) => {
@@ -96,7 +89,8 @@ const TaskCard = ({ task, onClick, className = "" }: Props) => {
       {/* Priority bar on left side */}
       <div
         ref={priorityRef}
-        className={`relative w-1.5 flex-shrink-0 cursor-pointer ${priorityBarColors[task.priority || ""] || "bg-gray-200 dark:bg-dark-tertiary"}`}
+        className="relative w-1.5 flex-shrink-0 cursor-pointer"
+        style={{ backgroundColor: task.priority ? `${PRIORITY_COLORS_BY_NAME[task.priority]}99` : undefined }}
         onClick={(e) => { e.stopPropagation(); setShowPriorityMenu(!showPriorityMenu); }}
         title={task.priority || "Set priority"}
       >
@@ -108,7 +102,7 @@ const TaskCard = ({ task, onClick, className = "" }: Props) => {
                 onClick={(e) => { e.stopPropagation(); handlePriorityChange(p); }}
                 className="flex w-full items-center gap-2 px-3 py-1 text-left text-xs hover:bg-gray-100 dark:hover:bg-dark-tertiary"
               >
-                <span className={`h-2 w-2 rounded-full ${priorityBarColors[p]}`} />
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: PRIORITY_COLORS_BY_NAME[p] }} />
                 {p}
               </button>
             ))}

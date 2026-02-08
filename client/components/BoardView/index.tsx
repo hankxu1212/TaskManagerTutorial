@@ -8,22 +8,25 @@ import { Plus } from "lucide-react";
 import type { DropTargetMonitor, DragSourceMonitor } from "react-dnd";
 import TaskDetailModal from "@/components/TaskDetailModal";
 import TaskCard from "@/components/TaskCard";
-import { applyFilters } from "@/lib/filterUtils";
-import { FilterState } from "@/lib/filterTypes";
+import { applyFilters, applySorting } from "@/lib/filterUtils";
+import { FilterState, SortState, initialSortState } from "@/lib/filterTypes";
+import { STATUS_COLORS_BY_NAME } from "@/lib/statusColors";
 
 type BoardViewProps = {
   tasks: TaskType[];
   setIsModalNewTaskOpen: (isOpen: boolean) => void;
   filterState: FilterState;
+  sortState?: SortState;
 };
 
 const taskStatus = ["Input Queue", "Work In Progress", "Review", "Done"];
 
-const BoardView = ({ tasks, setIsModalNewTaskOpen, filterState }: BoardViewProps) => {
+const BoardView = ({ tasks, setIsModalNewTaskOpen, filterState, sortState = initialSortState }: BoardViewProps) => {
   const [updateTaskStatus] = useUpdateTaskStatusMutation();
 
-  // Apply filters to tasks
+  // Apply filters then sorting to tasks
   const filteredTasks = applyFilters(tasks, filterState);
+  const sortedTasks = applySorting(filteredTasks, sortState);
 
   // Modal state management for task detail modal
   const [isTaskDetailModalOpen, setIsTaskDetailModalOpen] = useState(false);
@@ -58,7 +61,7 @@ const BoardView = ({ tasks, setIsModalNewTaskOpen, filterState }: BoardViewProps
           <TaskColumn
             key={status}
             status={status}
-            tasks={filteredTasks}
+            tasks={sortedTasks}
             moveTask={moveTask}
             setIsModalNewTaskOpen={setIsModalNewTaskOpen}
             onTaskClick={handleTaskClick}
@@ -102,25 +105,26 @@ const TaskColumn = ({
   const tasksCount = statusTasks.length;
   const totalPoints = statusTasks.reduce((sum, task) => sum + (task.points || 0), 0);
 
-  const statusColor: Record<string, string> = {
-    "Input Queue": "#7f97cb",
-    "Work In Progress": "#65d6b3",
-    "Review": "#d1ac1e",
-    "Done": "#31aa00",
-  };
-
   return (
     <div
       ref={(instance) => {
         drop(instance);
       }}
-      className={`rounded-lg py-4 px-3 xl:px-3 bg-white/80 dark:bg-dark-secondary/80 backdrop-blur-sm border border-gray-200/50 dark:border-stroke-dark/50 shadow-sm transition-all duration-200 ${isOver ? "bg-white dark:bg-dark-secondary border-gray-300 dark:border-stroke-dark shadow-md scale-[1.02]" : ""}`}
+      className={`
+        rounded-lg py-4 px-3 xl:px-3 backdrop-blur-sm shadow-sm transition-all duration-200
+        bg-gray-100/80 dark:bg-dark-secondary/80
+        border border-gray-200/50 dark:border-stroke-dark/50
+        ${isOver 
+          ? "bg-gray-200 dark:bg-dark-tertiary border-gray-300 dark:border-stroke-dark shadow-md scale-[1.02]" 
+          : ""
+        }
+      `}
     >
       <div className="mb-4 flex w-full flex-col">
         <h3 className="flex items-center text-base font-semibold text-gray-800 dark:text-white">
           <span
             className="mr-2 h-3 w-3 rounded-full shadow-sm"
-            style={{ backgroundColor: statusColor[status] }}
+            style={{ backgroundColor: STATUS_COLORS_BY_NAME[status] }}
           />
           {status}{" "}
           <span className="ml-2 inline-block rounded-full bg-gray-100 px-2 py-1 text-center text-xs font-medium leading-none text-gray-600 dark:bg-dark-tertiary dark:text-gray-300">
@@ -142,9 +146,7 @@ const TaskColumn = ({
         </button>
       )}
 
-      {tasks
-        .filter((task) => task.status === status)
-        .map((task) => (
+      {statusTasks.map((task) => (
           <DraggableTask key={task.id} task={task} onClick={onTaskClick} />
         ))}
     </div>

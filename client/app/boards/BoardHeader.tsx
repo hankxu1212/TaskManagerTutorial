@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import {
+  ArrowUpDown,
   Filter,
   Settings,
   Table,
@@ -10,7 +11,8 @@ import {
 import { BiColumns } from "react-icons/bi";
 import Link from "next/link";
 import React from "react";
-import { FilterState, DueDateOption } from "@/lib/filterTypes";
+import { FilterState, DueDateOption, SortState, SortField } from "@/lib/filterTypes";
+import { PRIORITY_COLORS } from "@/lib/priorityColors";
 import { Tag, Priority } from "@/state/api";
 import FilterDropdown from "@/components/FilterDropdown";
 
@@ -26,6 +28,9 @@ type Props = {
   isFilterActive: boolean;
   totalTasks: number;
   totalPoints: number;
+  sortState: SortState;
+  onSortChange: (newState: SortState) => void;
+  isSortActive: boolean;
 };
 
 /**
@@ -44,9 +49,21 @@ const BoardHeader = ({
   isFilterActive,
   totalTasks,
   totalPoints,
+  sortState,
+  onSortChange,
+  isSortActive,
 }: Props) => {
   // State for filter dropdown visibility
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+
+  // Sort field labels
+  const sortFieldLabels: Record<SortField, string> = {
+    none: "None",
+    dueDate: "Due Date",
+    priority: "Priority",
+    points: "Points",
+  };
 
   // Due date option labels
   const dueDateLabels: Record<DueDateOption, string> = {
@@ -146,18 +163,11 @@ const BoardHeader = ({
               );
             })}
             {filterState.selectedPriorities.map((priority) => {
-              const priorityColors: Record<Priority, string> = {
-                [Priority.Urgent]: "#dc2626",
-                [Priority.High]: "#ca8a04",
-                [Priority.Medium]: "#16a34a",
-                [Priority.Low]: "#2563eb",
-                [Priority.Backlog]: "#6b7280",
-              };
               return (
                 <span
                   key={`priority-${priority}`}
                   className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium text-white"
-                  style={{ backgroundColor: priorityColors[priority] }}
+                  style={{ backgroundColor: PRIORITY_COLORS[priority] }}
                 >
                   {priority}
                   <button
@@ -185,6 +195,66 @@ const BoardHeader = ({
                 </button>
               </span>
             ))}
+          </div>
+          
+          {/* Sort button with dropdown */}
+          <div className="relative">
+            <button
+              className="relative text-gray-500 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-gray-300"
+              onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
+              aria-label="Toggle sort dropdown"
+              aria-expanded={isSortDropdownOpen}
+            >
+              <ArrowUpDown className="h-5 w-5" />
+              {isSortActive && (
+                <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-blue-600" />
+              )}
+            </button>
+            {isSortDropdownOpen && (
+              <div className="absolute right-0 top-full z-20 mt-2 w-48 rounded-lg border border-gray-200 bg-white py-2 shadow-lg dark:border-dark-tertiary dark:bg-dark-secondary">
+                <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400">
+                  Sort by
+                </div>
+                {(["dueDate", "priority", "points"] as SortField[]).map((field) => (
+                  <button
+                    key={field}
+                    onClick={() => {
+                      if (sortState.field === field) {
+                        // Toggle direction or clear
+                        if (sortState.direction === "asc") {
+                          onSortChange({ field, direction: "desc" });
+                        } else {
+                          onSortChange({ field: "none", direction: "asc" });
+                        }
+                      } else {
+                        onSortChange({ field, direction: "asc" });
+                      }
+                    }}
+                    className={`flex w-full items-center justify-between px-3 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-dark-tertiary ${
+                      sortState.field === field ? "text-blue-600 dark:text-blue-400" : "text-gray-700 dark:text-gray-200"
+                    }`}
+                  >
+                    <span>{sortFieldLabels[field]}</span>
+                    {sortState.field === field && (
+                      <span className="text-xs">
+                        {sortState.direction === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
+                  </button>
+                ))}
+                {isSortActive && (
+                  <>
+                    <div className="my-1 border-t border-gray-200 dark:border-dark-tertiary" />
+                    <button
+                      onClick={() => onSortChange({ field: "none", direction: "asc" })}
+                      className="flex w-full items-center px-3 py-1.5 text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-dark-tertiary"
+                    >
+                      Clear sort
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
           </div>
           
           {/* Filter button with dropdown - Validates: Requirements 1.1, 1.3, 6.1 */}
@@ -230,12 +300,19 @@ const TabButton = ({ name, icon, setActiveTab, activeTab }: TabButtonProps) => {
     <button
       className={`relative flex items-center gap-2 px-1 py-2 text-gray-500 
       after:absolute after:-bottom-2.25 after:left-0 after:h-px after:w-full 
-      hover:text-blue-600 dark:text-neutral-500 dark:hover:text-white 
+      hover:text-gray-700 dark:text-neutral-500 dark:hover:text-white 
       sm:px-2 lg:px-4 ${
-        isActive ? "text-blue-600 after:bg-blue-600 dark:text-white" : ""
+        isActive ? "text-gray-700 dark:text-white" : ""
       }`}
+      style={isActive ? { ["--tw-after-bg" as string]: "rgb(244, 215, 125)" } : undefined}
       onClick={() => setActiveTab(name)}
     >
+      {isActive && (
+        <span 
+          className="absolute -bottom-2.25 left-0 h-px w-full" 
+          style={{ backgroundColor: "rgb(244, 215, 125)" }}
+        />
+      )}
       {icon}
       {name}
     </button>

@@ -6,6 +6,8 @@ import Modal from "../Modal";
 import SubtaskHierarchy from "@/components/SubtaskHierarchy";
 import CommentReactions from "@/components/CommentReactions";
 import { Task, Priority, Status, useUpdateTaskMutation, useDeleteTaskMutation, useCreateTaskMutation, useGetUsersQuery, useGetTagsQuery, useCreateCommentMutation, useGetAuthUserQuery, useGetProjectsQuery, useGetSprintsQuery, getAttachmentS3Key, getUserProfileS3Key, User as UserType, Project, Sprint, useToggleReactionMutation } from "@/state/api";
+import { PRIORITY_BADGE_STYLES } from "@/lib/priorityColors";
+import { STATUS_BADGE_STYLES } from "@/lib/statusColors";
 import { format } from "date-fns";
 import { Calendar, MessageSquareMore, User, Users, Tag, Award, Pencil, X, Plus, Paperclip, Zap, Flag, Trash2, ChevronDown, ChevronRight, Copy, Check, ArrowLeft } from "lucide-react";
 import UserIcon from "@/components/UserIcon";
@@ -14,6 +16,9 @@ import { BiColumns } from "react-icons/bi";
 import ConfirmationMenu from "@/components/ConfirmationMenu";
 import { DEFAULT_QUICK_REACTION } from "@/lib/emojiConstants";
 
+// Left panel edit mode section container styles
+const LEFT_PANEL_SECTION_CLASS = "flex flex-wrap gap-1 justify-end max-w-[400px]";
+
 interface TaskDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -21,37 +26,20 @@ interface TaskDetailModalProps {
   tasks?: Task[];
 }
 
-const PriorityTag = ({ priority }: { priority: Task["priority"] }) => (
-  <div
-    className={`rounded-full px-2 py-1 text-xs font-semibold ${
-      priority === "Urgent"
-        ? "bg-red-200 text-red-700 dark:bg-red-900 dark:text-red-200"
-        : priority === "High"
-          ? "bg-yellow-200 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200"
-          : priority === "Medium"
-            ? "bg-green-200 text-green-700 dark:bg-green-900 dark:text-green-200"
-            : priority === "Low"
-              ? "bg-blue-200 text-blue-700 dark:bg-blue-900 dark:text-blue-200"
-              : "bg-gray-200 text-gray-700 dark:bg-dark-tertiary dark:text-gray-200"
-    }`}
-  >
-    {priority}
-  </div>
-);
+const PriorityTag = ({ priority }: { priority: Task["priority"] }) => {
+  const styles = priority ? PRIORITY_BADGE_STYLES[priority] : PRIORITY_BADGE_STYLES.Backlog;
+  return (
+    <div className={`rounded-full px-2 py-1 text-xs font-semibold ${styles.bg} ${styles.text} ${styles.darkBg} ${styles.darkText}`}>
+      {priority}
+    </div>
+  );
+};
 
 const StatusBadge = ({ status }: { status: Task["status"] }) => {
-  const statusColor: Record<string, string> = {
-    "Input Queue": "bg-[#7f97cb] text-white",
-    "Work In Progress": "bg-[#65d6b3] text-white",
-    "Review": "bg-[#d1ac1e] text-white",
-    "Done": "bg-[#31aa00] text-white",
-  };
-
+  const styles = status ? STATUS_BADGE_STYLES[status] : STATUS_BADGE_STYLES["Input Queue"];
   return (
     <span
-      className={`rounded-full px-2 py-1 text-xs font-semibold ${
-        statusColor[status || ""] || "bg-gray-200 text-gray-700 dark:bg-dark-tertiary dark:text-gray-200"
-      }`}
+      className={`rounded-full px-2 py-1 text-xs font-semibold ${styles.bg} ${styles.text} ${styles.darkBg} ${styles.darkText}`}
     >
       {status}
     </span>
@@ -456,17 +444,10 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
           <div className="flex flex-col gap-6 pt-4 items-end animate-slide-in-left">
             {/* Priority */}
             <div className="flex items-start gap-2">
-              <div className="flex flex-wrap gap-1 justify-end max-w-[180px]">
+              <div className={LEFT_PANEL_SECTION_CLASS}>
                 {Object.values(Priority).map((p) => {
                   const isSelected = editPriority === p;
-                  const priorityColors: Record<string, { bg: string; text: string; darkBg: string; darkText: string }> = {
-                    Urgent: { bg: "bg-red-200", text: "text-red-700", darkBg: "dark:bg-red-900", darkText: "dark:text-red-200" },
-                    High: { bg: "bg-yellow-200", text: "text-yellow-700", darkBg: "dark:bg-yellow-900", darkText: "dark:text-yellow-200" },
-                    Medium: { bg: "bg-green-200", text: "text-green-700", darkBg: "dark:bg-green-900", darkText: "dark:text-green-200" },
-                    Low: { bg: "bg-blue-200", text: "text-blue-700", darkBg: "dark:bg-blue-900", darkText: "dark:text-blue-200" },
-                    Backlog: { bg: "bg-gray-200", text: "text-gray-700", darkBg: "dark:bg-dark-tertiary", darkText: "dark:text-gray-200" },
-                  };
-                  const colors = priorityColors[p] || priorityColors.Backlog;
+                  const colors = PRIORITY_BADGE_STYLES[p] || PRIORITY_BADGE_STYLES.Backlog;
                   return (
                     <button
                       key={p}
@@ -488,21 +469,16 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
 
             {/* Status */}
             <div className="flex items-start gap-2">
-              <div className="flex flex-wrap gap-1 justify-end max-w-[180px]">
+              <div className={LEFT_PANEL_SECTION_CLASS}>
                 {Object.values(Status).map((s) => {
                   const isSelected = editStatus === s;
-                  const statusColors: Record<string, string> = {
-                    "Input Queue": "bg-[#7f97cb] text-white",
-                    "Work In Progress": "bg-[#65d6b3] text-white",
-                    "Review": "bg-[#d1ac1e] text-white",
-                    "Done": "bg-[#31aa00] text-white",
-                  };
+                  const colors = STATUS_BADGE_STYLES[s] || STATUS_BADGE_STYLES["Input Queue"];
                   return (
                     <button
                       key={s}
                       type="button"
                       onClick={() => setEditStatus(s)}
-                      className={`rounded-full px-2.5 py-1 text-xs font-semibold transition-all ${statusColors[s] || "bg-gray-200 text-gray-700"} ${
+                      className={`rounded-full px-2.5 py-1 text-xs font-semibold transition-all ${colors.bg} ${colors.text} ${colors.darkBg} ${colors.darkText} ${
                         isSelected ? "ring-2 ring-offset-1 ring-gray-800 dark:ring-white dark:ring-offset-dark-bg" : "opacity-50 hover:opacity-75"
                       }`}
                     >
@@ -518,7 +494,7 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
 
             {/* Tags */}
             <div className="flex items-start gap-2">
-              <div className="flex flex-wrap gap-1 justify-end max-w-[180px]">
+              <div className={LEFT_PANEL_SECTION_CLASS}>
                 {allTags?.map((tag) => {
                   const isSelected = editTagIds.includes(tag.id);
                   return (

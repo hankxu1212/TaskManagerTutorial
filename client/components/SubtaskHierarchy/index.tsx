@@ -3,19 +3,13 @@
 import { SubtaskSummary, ParentTaskSummary } from "@/state/api";
 import { CornerLeftUp, ListTree, User } from "lucide-react";
 import S3Image from "@/components/S3Image";
+import { STATUS_BADGE_STYLES } from "@/lib/statusColors";
 
 interface SubtaskHierarchyProps {
   parentTask?: ParentTaskSummary | null;
   subtasks?: SubtaskSummary[];
   onTaskClick: (taskId: number) => void;
 }
-
-const statusColor: Record<string, string> = {
-  "To Do": "bg-[#7f97cb] text-white",
-  "Work In Progress": "bg-[#65d6b3] text-white",
-  "Under Review": "bg-[#d1ac1e] text-white",
-  Completed: "bg-[#31aa00] text-white",
-};
 
 const SubtaskHierarchy = ({
   parentTask,
@@ -69,14 +63,16 @@ const SubtaskHierarchy = ({
                   </span>
 
                   {/* Status Badge */}
-                  <span
-                    className={`shrink-0 rounded-full px-1.5 py-0.5 text-xs font-semibold ${
-                      statusColor[subtask.status || ""] ||
-                      "bg-gray-200 text-gray-700 dark:bg-dark-tertiary dark:text-gray-200"
-                    }`}
-                  >
-                    {subtask.status || "Unknown"}
-                  </span>
+                  {(() => {
+                    const colors = STATUS_BADGE_STYLES[subtask.status || ""] || STATUS_BADGE_STYLES["Input Queue"];
+                    return (
+                      <span
+                        className={`shrink-0 rounded-full px-1.5 py-0.5 text-xs font-semibold ${colors.bg} ${colors.text} ${colors.darkBg} ${colors.darkText}`}
+                      >
+                        {subtask.status || "Unknown"}
+                      </span>
+                    );
+                  })()}
 
                   {/* Assignee Avatar */}
                   {subtask.assignee?.userId && subtask.assignee?.profilePictureExt ? (

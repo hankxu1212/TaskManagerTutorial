@@ -240,3 +240,64 @@ export function applyFilters(tasks: Task[], filterState: FilterState): Task[] {
     return passesTagFilter && passesPriorityFilter && passesDueDateFilter;
   });
 }
+
+import { SortState, SortField } from "@/lib/filterTypes";
+
+/**
+ * Priority order for sorting (lower number = higher priority)
+ */
+const priorityOrder: Record<Priority, number> = {
+  [Priority.Urgent]: 1,
+  [Priority.High]: 2,
+  [Priority.Medium]: 3,
+  [Priority.Low]: 4,
+  [Priority.Backlog]: 5,
+};
+
+/**
+ * Checks if sorting is currently active.
+ */
+export function isSortActive(sortState: SortState): boolean {
+  return sortState.field !== "none";
+}
+
+/**
+ * Applies sorting to an array of tasks.
+ */
+export function applySorting(tasks: Task[], sortState: SortState): Task[] {
+  if (sortState.field === "none") {
+    return tasks;
+  }
+
+  const sorted = [...tasks].sort((a, b) => {
+    let comparison = 0;
+
+    switch (sortState.field) {
+      case "dueDate":
+        // Tasks without due dates go to the end
+        if (!a.dueDate && !b.dueDate) comparison = 0;
+        else if (!a.dueDate) comparison = 1;
+        else if (!b.dueDate) comparison = -1;
+        else comparison = new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+        break;
+
+      case "priority":
+        // Tasks without priority go to the end
+        const aPriority = a.priority ? priorityOrder[a.priority] : 999;
+        const bPriority = b.priority ? priorityOrder[b.priority] : 999;
+        comparison = aPriority - bPriority;
+        break;
+
+      case "points":
+        // Tasks without points go to the end
+        const aPoints = a.points ?? -1;
+        const bPoints = b.points ?? -1;
+        comparison = aPoints - bPoints;
+        break;
+    }
+
+    return sortState.direction === "asc" ? comparison : -comparison;
+  });
+
+  return sorted;
+}

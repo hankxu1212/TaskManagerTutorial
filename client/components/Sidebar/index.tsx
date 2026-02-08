@@ -107,10 +107,10 @@ const Sidebar = () => {
 
                 {/* NAVBAR LINKS */}
                 <nav className="mt-6 flex w-full flex-col gap-y-1 px-4">
-                    <SidebarLink icon={Home} label="Overview" href="/" />
-                    <SidebarLink icon={Search} label="Search" href="/search" />
-                    <SidebarLink icon={Tag} label="Tags" href="/tags" />
-                    <SidebarLink icon={User} label="Team" href="/users" />
+                    <SidebarLink icon={Home} label="Overview" href="/" isDarkMode={isDarkMode} />
+                    <SidebarLink icon={Search} label="Search" href="/search" isDarkMode={isDarkMode} />
+                    <SidebarLink icon={Tag} label="Tags" href="/tags" isDarkMode={isDarkMode} />
+                    <SidebarLink icon={User} label="Team" href="/users" isDarkMode={isDarkMode} />
                 </nav>
 
                 {/* BOARDS HEADER */}
@@ -150,6 +150,7 @@ const Sidebar = () => {
                                 <SidebarSubLink
                                     label={project.name}
                                     href={`/boards/${project.id}`}
+                                    isDarkMode={isDarkMode}
                                 />
                             </div>
                         ))}
@@ -193,6 +194,7 @@ const Sidebar = () => {
                                 <SidebarSubLink
                                     label={sprint.title}
                                     href={`/sprints/${sprint.id}`}
+                                    isDarkMode={isDarkMode}
                                 />
                             </div>
                         ))}
@@ -249,12 +251,15 @@ interface SidebarLinkProps {
     href: string;
     icon: LucideIcon;
     label: string;
+    isDarkMode: boolean;
 }
 
-const SidebarLink = ({ href, icon: Icon, label }: SidebarLinkProps) => {
+const SidebarLink = ({ href, icon: Icon, label, isDarkMode }: SidebarLinkProps) => {
     const pathname = usePathname();
     const isActive =
         pathname === href || (pathname === "/" && href === "/dashboard");
+
+    const activeColor = isDarkMode ? "rgb(244, 215, 125)" : "#423D3D";
 
     return (
         <Link href={href} className="w-full">
@@ -264,7 +269,10 @@ const SidebarLink = ({ href, icon: Icon, label }: SidebarLinkProps) => {
                 } justify-start px-6 py-2`}
             >
                 {isActive && (
-                    <div className="absolute left-0 top-0 h-[100%] w-[3px] bg-gray-800 dark:bg-white" />
+                    <div 
+                        className="absolute left-0 top-0 h-[100%] w-[3px]" 
+                        style={{ backgroundColor: activeColor }}
+                    />
                 )}
 
                 <Icon className="h-5 w-5 text-gray-800 dark:text-gray-100" />
@@ -279,11 +287,14 @@ const SidebarLink = ({ href, icon: Icon, label }: SidebarLinkProps) => {
 interface SidebarSubLinkProps {
     href: string;
     label: string;
+    isDarkMode: boolean;
 }
 
-const SidebarSubLink = ({ href, label }: SidebarSubLinkProps) => {
+const SidebarSubLink = ({ href, label, isDarkMode }: SidebarSubLinkProps) => {
     const pathname = usePathname();
     const isActive = pathname === href;
+
+    const activeColor = isDarkMode ? "rgb(244, 215, 125)" : "#423D3D";
 
     return (
         <Link href={href} className="w-full">
@@ -293,7 +304,10 @@ const SidebarSubLink = ({ href, label }: SidebarSubLinkProps) => {
                 } justify-start px-6 py-2 pl-10`}
             >
                 {isActive && (
-                    <div className="absolute left-0 top-0 h-[100%] w-[3px] bg-gray-800 dark:bg-white" />
+                    <div 
+                        className="absolute left-0 top-0 h-[100%] w-[3px]" 
+                        style={{ backgroundColor: activeColor }}
+                    />
                 )}
                 <span className="text-sm text-gray-700 dark:text-gray-200">
                     {label}

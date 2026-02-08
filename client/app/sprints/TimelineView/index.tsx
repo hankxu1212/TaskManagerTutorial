@@ -3,6 +3,8 @@
 import { useState, useMemo } from "react";
 import { Task } from "@/state/api";
 import { FilterState } from "@/lib/filterTypes";
+import { PRIORITY_BG_CLASSES } from "@/lib/priorityColors";
+import { STATUS_BG_CLASSES } from "@/lib/statusColors";
 import { applyFilters } from "@/lib/filterUtils";
 import TaskDetailModal from "@/components/TaskDetailModal";
 
@@ -15,20 +17,8 @@ type Props = {
   sprintDueDate?: string;
 };
 
-const priorityColors: Record<string, string> = {
-  "Urgent": "bg-red-500",
-  "High": "bg-orange-500",
-  "Medium": "bg-yellow-500",
-  "Low": "bg-sky-500",
-  "Backlog": "bg-gray-400",
-};
-
-const statusColors: Record<string, string> = {
-  "Input Queue": "bg-blue-500",
-  "Work In Progress": "bg-amber-500",
-  "Review": "bg-purple-500",
-  "Done": "bg-green-500",
-};
+const priorityColors = PRIORITY_BG_CLASSES;
+const statusColors = STATUS_BG_CLASSES;
 
 const TimelineView = ({ tasks, filterState, sprintStartDate, sprintDueDate }: Props) => {
   const [isTaskDetailModalOpen, setIsTaskDetailModalOpen] = useState(false);

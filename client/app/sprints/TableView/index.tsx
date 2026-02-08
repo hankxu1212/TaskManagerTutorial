@@ -7,6 +7,8 @@ import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import TaskDetailModal from "@/components/TaskDetailModal";
 import { applyFilters } from "@/lib/filterUtils";
 import { FilterState } from "@/lib/filterTypes";
+import { PRIORITY_BADGE_STYLES } from "@/lib/priorityColors";
+import { STATUS_BADGE_STYLES } from "@/lib/statusColors";
 import { Task } from "@/state/api";
 
 type Props = {
@@ -22,20 +24,8 @@ const formatDate = (dateString: string | null | undefined): string => {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 };
 
-const statusColors: Record<string, { bg: string; text: string; darkBg: string; darkText: string }> = {
-  "Input Queue": { bg: "bg-blue-100", text: "text-blue-700", darkBg: "dark:bg-blue-900/30", darkText: "dark:text-blue-300" },
-  "Work In Progress": { bg: "bg-amber-100", text: "text-amber-700", darkBg: "dark:bg-amber-900/30", darkText: "dark:text-amber-300" },
-  "Review": { bg: "bg-purple-100", text: "text-purple-700", darkBg: "dark:bg-purple-900/30", darkText: "dark:text-purple-300" },
-  "Done": { bg: "bg-green-100", text: "text-green-700", darkBg: "dark:bg-green-900/30", darkText: "dark:text-green-300" },
-};
-
-const priorityColors: Record<string, { bg: string; text: string; darkBg: string; darkText: string }> = {
-  "Urgent": { bg: "bg-red-100", text: "text-red-700", darkBg: "dark:bg-red-900/30", darkText: "dark:text-red-300" },
-  "High": { bg: "bg-orange-100", text: "text-orange-700", darkBg: "dark:bg-orange-900/30", darkText: "dark:text-orange-300" },
-  "Medium": { bg: "bg-yellow-100", text: "text-yellow-700", darkBg: "dark:bg-yellow-900/30", darkText: "dark:text-yellow-300" },
-  "Low": { bg: "bg-sky-100", text: "text-sky-700", darkBg: "dark:bg-sky-900/30", darkText: "dark:text-sky-300" },
-  "Backlog": { bg: "bg-gray-100", text: "text-gray-600", darkBg: "dark:bg-gray-700/30", darkText: "dark:text-gray-400" },
-};
+const statusColors = STATUS_BADGE_STYLES;
+const priorityColors = PRIORITY_BADGE_STYLES;
 
 const StatusCell = ({ value }: { value: string }) => {
   const colors = statusColors[value] || statusColors["Input Queue"];

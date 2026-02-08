@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import { useGetSprintQuery, useGetTagsQuery } from "@/state/api";
-import { FilterState, initialFilterState } from "@/lib/filterTypes";
-import { isFilterActive } from "@/lib/filterUtils";
+import { FilterState, initialFilterState, SortState, initialSortState } from "@/lib/filterTypes";
+import { isFilterActive, isSortActive } from "@/lib/filterUtils";
 import SprintHeader from "@/app/sprints/SprintHeader";
 import BoardView from "@/app/sprints/BoardView";
 import TableView from "@/app/sprints/TableView";
@@ -18,6 +18,7 @@ const SprintPage = () => {
     const [activeTab, setActiveTab] = useState<"Board" | "Table" | "Timeline">("Board");
     const [isModalNewTaskOpen, setIsModalNewTaskOpen] = useState(false);
     const [filterState, setFilterState] = useState<FilterState>(initialFilterState);
+    const [sortState, setSortState] = useState<SortState>(initialSortState);
     
     const { data: sprint, isLoading, error } = useGetSprintQuery(sprintId);
     const { data: tags = [] } = useGetTagsQuery();
@@ -27,6 +28,7 @@ const SprintPage = () => {
     const totalPoints = sprintTasks.reduce((sum, task) => sum + (task.points || 0), 0);
     
     const handleFilterChange = (newState: FilterState) => setFilterState(newState);
+    const handleSortChange = (newState: SortState) => setSortState(newState);
 
     if (isLoading) {
         return (
@@ -66,6 +68,9 @@ const SprintPage = () => {
                 isFilterActive={isFilterActive(filterState)}
                 totalTasks={totalTasks}
                 totalPoints={totalPoints}
+                sortState={sortState}
+                onSortChange={handleSortChange}
+                isSortActive={isSortActive(sortState)}
             />
             {activeTab === "Board" && (
                 <BoardView
@@ -73,6 +78,7 @@ const SprintPage = () => {
                     tasks={sprint.tasks || []}
                     setIsModalNewTaskOpen={setIsModalNewTaskOpen}
                     filterState={filterState}
+                    sortState={sortState}
                 />
             )}
             {activeTab === "Table" && (

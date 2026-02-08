@@ -12,6 +12,32 @@ export type DueDateOption =
   | "noDueDate";
 
 /**
+ * Type representing sort field options.
+ */
+export type SortField = "dueDate" | "priority" | "points" | "none";
+
+/**
+ * Type representing sort direction.
+ */
+export type SortDirection = "asc" | "desc";
+
+/**
+ * Interface representing the current sort state.
+ */
+export interface SortState {
+  field: SortField;
+  direction: SortDirection;
+}
+
+/**
+ * Initial sort state with no sorting applied.
+ */
+export const initialSortState: SortState = {
+  field: "none",
+  direction: "asc",
+};
+
+/**
  * Interface representing the current state of all active filters.
  * Used to track user selections across tag, priority, and due date filters.
  */

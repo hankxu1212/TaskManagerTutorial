@@ -2,15 +2,16 @@
 
 import { useGetTasksQuery } from "@/state/api";
 import BoardView from "@/components/BoardView";
-import { FilterState } from "@/lib/filterTypes";
+import { FilterState, SortState } from "@/lib/filterTypes";
 
 type BoardProps = {
   id: string;
   setIsModalNewTaskOpen: (isOpen: boolean) => void;
   filterState: FilterState;
+  sortState: SortState;
 };
 
-const BoardViewWrapper = ({ id, setIsModalNewTaskOpen, filterState }: BoardProps) => {
+const BoardViewWrapper = ({ id, setIsModalNewTaskOpen, filterState, sortState }: BoardProps) => {
   const { data: tasks, isLoading, error } = useGetTasksQuery({ projectId: Number(id) });
 
   if (isLoading) return <div>Loading...</div>;
@@ -21,6 +22,7 @@ const BoardViewWrapper = ({ id, setIsModalNewTaskOpen, filterState }: BoardProps
       tasks={tasks ?? []}
       setIsModalNewTaskOpen={setIsModalNewTaskOpen}
       filterState={filterState}
+      sortState={sortState}
     />
   );
 };
