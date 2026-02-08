@@ -20,11 +20,12 @@ model User {
   email             String?
   profilePictureExt String?
 
-  authoredTasks   Task[]           @relation("TaskAuthor")
-  assignedTasks   Task[]           @relation("TaskAssignee")
-  taskAssignments TaskAssignment[]
-  attachments     Attachment[]
-  comments        Comment[]
+  authoredTasks    Task[]            @relation("TaskAuthor")
+  assignedTasks    Task[]            @relation("TaskAssignee")
+  taskAssignments  TaskAssignment[]
+  attachments      Attachment[]
+  comments         Comment[]
+  commentReactions CommentReaction[]
 }
 
 model Project {
@@ -104,8 +105,22 @@ model Comment {
   taskId Int
   userId Int
 
-  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [userId])
+  task      Task              @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User              @relation(fields: [userId], references: [userId])
+  reactions CommentReaction[]
+}
+
+model CommentReaction {
+  id        Int    @id @default(autoincrement())
+  emoji     String
+  commentId Int
+  userId    Int
+
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [userId])
+
+  @@unique([commentId, userId, emoji])
+  @@index([commentId])
 }
 
 model Sprint {

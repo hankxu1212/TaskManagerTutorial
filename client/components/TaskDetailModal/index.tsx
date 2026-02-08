@@ -4,13 +4,15 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Modal from "../Modal";
 import SubtaskHierarchy from "@/components/SubtaskHierarchy";
-import { Task, Priority, Status, useUpdateTaskMutation, useDeleteTaskMutation, useCreateTaskMutation, useGetUsersQuery, useGetTagsQuery, useCreateCommentMutation, useGetAuthUserQuery, useGetProjectsQuery, useGetSprintsQuery, getAttachmentS3Key, getUserProfileS3Key, User as UserType, Project, Sprint } from "@/state/api";
+import CommentReactions from "@/components/CommentReactions";
+import { Task, Priority, Status, useUpdateTaskMutation, useDeleteTaskMutation, useCreateTaskMutation, useGetUsersQuery, useGetTagsQuery, useCreateCommentMutation, useGetAuthUserQuery, useGetProjectsQuery, useGetSprintsQuery, getAttachmentS3Key, getUserProfileS3Key, User as UserType, Project, Sprint, useToggleReactionMutation } from "@/state/api";
 import { format } from "date-fns";
 import { Calendar, MessageSquareMore, User, Users, Tag, Award, Pencil, X, Plus, Paperclip, Zap, Flag, Trash2, ChevronDown, ChevronRight, Copy, Check, ArrowLeft } from "lucide-react";
 import UserIcon from "@/components/UserIcon";
 import S3Image from "@/components/S3Image";
 import { BiColumns } from "react-icons/bi";
 import ConfirmationMenu from "@/components/ConfirmationMenu";
+import { DEFAULT_QUICK_REACTION } from "@/lib/emojiConstants";
 
 interface TaskDetailModalProps {
   isOpen: boolean;
@@ -61,10 +63,12 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
   const [displayedTaskId, setDisplayedTaskId] = useState<number | null>(null);
   const [saveMessage, setSaveMessage] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false);
   const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation();
   const [deleteTask, { isLoading: isDeleting }] = useDeleteTaskMutation();
   const [createTask, { isLoading: isDuplicating }] = useCreateTaskMutation();
   const [createComment, { isLoading: isAddingComment }] = useCreateCommentMutation();
+  const [toggleReaction] = useToggleReactionMutation();
   const { data: users } = useGetUsersQuery();
   const { data: allTags } = useGetTagsQuery();
   const { data: projects } = useGetProjectsQuery();
@@ -261,20 +265,32 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
   };
 
   const handleDuplicate = async () => {
-    const duplicatedTask = await createTask({
-      title: `${currentTask.title} (Copy)`,
-      description: currentTask.description,
-      status: currentTask.status,
-      priority: currentTask.priority,
-      startDate: currentTask.startDate,
-      dueDate: currentTask.dueDate,
-      points: currentTask.points,
-      projectId: currentTask.projectId,
-      assignedUserId: currentTask.assignedUserId,
-      tagIds: currentTask.taskTags?.map((tt) => tt.tag.id),
-      sprintIds: currentTask.sprints?.map((s) => s.id),
-    }).unwrap();
-    onClose();
+    // authorUserId is required - use current user or fall back to original author
+    const authorId = authData?.userDetails?.userId ?? currentTask.authorUserId;
+    if (!authorId) {
+      console.error("Failed to duplicate task: No author user ID available");
+      return;
+    }
+    
+    try {
+      await createTask({
+        title: `${currentTask.title} (Copy)`,
+        description: currentTask.description || undefined,
+        status: currentTask.status || undefined,
+        priority: currentTask.priority || undefined,
+        startDate: currentTask.startDate || undefined,
+        dueDate: currentTask.dueDate || undefined,
+        points: currentTask.points ?? undefined,
+        projectId: currentTask.projectId,
+        authorUserId: authorId,
+        assignedUserId: currentTask.assignedUserId ?? undefined,
+        tagIds: currentTask.taskTags?.map((tt) => tt.tag.id),
+        sprintIds: currentTask.sprints?.map((s) => s.id),
+      }).unwrap();
+      onClose();
+    } catch (error) {
+      console.error("Failed to duplicate task:", error);
+    }
   };
 
   const inputClass =
@@ -340,7 +356,7 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
             </button>
             {/* Duplicate button */}
             <button
-              onClick={handleDuplicate}
+              onClick={() => setShowDuplicateConfirm(true)}
               disabled={isDuplicating}
               className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-600 shadow-lg hover:bg-gray-100 dark:bg-dark-secondary dark:text-neutral-300 dark:hover:bg-dark-tertiary disabled:opacity-50"
               title="Duplicate task"
@@ -547,7 +563,20 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
             <div className="flex-1 overflow-y-auto min-h-0 p-3 space-y-3">
               {currentTask.comments && currentTask.comments.length > 0 ? (
                 currentTask.comments.map((comment) => (
-                  <div key={comment.id} className="group">
+                  <div 
+                    key={comment.id} 
+                    className="group"
+                    onDoubleClick={() => {
+                      // Requirement 1.6: Double-click creates FeelingYes reaction
+                      if (authData?.userDetails?.userId && typeof authData.userDetails.userId === 'number') {
+                        toggleReaction({
+                          commentId: comment.id,
+                          userId: authData.userDetails.userId,
+                          emoji: DEFAULT_QUICK_REACTION,
+                        });
+                      }
+                    }}
+                  >
                     <div className="flex gap-2">
                       {comment.user?.profilePictureExt && comment.user?.userId ? (
                         <S3Image
@@ -555,25 +584,33 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
                           alt={comment.user.username}
                           width={28}
                           height={28}
-                          className="h-7 w-7 rounded-full object-cover flex-shrink-0"
+                          className="h-7 w-7 rounded-full object-cover flex-shrink-0 mt-1"
                         />
                       ) : (
-                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-500 text-white text-xs font-medium flex-shrink-0">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-500 text-white text-xs font-medium flex-shrink-0 mt-1">
                           {comment.user?.username?.charAt(0).toUpperCase() || "?"}
                         </div>
                       )}
-                      <div className="flex-1 min-w-0 overflow-hidden">
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-xs font-medium text-gray-900 dark:text-white">
-                            {comment.user?.username || "Unknown"}
-                          </span>
-                        </div>
-                        <p 
-                          className="text-sm text-gray-700 dark:text-neutral-300 mt-0.5 break-all"
-                          style={{ overflowWrap: 'anywhere' }}
+                      <div className="flex-1 min-w-0">
+                        <span className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5 block">
+                          {comment.user?.username || "Unknown"}
+                        </span>
+                        <div 
+                          className="inline-block rounded-2xl bg-gray-100 px-3 py-2 dark:bg-dark-tertiary"
                         >
-                          {comment.text}
-                        </p>
+                          <p 
+                            className="text-sm text-gray-800 dark:text-neutral-200 break-all"
+                            style={{ overflowWrap: 'anywhere' }}
+                          >
+                            {comment.text}
+                          </p>
+                        </div>
+                        {/* Comment Reactions */}
+                        <CommentReactions
+                          commentId={comment.id}
+                          reactions={comment.reactions || []}
+                          currentUserId={authData?.userDetails?.userId}
+                        />
                       </div>
                     </div>
                   </div>
@@ -1053,6 +1090,21 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks }: TaskDetailModalProps)
           confirmLabel="Delete"
           isLoading={isDeleting}
           variant="danger"
+        />
+
+        {/* Duplicate Confirmation */}
+        <ConfirmationMenu
+          isOpen={showDuplicateConfirm}
+          onClose={() => setShowDuplicateConfirm(false)}
+          onConfirm={async () => {
+            await handleDuplicate();
+            setShowDuplicateConfirm(false);
+          }}
+          title="Duplicate Task"
+          message={`Create a copy of "${currentTask.title}"?`}
+          confirmLabel="Duplicate"
+          isLoading={isDuplicating}
+          variant="info"
         />
 
         {/* Subtask Hierarchy — visible in view mode only */}

@@ -36,12 +36,12 @@ const getAverageTagColor = (task: Task): string | null => {
   return `rgba(${avg.r}, ${avg.g}, ${avg.b}, 0.15)`;
 };
 
-const priorityStyles: Record<string, string> = {
-  Urgent: "bg-red-200 text-red-700",
-  High: "bg-yellow-200 text-yellow-700",
-  Medium: "bg-green-200 text-green-700",
-  Low: "bg-gray-300 text-gray-700",
-  Backlog: "bg-gray-200 text-gray-700",
+const priorityBarColors: Record<string, string> = {
+  Urgent: "bg-red-500",
+  High: "bg-yellow-500",
+  Medium: "bg-green-500",
+  Low: "bg-gray-400",
+  Backlog: "bg-gray-300",
 };
 
 const TaskCard = ({ task, onClick, className = "" }: Props) => {
@@ -90,10 +90,53 @@ const TaskCard = ({ task, onClick, className = "" }: Props) => {
   return (
     <div
       onClick={onClick}
-      className={`rounded-md bg-white shadow transition-all hover:outline hover:outline-2 hover:outline-gray-300 dark:bg-dark-secondary dark:hover:outline-gray-600 ${onClick ? "cursor-pointer" : ""} ${className}`}
+      className={`relative flex overflow-hidden rounded-md bg-white shadow transition-all hover:outline hover:outline-2 hover:outline-gray-300 dark:bg-dark-secondary dark:hover:outline-gray-600 ${onClick ? "cursor-pointer" : ""} ${className}`}
       style={avgColor ? { backgroundColor: avgColor } : undefined}
     >
-      <div className="p-2 md:p-3">
+      {/* Priority bar on left side */}
+      <div
+        ref={priorityRef}
+        className={`relative w-1.5 flex-shrink-0 cursor-pointer ${priorityBarColors[task.priority || ""] || "bg-gray-200 dark:bg-dark-tertiary"}`}
+        onClick={(e) => { e.stopPropagation(); setShowPriorityMenu(!showPriorityMenu); }}
+        title={task.priority || "Set priority"}
+      >
+        {showPriorityMenu && (
+          <div className="absolute left-full top-0 z-20 ml-1 rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-dark-tertiary dark:bg-dark-secondary">
+            {Object.values(Priority).map((p) => (
+              <button
+                key={p}
+                onClick={(e) => { e.stopPropagation(); handlePriorityChange(p); }}
+                className="flex w-full items-center gap-2 px-3 py-1 text-left text-xs hover:bg-gray-100 dark:hover:bg-dark-tertiary"
+              >
+                <span className={`h-2 w-2 rounded-full ${priorityBarColors[p]}`} />
+                {p}
+              </button>
+            ))}
+            {task.priority && (
+              <button
+                onClick={(e) => { e.stopPropagation(); handlePriorityChange(null); }}
+                className="block w-full px-3 py-1 text-left text-xs text-gray-500 hover:bg-gray-100 dark:hover:bg-dark-tertiary"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Comment indicator triangle (Google Sheets style) */}
+      {numberOfComments > 0 && (
+        <div
+          className="absolute right-0 top-0 h-0 w-0"
+          style={{
+            borderLeft: "10px solid transparent",
+            borderTop: "10px solid rgb(240, 168, 102)",
+          }}
+          title={`${numberOfComments} comment${numberOfComments > 1 ? "s" : ""}`}
+        />
+      )}
+
+      <div className="flex-1 p-2 md:p-2.5">
         <div className="flex items-center justify-between gap-2">
           <h4 className="text-sm dark:text-white">{task.title}</h4>
           {typeof task.points === "number" && (
@@ -142,55 +185,27 @@ const TaskCard = ({ task, onClick, className = "" }: Props) => {
           </div>
         </div>
 
-        {formattedDueDate && (
-          <div className="mt-1.5 text-xs text-gray-500 dark:text-neutral-500">Due: {formattedDueDate}</div>
-        )}
         <div className="mt-2 border-t border-gray-200 dark:border-stroke-dark" />
 
         <div className="mt-2 flex items-center justify-between">
-          <div className="flex -space-x-1 overflow-hidden">
-            {task.assignee?.userId && (
-              <UserIcon
-                userId={task.assignee.userId}
-                username={task.assignee.username}
-                profilePictureExt={task.assignee.profilePictureExt}
-                size={24}
-                className="border-2 border-white dark:border-dark-secondary"
-                tooltipLabel="Assignee"
-              />
+          <div className="flex items-center gap-2">
+            <div className="flex -space-x-1 overflow-hidden">
+              {task.assignee?.userId && (
+                <UserIcon
+                  userId={task.assignee.userId}
+                  username={task.assignee.username}
+                  profilePictureExt={task.assignee.profilePictureExt}
+                  size={24}
+                  className="border-2 border-white dark:border-dark-secondary"
+                  tooltipLabel="Assignee"
+                />
+              )}
+            </div>
+            {formattedDueDate && (
+              <div className="text-xs text-gray-500 dark:text-neutral-500">{formattedDueDate}</div>
             )}
           </div>
           <div className="flex items-center gap-2">
-            {/* Priority with inline edit */}
-            <div ref={priorityRef} className="relative">
-              <button
-                onClick={(e) => { e.stopPropagation(); setShowPriorityMenu(!showPriorityMenu); }}
-                className={`rounded-full px-2 py-0.5 text-xs font-semibold transition-all hover:ring-2 hover:ring-gray-400 dark:hover:ring-gray-500 ${priorityStyles[task.priority || ""] || "bg-gray-100 text-gray-500 dark:bg-dark-tertiary dark:text-gray-400"}`}
-              >
-                {task.priority || "Priority"}
-              </button>
-              {showPriorityMenu && (
-                <div className="absolute right-0 top-full z-20 mt-1 rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-dark-tertiary dark:bg-dark-secondary">
-                  {Object.values(Priority).map((p) => (
-                    <button
-                      key={p}
-                      onClick={(e) => { e.stopPropagation(); handlePriorityChange(p); }}
-                      className="block w-full px-3 py-1 text-left text-xs hover:bg-gray-100 dark:hover:bg-dark-tertiary"
-                    >
-                      <span className={`inline-block rounded-full px-2 py-0.5 ${priorityStyles[p]}`}>{p}</span>
-                    </button>
-                  ))}
-                  {task.priority && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handlePriorityChange(null); }}
-                      className="block w-full px-3 py-1 text-left text-xs text-gray-500 hover:bg-gray-100 dark:hover:bg-dark-tertiary"
-                    >
-                      Clear
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
             {numberOfAttachments > 0 && (
               <div className="flex items-center text-gray-500 dark:text-neutral-500">
                 <Paperclip size={16} />

@@ -68,12 +68,35 @@ export const getSprint = async (req: Request, res: Response) => {
               include: {
                 author: true,
                 assignee: true,
-                comments: true,
+                comments: {
+                  include: {
+                    user: true,
+                    reactions: {
+                      include: {
+                        user: {
+                          select: { userId: true, username: true },
+                        },
+                      },
+                    },
+                  },
+                },
                 attachments: true,
                 taskTags: {
                   include: {
                     tag: true
                   }
+                },
+                subtasks: {
+                  select: {
+                    id: true,
+                    title: true,
+                    status: true,
+                    priority: true,
+                    assignee: { select: { userId: true, username: true, profilePictureExt: true } },
+                  },
+                },
+                parentTask: {
+                  select: { id: true, title: true },
                 },
                 sprintTasks: {
                   include: {
@@ -100,6 +123,10 @@ export const getSprint = async (req: Request, res: Response) => {
       tasks: sprint.sprintTasks.map(st => ({
         ...st.task,
         status: statusIntToString(st.task.status),
+        subtasks: st.task.subtasks?.map(subtask => ({
+          ...subtask,
+          status: statusIntToString(subtask.status),
+        })),
         sprints: st.task.sprintTasks?.map(sprintTask => sprintTask.sprint),
       }))
     };

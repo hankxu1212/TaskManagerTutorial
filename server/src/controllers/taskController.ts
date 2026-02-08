@@ -50,6 +50,13 @@ export const getTasks = async (_req: Request, res: Response) => {
                     comments: {
                         include: {
                             user: true,
+                            reactions: {
+                                include: {
+                                    user: {
+                                        select: { userId: true, username: true },
+                                    },
+                                },
+                            },
                         },
                     },
                     attachments: true,
@@ -276,6 +283,13 @@ export const updateTask = async (
                 comments: {
                     include: {
                         user: true,
+                        reactions: {
+                            include: {
+                                user: {
+                                    select: { userId: true, username: true },
+                                },
+                            },
+                        },
                     },
                 },
                 attachments: true,
@@ -338,6 +352,13 @@ export const getUserTasks = async (
                 comments: {
                     include: {
                         user: true,
+                        reactions: {
+                            include: {
+                                user: {
+                                    select: { userId: true, username: true },
+                                },
+                            },
+                        },
                     },
                 },
                 attachments: true,

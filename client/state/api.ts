@@ -52,6 +52,22 @@ export interface Comment {
     taskId: number;
     userId: number;
     user?: User;
+    reactions?: CommentReaction[];
+}
+
+export interface CommentReaction {
+    id: number;
+    emoji: string;
+    commentId: number;
+    userId: number;
+    user?: { userId: number; username: string };
+}
+
+export interface GroupedReaction {
+    emoji: string;
+    count: number;
+    users: { userId: number; username: string }[];
+    reactedByCurrentUser: boolean;
 }
 
 export interface TaskTag {
@@ -232,7 +248,7 @@ export const api = createApi({
                 url: `tasks/${taskId}`,
                 method: "DELETE",
             }),
-            invalidatesTags: ["Tasks"],
+            invalidatesTags: ["Tasks", "Sprints"],
         }),
 
         // users
@@ -322,7 +338,10 @@ export const api = createApi({
 
         getSprint: build.query<Sprint, number>({
             query: (sprintId) => `sprints/${sprintId}`,
-            providesTags: (result, error, sprintId) => [{ type: "Sprints", id: sprintId }],
+            providesTags: (result, error, sprintId) => [
+                { type: "Sprints", id: sprintId },
+                { type: "Sprints" },
+            ],
         }),
 
         createSprint: build.mutation<Sprint, { title: string; startDate?: string; dueDate?: string }>({
@@ -395,6 +414,16 @@ export const api = createApi({
             invalidatesTags: ["Tasks", "Sprints"],
         }),
 
+        // reactions
+        toggleReaction: build.mutation<CommentReaction | null, { commentId: number; userId: number; emoji: string }>({
+            query: (body) => ({
+                url: "reactions/toggle",
+                method: "POST",
+                body,
+            }),
+            invalidatesTags: ["Tasks", "Sprints"],
+        }),
+
         // s3 presigned urls
         getPresignedUrl: build.query<{ url: string }, string>({
             query: (key) => `s3/presigned?key=${encodeURIComponent(key)}`,
@@ -431,6 +460,7 @@ export const {
     useUpdateTagMutation,
     useDeleteTagMutation,
     useCreateCommentMutation,
+    useToggleReactionMutation,
     useGetPresignedUrlQuery,
     useGetPresignedUploadUrlMutation,
     useGetSprintsQuery,
