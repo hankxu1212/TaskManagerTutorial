@@ -3,9 +3,11 @@
 import React, { useEffect, useState } from "react";
 import { Authenticator, ThemeProvider, Theme } from "@aws-amplify/ui-react";
 import { Amplify } from "aws-amplify";
+import { fetchUserAttributes } from "aws-amplify/auth";
 import "@aws-amplify/ui-react/styles.css";
 import "./amplify-dark-mode.css";
 import Image from "next/image";
+import { isEmailAllowed } from "@/lib/allowlist";
 
 Amplify.configure({
     Auth: {
@@ -186,6 +188,8 @@ const darkTheme: Theme = {
 
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [isDarkMode, setIsDarkMode] = useState(false);
+    const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+    const [userEmail, setUserEmail] = useState<string | null>(null);
 
     // Check for dark mode on mount and listen for changes
     useEffect(() => {
@@ -216,11 +220,59 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
+    // Validate email on sign-up before submission
+    const services = {
+        async validateCustomSignUp(formData: Record<string, string>) {
+            const email = formData.email?.toLowerCase();
+            if (!isEmailAllowed(email)) {
+                return {
+                    email: "This email is not authorized to access this application.",
+                };
+            }
+            return undefined;
+        },
+    };
+
+    // Check authorization after login
+    const checkAuthorization = async () => {
+        try {
+            const attributes = await fetchUserAttributes();
+            const email = attributes.email?.toLowerCase() || "";
+            setUserEmail(email);
+            setIsAuthorized(isEmailAllowed(email));
+        } catch {
+            setIsAuthorized(false);
+        }
+    };
+
+    // Unauthorized screen
+    const UnauthorizedScreen = () => (
+        <div className={`flex min-h-screen items-center justify-center ${isDarkMode ? 'bg-dark-bg' : 'bg-gray-50'}`}>
+            <div className={`max-w-md rounded-lg p-8 text-center shadow-lg ${isDarkMode ? 'bg-dark-secondary' : 'bg-white'}`}>
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+                    <svg className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <h2 className={`mb-2 text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    Access Denied
+                </h2>
+                <p className={`mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                    Your email ({userEmail}) is not authorized to access this application.
+                </p>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Please contact an administrator if you believe this is an error.
+                </p>
+            </div>
+        </div>
+    );
+
     return (
         <div className={`min-h-screen ${isDarkMode ? 'dark bg-dark-bg' : 'bg-gray-50'}`}>
             <ThemeProvider theme={currentTheme}>
                 <Authenticator
                     formFields={formFields}
+                    services={services}
                     components={{
                         Header() {
                             return (
@@ -243,7 +295,26 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                         },
                     }}
                 >
-                    {({ user }) => (user ? <>{children}</> : <></>)}
+                    {({ user }) => {
+                        if (user) {
+                            // Check authorization on first render after login
+                            if (isAuthorized === null) {
+                                checkAuthorization();
+                                return (
+                                    <div className="flex min-h-screen items-center justify-center">
+                                        <div className="text-gray-500">Verifying access...</div>
+                                    </div>
+                                );
+                            }
+                            
+                            if (!isAuthorized) {
+                                return <UnauthorizedScreen />;
+                            }
+                            
+                            return <>{children}</>;
+                        }
+                        return <></>;
+                    }}
                 </Authenticator>
             </ThemeProvider>
         </div>
