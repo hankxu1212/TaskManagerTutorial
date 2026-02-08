@@ -12,6 +12,7 @@ const ProfilePage = () => {
   const [updateProfilePicture] = useUpdateUserProfilePictureMutation();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [imageVersion, setImageVersion] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSignOut = async () => {
@@ -73,6 +74,8 @@ const ProfilePage = () => {
 
       // Refetch user data to update the UI
       refetch();
+      // Increment version to bust S3Image cache
+      setImageVersion((v) => v + 1);
     } catch (error: any) {
       console.error("Upload error:", error);
       setUploadError(error.message || "Failed to upload image");
@@ -118,6 +121,7 @@ const ProfilePage = () => {
                 width={80}
                 height={80}
                 className="h-20 w-20 rounded-full object-cover"
+                version={imageVersion}
               />
             ) : (
               <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gray-200 dark:bg-dark-tertiary">
@@ -128,7 +132,7 @@ const ProfilePage = () => {
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
-              className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-gray-800 text-white shadow-lg transition-colors hover:bg-gray-700 disabled:opacity-50 dark:bg-gray-600 dark:hover:bg-gray-500"
+              className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 text-white shadow-lg ring-2 ring-white transition-colors hover:bg-blue-600 disabled:opacity-50 dark:ring-dark-secondary"
               title="Change profile picture"
             >
               {isUploading ? (
