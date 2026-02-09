@@ -93,6 +93,7 @@ const SprintPage = () => {
                         tasks={sprint.tasks || []}
                         setIsModalNewTaskOpen={setIsModalNewTaskOpen}
                         filterState={filterState}
+                        sortState={sortState}
                     />
                 )}
                 {activeTab === "Timeline" && (
@@ -101,8 +102,10 @@ const SprintPage = () => {
                         tasks={sprint.tasks || []}
                         setIsModalNewTaskOpen={setIsModalNewTaskOpen}
                         filterState={filterState}
+                        sortState={sortState}
                         sprintStartDate={sprint.startDate}
                         sprintDueDate={sprint.dueDate}
+                        showMyTasks={showMyTasks}
                     />
                 )}
             </div>

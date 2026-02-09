@@ -1,30 +1,42 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
-import { Task } from "@/state/api";
-import { FilterState } from "@/lib/filterTypes";
-import { PRIORITY_BG_CLASSES } from "@/lib/priorityColors";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { Task, useUpdateTaskMutation, useGetAuthUserQuery } from "@/state/api";
+import { FilterState, SortState, initialSortState } from "@/lib/filterTypes";
+import { PRIORITY_COLORS_BY_NAME } from "@/lib/priorityColors";
 import { STATUS_BG_CLASSES } from "@/lib/statusColors";
-import { applyFilters } from "@/lib/filterUtils";
+import { APP_ACCENT_LIGHT } from "@/lib/entityColors";
+import { applyFilters, applySorting } from "@/lib/filterUtils";
 import TaskDetailModal from "@/components/TaskDetailModal";
+import UserIcon from "@/components/UserIcon";
 
 type Props = {
   sprintId: number;
   tasks: Task[];
   setIsModalNewTaskOpen: (isOpen: boolean) => void;
   filterState: FilterState;
+  sortState?: SortState;
   sprintStartDate?: string;
   sprintDueDate?: string;
+  showMyTasks?: boolean;
 };
 
-const priorityColors = PRIORITY_BG_CLASSES;
 const statusColors = STATUS_BG_CLASSES;
 
-const TimelineView = ({ tasks, filterState, sprintStartDate, sprintDueDate }: Props) => {
+const TimelineView = ({ tasks, filterState, sortState = initialSortState, sprintStartDate, sprintDueDate, showMyTasks = false }: Props) => {
   const [isTaskDetailModalOpen, setIsTaskDetailModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
+  
+  // Drag state
+  const [dragging, setDragging] = useState<{ taskId: number; endpoint: 'start' | 'end' | 'bar'; initialMouseX?: number; taskDuration?: number } | null>(null);
+  const [dragPreview, setDragPreview] = useState<{ taskId: number; startDate: Date; dueDate: Date } | null>(null);
+  const [pendingUpdate, setPendingUpdate] = useState<{ taskId: number; startDate: Date; dueDate: Date } | null>(null);
+  
+  const [updateTask] = useUpdateTaskMutation();
+  const { data: authData } = useGetAuthUserQuery({});
+  const currentUserId = authData?.userDetails?.userId;
 
   // Measure container width
   useEffect(() => {
@@ -39,11 +51,12 @@ const TimelineView = ({ tasks, filterState, sprintStartDate, sprintDueDate }: Pr
   }, []);
 
   const filteredTasks = applyFilters(tasks ?? [], filterState);
+  const sortedTasks = applySorting(filteredTasks, sortState);
   
   // Filter tasks that have both start and due dates
   const tasksWithDates = useMemo(() => {
-    return filteredTasks.filter(task => task.startDate && task.dueDate);
-  }, [filteredTasks]);
+    return sortedTasks.filter(task => task.startDate && task.dueDate);
+  }, [sortedTasks]);
 
   // Calculate timeline boundaries based on sprint dates
   const { minDate, maxDate, totalDays } = useMemo(() => {
@@ -118,10 +131,130 @@ const TimelineView = ({ tasks, filterState, sprintStartDate, sprintDueDate }: Pr
     return weeks;
   }, [dateHeaders]);
 
+  // Calculate day width based on container
+  const DAY_WIDTH = useMemo(() => {
+    return containerWidth > 0 && totalDays > 0 
+      ? Math.max(40, containerWidth / (totalDays + 1)) 
+      : 40;
+  }, [containerWidth, totalDays]);
+
   const calculatePosition = (date: Date) => {
     const daysSinceStart = (date.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24);
     return (daysSinceStart / totalDays) * 100;
   };
+
+  // Convert pixel position to date
+  const pixelToDate = useCallback((pixelX: number): Date => {
+    const dayIndex = Math.round(pixelX / DAY_WIDTH);
+    const clampedIndex = Math.max(0, Math.min(totalDays, dayIndex));
+    const newDate = new Date(minDate);
+    newDate.setDate(minDate.getDate() + clampedIndex);
+    return newDate;
+  }, [minDate, totalDays, DAY_WIDTH]);
+
+  // Handle drag start
+  const handleDragStart = useCallback((e: React.MouseEvent, taskId: number, endpoint: 'start' | 'end' | 'bar') => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    const task = tasksWithDates.find(t => t.id === taskId);
+    if (task) {
+      const startDate = new Date(task.startDate!);
+      const dueDate = new Date(task.dueDate!);
+      const taskDuration = Math.round((dueDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      setDragging({ 
+        taskId, 
+        endpoint,
+        initialMouseX: e.clientX,
+        taskDuration,
+      });
+      setDragPreview({
+        taskId,
+        startDate,
+        dueDate,
+      });
+    }
+  }, [tasksWithDates]);
+
+  // Handle drag move
+  const handleDragMove = useCallback((e: MouseEvent) => {
+    if (!dragging || !containerRef.current || !dragPreview) return;
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    const pixelX = e.clientX - rect.left;
+    const newDate = pixelToDate(pixelX);
+    
+    if (dragging.endpoint === 'start') {
+      // Don't allow start date to go past due date
+      if (newDate < dragPreview.dueDate) {
+        setDragPreview(prev => prev ? { ...prev, startDate: newDate } : null);
+      }
+    } else if (dragging.endpoint === 'end') {
+      // Don't allow due date to go before start date
+      if (newDate > dragPreview.startDate) {
+        setDragPreview(prev => prev ? { ...prev, dueDate: newDate } : null);
+      }
+    } else if (dragging.endpoint === 'bar' && dragging.taskDuration !== undefined) {
+      // Move entire bar - calculate new start date and maintain duration
+      const newStartDate = new Date(newDate);
+      const newDueDate = new Date(newStartDate);
+      newDueDate.setDate(newStartDate.getDate() + dragging.taskDuration);
+      
+      // Clamp to sprint boundaries
+      if (newStartDate >= minDate && newDueDate <= maxDate) {
+        setDragPreview(prev => prev ? { 
+          ...prev, 
+          startDate: newStartDate,
+          dueDate: newDueDate,
+        } : null);
+      }
+    }
+  }, [dragging, dragPreview, pixelToDate, minDate, maxDate]);
+
+  // Handle drag end
+  const handleDragEnd = useCallback(async () => {
+    if (!dragging || !dragPreview) {
+      setDragging(null);
+      setDragPreview(null);
+      return;
+    }
+    
+    // Store the pending update to prevent flickering
+    setPendingUpdate({
+      taskId: dragging.taskId,
+      startDate: dragPreview.startDate,
+      dueDate: dragPreview.dueDate,
+    });
+    
+    setDragging(null);
+    setDragPreview(null);
+    
+    try {
+      await updateTask({
+        id: dragging.taskId,
+        startDate: dragPreview.startDate.toISOString(),
+        dueDate: dragPreview.dueDate.toISOString(),
+      });
+    } catch (error) {
+      console.error('Failed to update task dates:', error);
+    } finally {
+      // Clear pending update after a short delay to allow cache to update
+      setTimeout(() => setPendingUpdate(null), 100);
+    }
+  }, [dragging, dragPreview, updateTask]);
+
+  // Add global mouse event listeners for dragging
+  useEffect(() => {
+    if (dragging) {
+      window.addEventListener('mousemove', handleDragMove);
+      window.addEventListener('mouseup', handleDragEnd);
+      return () => {
+        window.removeEventListener('mousemove', handleDragMove);
+        window.removeEventListener('mouseup', handleDragEnd);
+      };
+    }
+  }, [dragging, handleDragMove, handleDragEnd]);
 
   // Calculate today's position
   const todayPosition = useMemo(() => {
@@ -173,10 +306,6 @@ const TimelineView = ({ tasks, filterState, sprintStartDate, sprintDueDate }: Pr
     );
   }
 
-  const DAY_WIDTH = containerWidth > 0 && totalDays > 0 
-    ? Math.max(40, containerWidth / (totalDays + 1)) 
-    : 40;
-
   return (
     <div className="h-full px-4 pt-4 pb-4 xl:px-6">
       <div ref={containerRef} style={{ width: "100%" }}>
@@ -226,6 +355,9 @@ const TimelineView = ({ tasks, filterState, sprintStartDate, sprintDueDate }: Pr
               const taskStartDate = new Date(task.startDate!);
               const taskDueDate = new Date(task.dueDate!);
               
+              // Check if task is assigned to current user (for highlighting)
+              const isMyTask = showMyTasks && !!currentUserId && task.taskAssignments?.some((ta) => ta.userId === currentUserId);
+              
               // Check if task is completely outside sprint (starts after sprint ends)
               const isOutsideSprint = taskStartDate > maxDate;
               
@@ -240,7 +372,7 @@ const TimelineView = ({ tasks, filterState, sprintStartDate, sprintDueDate }: Pr
                         {dateHeaders.map((_, index) => (
                           <div
                             key={index}
-                            className="absolute top-0 h-full border-l border-gray-100 dark:border-gray-800"
+                            className="absolute top-0 h-full border-l border-dashed border-gray-300 dark:border-gray-700/50"
                             style={{ left: `${index * DAY_WIDTH}px` }}
                           />
                         ))}
@@ -249,6 +381,7 @@ const TimelineView = ({ tasks, filterState, sprintStartDate, sprintDueDate }: Pr
                         <button
                           onClick={() => handleTaskClick(task.id)}
                           className="absolute top-1 h-6 w-full rounded bg-gray-200 dark:bg-gray-800 opacity-50 flex items-center justify-center cursor-pointer transition-all hover:opacity-60"
+                          style={isMyTask ? { outline: `2px solid ${APP_ACCENT_LIGHT}`, outlineOffset: '-1px' } : undefined}
                           title={`${task.title} - Starts after sprint (${taskStartDate.toLocaleDateString()})`}
                         >
                           <span className="text-xs text-gray-500 dark:text-gray-400">
@@ -269,11 +402,25 @@ const TimelineView = ({ tasks, filterState, sprintStartDate, sprintDueDate }: Pr
               const endPos = calculatePosition(dueDate);
               // Add one day's width so the task bar extends through the end date (not just to its start)
               const oneDayPercent = (1 / totalDays) * 100;
-              const width = endPos - startPos + oneDayPercent;
 
               // Check if task extends beyond sprint boundaries
               const startsBeforeSprint = taskStartDate < minDate;
               const endsAfterSprint = taskDueDate > maxDate;
+              
+              // Use drag preview dates if this task is being dragged, or pending update
+              const activePreview = dragPreview?.taskId === task.id ? dragPreview : 
+                                   pendingUpdate?.taskId === task.id ? pendingUpdate : null;
+              const displayStartDate = activePreview ? activePreview.startDate : startDate;
+              const displayDueDate = activePreview ? activePreview.dueDate : dueDate;
+              
+              const displayStartPos = calculatePosition(displayStartDate);
+              const displayEndPos = calculatePosition(displayDueDate);
+              const displayWidth = displayEndPos - displayStartPos + oneDayPercent;
+
+              // Determine if endpoints are draggable (not beyond sprint scope)
+              const canDragStart = !startsBeforeSprint;
+              const canDragEnd = !endsAfterSprint;
+              const canDragBar = canDragStart && canDragEnd;
 
               return (
                 <div key={task.id}>
@@ -284,7 +431,7 @@ const TimelineView = ({ tasks, filterState, sprintStartDate, sprintDueDate }: Pr
                       {dateHeaders.map((_, index) => (
                         <div
                           key={index}
-                          className="absolute top-0 h-full border-l border-gray-100 dark:border-gray-800"
+                          className="absolute top-0 h-full border-l border-dashed border-gray-300 dark:border-gray-700/50"
                           style={{ left: `${index * DAY_WIDTH}px` }}
                         />
                       ))}
@@ -297,30 +444,73 @@ const TimelineView = ({ tasks, filterState, sprintStartDate, sprintDueDate }: Pr
                         />
                       )}
 
-                      {/* Task bar */}
-                      <button
-                        onClick={() => handleTaskClick(task.id)}
-                        className="absolute top-1 h-6 rounded cursor-pointer transition-all hover:opacity-80 hover:shadow-md z-20"
+                      {/* Task bar with drag handles */}
+                      <div
+                        className="absolute top-1 h-6 z-20 group"
                         style={{
-                          left: `${(startPos / 100) * totalDays * DAY_WIDTH}px`,
-                          width: `${(width / 100) * totalDays * DAY_WIDTH}px`,
+                          left: `${(displayStartPos / 100) * totalDays * DAY_WIDTH}px`,
+                          width: `${(displayWidth / 100) * totalDays * DAY_WIDTH}px`,
                           minWidth: '40px',
                         }}
-                        title={`${task.title} - ${task.taskAssignments?.[0]?.user.username || "Unassigned"} (${taskStartDate.toLocaleDateString()} - ${taskDueDate.toLocaleDateString()})${startsBeforeSprint ? ' - Starts before sprint' : ''}${endsAfterSprint ? ' - Extends beyond sprint' : ''}`}
                       >
+                        {/* Left drag handle */}
+                        {canDragStart && (
+                          <div
+                            onMouseDown={(e) => handleDragStart(e, task.id, 'start')}
+                            className="absolute left-0 top-0 h-full w-2 cursor-ew-resize z-30 opacity-0 group-hover:opacity-100 transition-opacity"
+                            style={{ transform: 'translateX(-50%)' }}
+                          >
+                            <div className="h-full w-1 mx-auto bg-white/80 dark:bg-gray-300/80 rounded-full shadow" />
+                          </div>
+                        )}
+                        
+                        {/* Main task bar (clickable or draggable) */}
                         <div
-                          className={`h-full rounded px-2 text-xs font-medium text-white flex items-center justify-between ${
-                            statusColors[task.status || "Input Queue"]
-                          } ${startsBeforeSprint ? 'rounded-l-none' : ''} ${endsAfterSprint ? 'rounded-r-none' : ''}`}
+                          onMouseDown={canDragBar ? (e) => handleDragStart(e, task.id, 'bar') : undefined}
+                          onClick={() => !dragging && handleTaskClick(task.id)}
+                          className={`h-full w-full rounded overflow-hidden flex transition-all hover:opacity-80 hover:shadow-md ${
+                            dragging?.taskId === task.id ? 'opacity-70' : ''
+                          } ${canDragBar ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}`}
+                          style={isMyTask ? { outline: `2px solid ${APP_ACCENT_LIGHT}`, outlineOffset: '-1px' } : undefined}
+                          title={`${task.title} - ${task.taskAssignments?.[0]?.user.username || "Unassigned"} (${taskStartDate.toLocaleDateString()} - ${taskDueDate.toLocaleDateString()})${startsBeforeSprint ? ' - Starts before sprint' : ''}${endsAfterSprint ? ' - Extends beyond sprint' : ''}${canDragBar ? ' - Drag to move' : ''}`}
                         >
-                          <span className="truncate">{task.title} ({task.taskAssignments?.[0]?.user.username || "Unassigned"})</span>
-                          <span
-                            className={`ml-1 h-2 w-2 rounded-full flex-shrink-0 ${
-                              priorityColors[task.priority || "Medium"]
-                            }`}
-                          />
+                          {/* Priority bar on left */}
+                          {!startsBeforeSprint && (
+                            <div 
+                              className="w-1 flex-shrink-0 rounded-l"
+                              style={{ backgroundColor: task.priority ? PRIORITY_COLORS_BY_NAME[task.priority] : undefined }}
+                            />
+                          )}
+                          <div
+                            className={`h-full flex-1 px-2 text-xs font-medium text-white flex items-center gap-1.5 ${
+                              statusColors[task.status || "Input Queue"]
+                            } ${startsBeforeSprint ? 'rounded-l' : ''} ${endsAfterSprint ? '' : 'rounded-r'}`}
+                          >
+                            <span className="truncate flex-1">{task.title}</span>
+                            {task.taskAssignments?.[0]?.user && (
+                              <UserIcon
+                                userId={task.taskAssignments[0].user.userId}
+                                username={task.taskAssignments[0].user.username}
+                                profilePictureExt={task.taskAssignments[0].user.profilePictureExt}
+                                size={18}
+                                tooltipLabel="Assignee"
+                                className="flex-shrink-0 ring-1 ring-white/30"
+                              />
+                            )}
+                          </div>
                         </div>
-                      </button>
+                        
+                        {/* Right drag handle */}
+                        {canDragEnd && (
+                          <div
+                            onMouseDown={(e) => handleDragStart(e, task.id, 'end')}
+                            className="absolute right-0 top-0 h-full w-2 cursor-ew-resize z-30 opacity-0 group-hover:opacity-100 transition-opacity"
+                            style={{ transform: 'translateX(50%)' }}
+                          >
+                            <div className="h-full w-1 mx-auto bg-white/80 dark:bg-gray-300/80 rounded-full shadow" />
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
