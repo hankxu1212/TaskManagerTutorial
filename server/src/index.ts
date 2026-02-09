@@ -17,6 +17,7 @@ import s3Routes from "./routes/s3Routes.ts";
 import sprintRoutes from "./routes/sprintRoutes.ts";
 import reactionRoutes from "./routes/reactionRoutes.ts";
 import activityRoutes from "./routes/activityRoutes.ts";
+import attachmentRoutes from "./routes/attachmentRoutes.ts";
 import { postUser } from "./controllers/userController.ts";
 
 const app = express();
@@ -41,6 +42,7 @@ app.use("/s3", s3Routes);
 app.use("/sprints", sprintRoutes);
 app.use("/reactions", reactionRoutes);
 app.use("/activities", activityRoutes);
+app.use("/attachments", attachmentRoutes);
 app.post("/create-user", postUser);
 
 const port = Number(process.env.PORT) || 3000;

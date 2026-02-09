@@ -8,11 +8,12 @@ import SubtaskHierarchy from "@/components/SubtaskHierarchy";
 import ActivityList from "@/components/ActivityList";
 import CommentsPanel from "@/components/CommentsPanel";
 import DatePicker from "@/components/DatePicker";
-import { Task, Priority, Status, useUpdateTaskMutation, useDeleteTaskMutation, useCreateTaskMutation, useGetUsersQuery, useGetTagsQuery, useGetAuthUserQuery, useGetProjectsQuery, useGetSprintsQuery, getAttachmentS3Key, User as UserType, Project, Sprint } from "@/state/api";
+import { Task, Priority, Status, useUpdateTaskMutation, useDeleteTaskMutation, useCreateTaskMutation, useGetUsersQuery, useGetTagsQuery, useGetAuthUserQuery, useGetProjectsQuery, useGetSprintsQuery, useGetPresignedUploadUrlMutation, useCreateAttachmentMutation, useDeleteAttachmentMutation, getAttachmentS3Key, User as UserType, Project, Sprint } from "@/state/api";
 import { PRIORITY_BADGE_STYLES } from "@/lib/priorityColors";
 import { STATUS_BADGE_STYLES } from "@/lib/statusColors";
 import { format } from "date-fns";
-import { Calendar, User, Users, Tag, Award, Pencil, X, Plus, Zap, Flag, Trash2, ChevronDown, ChevronRight, Copy, Check, ArrowLeft, Link2 } from "lucide-react";
+import { Calendar, User, Users, Tag, Award, Pencil, X, Plus, Zap, Flag, Trash2, ChevronDown, ChevronRight, Copy, Check, ArrowLeft, Link2, Paperclip, Upload } from "lucide-react";
+import { validateFile, FILE_INPUT_ACCEPT, MAX_FILE_SIZE_MB } from "@/lib/attachmentUtils";
 import UserIcon from "@/components/UserIcon";
 import AssigneeAvatarGroup from "@/components/AssigneeAvatarGroup";
 import S3Image from "@/components/S3Image";
@@ -117,12 +118,18 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks, onTaskNavigate }: TaskD
   const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation();
   const [deleteTask, { isLoading: isDeleting }] = useDeleteTaskMutation();
   const [createTask, { isLoading: isDuplicating }] = useCreateTaskMutation();
+  const [getPresignedUploadUrl] = useGetPresignedUploadUrlMutation();
+  const [createAttachment] = useCreateAttachmentMutation();
+  const [deleteAttachment] = useDeleteAttachmentMutation();
   const { data: users } = useGetUsersQuery();
   const { data: allTags } = useGetTagsQuery();
   const { data: projects } = useGetProjectsQuery();
   const { data: sprints } = useGetSprintsQuery();
   const { data: authData } = useGetAuthUserQuery({});
   const [previewAttachmentId, setPreviewAttachmentId] = useState<number | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Edit form state
   const [editTitle, setEditTitle] = useState("");
@@ -377,6 +384,96 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks, onTaskNavigate }: TaskD
     navigator.clipboard.writeText(taskUrl);
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 2000);
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !authData?.userDetails?.userId) return;
+
+    // Validate file
+    const validation = validateFile(file);
+    if (!validation.valid) {
+      setUploadError(validation.error || 'Invalid file');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadError(null);
+
+    let attachmentId: number | null = null;
+
+    try {
+      // Get file extension
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'bin';
+      const fileName = file.name;
+
+      // Create attachment record first to get the ID
+      const attachment = await createAttachment({
+        taskId: currentTask.id,
+        uploadedById: authData.userDetails.userId,
+        fileName,
+        fileExt,
+      }).unwrap();
+      
+      attachmentId = attachment.id;
+
+      // Build S3 key: {stage}/tasks/{taskId}/attachments/{attachmentId}.{ext}
+      const s3Key = `tasks/${currentTask.id}/attachments/${attachment.id}.${fileExt}`;
+
+      // Get presigned upload URL
+      const { url } = await getPresignedUploadUrl({
+        key: s3Key,
+        contentType: file.type || 'application/octet-stream',
+      }).unwrap();
+
+      // Upload file to S3
+      const uploadResponse = await fetch(url, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type || 'application/octet-stream',
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload file to S3');
+      }
+
+      // Clear file input and local override on success to refresh from cache
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      setLocalTaskOverride(null);
+      attachmentId = null; // Clear so we don't delete on success
+    } catch (error: any) {
+      console.error('File upload error:', error);
+      setUploadError(error.message || 'Failed to upload file');
+      
+      // Clean up attachment record if S3 upload failed
+      if (attachmentId) {
+        try {
+          await deleteAttachment(attachmentId);
+        } catch {
+          // Ignore cleanup errors
+        }
+      }
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleDeleteAttachment = async (attachmentId: number) => {
+    try {
+      await deleteAttachment(attachmentId);
+      // Clear local override to force refresh from cache
+      setLocalTaskOverride(null);
+    } catch (error: any) {
+      console.error('Failed to delete attachment:', error);
+    }
   };
 
   const inputClass =
@@ -1097,6 +1194,71 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks, onTaskNavigate }: TaskD
                 {tasks.filter((t) => t.id !== currentTask.id && t.id !== currentTask.parentTask?.id && !t.parentTask && t.projectId === currentTask.projectId).length === 0 && (
                   <span className="text-sm text-gray-500 dark:text-neutral-400">No available tasks to add as subtasks</span>
                 )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* File Upload (edit mode only) */}
+        {isEditing && (
+          <div className="border-t border-gray-200 pt-4 dark:border-stroke-dark">
+            <div className="flex items-center gap-2 mb-3">
+              <Paperclip className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Attachments</h3>
+            </div>
+            
+            {/* Upload button */}
+            <div className="mb-3">
+              <input
+                ref={fileInputRef}
+                type="file"
+                onChange={handleFileUpload}
+                className="hidden"
+                accept={FILE_INPUT_ACCEPT}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="flex items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-3 text-sm text-gray-600 transition-colors hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 dark:border-stroke-dark dark:text-neutral-400 dark:hover:border-gray-500 dark:hover:bg-dark-tertiary"
+              >
+                {isUploading ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-500" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload size={16} />
+                    Upload file (max {MAX_FILE_SIZE_MB}MB)
+                  </>
+                )}
+              </button>
+              {uploadError && (
+                <p className="mt-2 text-xs text-red-500 dark:text-red-400">{uploadError}</p>
+              )}
+            </div>
+
+            {/* Existing attachments with delete option */}
+            {currentTask.attachments && currentTask.attachments.length > 0 && (
+              <div className="space-y-2">
+                {currentTask.attachments.map((attachment) => (
+                  <div
+                    key={attachment.id}
+                    className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 dark:border-stroke-dark dark:bg-dark-tertiary"
+                  >
+                    <span className="truncate text-sm text-gray-700 dark:text-neutral-300">
+                      {attachment.fileName}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteAttachment(attachment.id)}
+                      className="ml-2 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-red-500 dark:hover:bg-gray-600 dark:hover:text-red-400"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </div>

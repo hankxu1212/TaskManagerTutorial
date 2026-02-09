@@ -539,6 +539,24 @@ export const api = createApi({
                 "Activities",
             ],
         }),
+
+        // attachments
+        createAttachment: build.mutation<Attachment, { taskId: number; uploadedById: number; fileName: string; fileExt: string }>({
+            query: (body) => ({
+                url: "attachments",
+                method: "POST",
+                body,
+            }),
+            invalidatesTags: ["Tasks", "Sprints"],
+        }),
+
+        deleteAttachment: build.mutation<void, number>({
+            query: (attachmentId) => ({
+                url: `attachments/${attachmentId}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: ["Tasks", "Sprints"],
+        }),
     }),
 });
 
@@ -581,4 +599,6 @@ export const {
     useDuplicateSprintMutation,
     useArchiveSprintMutation,
     useGetActivitiesByTaskQuery,
+    useCreateAttachmentMutation,
+    useDeleteAttachmentMutation,
 } = api;
