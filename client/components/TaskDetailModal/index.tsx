@@ -6,6 +6,7 @@ import Link from "next/link";
 import Modal from "../Modal";
 import SubtaskHierarchy from "@/components/SubtaskHierarchy";
 import ActivityList from "@/components/ActivityList";
+import CollapsibleSection from "@/components/CollapsibleSection";
 import CommentsPanel from "@/components/CommentsPanel";
 import DatePicker from "@/components/DatePicker";
 import { Task, Priority, Status, useUpdateTaskMutation, useDeleteTaskMutation, useCreateTaskMutation, useGetUsersQuery, useGetTagsQuery, useGetAuthUserQuery, useGetProjectsQuery, useGetSprintsQuery, useGetPresignedUploadUrlMutation, useCreateAttachmentMutation, useDeleteAttachmentMutation, getAttachmentS3Key, User as UserType, Project, Sprint } from "@/state/api";
@@ -752,7 +753,7 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks, onTaskNavigate }: TaskD
         ) : undefined
       }
     >
-      <div className="space-y-6 dark:text-white animate-fade-in-up">
+      <div className="space-y-4 dark:text-white animate-fade-in-up">
         {/* Save success message */}
         {saveMessage && (
           <div className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-300 animate-slide-down">
@@ -1311,56 +1312,61 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks, onTaskNavigate }: TaskD
           </div>
         </ConfirmationMenu>
 
-        {/* Attachments */}
-        {!isEditing && currentTask.attachments && currentTask.attachments.length > 0 && (
-          <div className="border-t border-gray-200 pt-4 dark:border-stroke-dark">
-            <div className="space-y-2">
-              {currentTask.attachments.map((attachment) => (
-                <div key={attachment.id} className="rounded-lg border border-gray-200 dark:border-stroke-dark">
-                  <div className="flex items-center justify-between bg-gray-50 px-3 py-2 dark:bg-dark-tertiary">
-                    <p className="truncate text-sm text-gray-700 dark:text-neutral-300">
-                      {attachment.fileName}
-                    </p>
-                    <button
-                      onClick={() => setPreviewAttachmentId(previewAttachmentId === attachment.id ? null : attachment.id)}
-                      className="ml-2 rounded bg-gray-200 px-2 py-1 text-xs text-gray-700 hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500"
-                    >
-                      {previewAttachmentId === attachment.id ? "Hide" : "Preview"}
-                    </button>
-                  </div>
-                  {previewAttachmentId === attachment.id && (
-                    <div className="p-2 animate-slide-down">
-                      <S3Image
-                        s3Key={getAttachmentS3Key(attachment.taskId, attachment.id, attachment.fileExt)}
-                        alt={attachment.fileName}
-                        width={600}
-                        height={400}
-                        className="h-auto w-full rounded object-contain"
-                        fallbackType="image"
-                      />
+        {/* Attachments, Subtasks, and Activity — visible in view mode only */}
+        {!isEditing && (
+          (currentTask.attachments && currentTask.attachments.length > 0) ||
+          hasHierarchy ||
+          (currentTask.activities && currentTask.activities.length > 0)
+        ) && (
+          <div className="space-y-2">
+            {/* Attachments */}
+            {currentTask.attachments && currentTask.attachments.length > 0 && (
+              <CollapsibleSection title="Attachments" count={currentTask.attachments.length}>
+                <div className="space-y-2">
+                  {currentTask.attachments.map((attachment) => (
+                    <div key={attachment.id} className="rounded-lg border border-gray-200 dark:border-stroke-dark">
+                      <div className="flex items-center justify-between bg-gray-50 px-3 py-2 dark:bg-dark-tertiary">
+                        <p className="truncate text-sm text-gray-700 dark:text-neutral-300">
+                          {attachment.fileName}
+                        </p>
+                        <button
+                          onClick={() => setPreviewAttachmentId(previewAttachmentId === attachment.id ? null : attachment.id)}
+                          className="ml-2 rounded bg-gray-200 px-2 py-1 text-xs text-gray-700 hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500"
+                        >
+                          {previewAttachmentId === attachment.id ? "Hide" : "Preview"}
+                        </button>
+                      </div>
+                      {previewAttachmentId === attachment.id && (
+                        <div className="p-2 animate-slide-down">
+                          <S3Image
+                            s3Key={getAttachmentS3Key(attachment.taskId, attachment.id, attachment.fileExt)}
+                            alt={attachment.fileName}
+                            width={600}
+                            height={400}
+                            className="h-auto w-full rounded object-contain"
+                            fallbackType="image"
+                          />
+                        </div>
+                      )}
                     </div>
-                  )}
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+              </CollapsibleSection>
+            )}
 
-        {/* Subtask Hierarchy — visible in view mode only */}
-        {!isEditing && hasHierarchy && (
-          <div className="border-t border-gray-200 pt-4 dark:border-stroke-dark">
-            <SubtaskHierarchy
-              parentTask={currentTask.parentTask}
-              subtasks={currentTask.subtasks}
-              onTaskClick={handleTaskNavigation}
-            />
-          </div>
-        )}
+            {/* Subtasks */}
+            {hasHierarchy && (
+              <SubtaskHierarchy
+                parentTask={currentTask.parentTask}
+                subtasks={currentTask.subtasks}
+                onTaskClick={handleTaskNavigation}
+              />
+            )}
 
-        {/* Activity List — visible in view mode only */}
-        {!isEditing && currentTask.activities && currentTask.activities.length > 0 && (
-          <div className="border-t border-gray-200 pt-4 dark:border-stroke-dark">
-            <ActivityList activities={currentTask.activities} />
+            {/* Activity */}
+            {currentTask.activities && currentTask.activities.length > 0 && (
+              <ActivityList activities={currentTask.activities} />
+            )}
           </div>
         )}
       </div>
