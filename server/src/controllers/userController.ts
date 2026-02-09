@@ -108,12 +108,14 @@ export const postUser = async (req: Request, res: Response) => {
     try {
         const {
             username,
+            fullName,
             cognitoId,
             email,
         } = req.body;
         const newUser = await getPrismaClient().user.create({
             data: {
                 username,
+                fullName: fullName || null,
                 cognitoId,
                 email,
                 profilePictureExt: "jpg",

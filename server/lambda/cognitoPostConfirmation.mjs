@@ -4,7 +4,8 @@ export const handler = async (event) => {
   console.log("Cognito event:", JSON.stringify(event, null, 2));
   
   const postData = JSON.stringify({
-    username: event.request.userAttributes['name'] || event.request.userAttributes['preferred_username'] || event.userName,
+    username: event.request.userAttributes['preferred_username'] || event.userName,
+    fullName: event.request.userAttributes['name'] || null,
     cognitoId: event.request.userAttributes['sub'],
     email: event.request.userAttributes['email'],
   });
