@@ -19,26 +19,16 @@ type Props = {
   style?: React.CSSProperties;
 };
 
-// S3 bucket configuration for public URLs
-const S3_BUCKET = "teamcrescendo-quest-default-s3";
-const S3_REGION = "us-west-2";
-const S3_STAGE = "dev";
+// S3 configuration from environment variables
+const S3_BUCKET = process.env.NEXT_PUBLIC_S3_BUCKET;
+const S3_REGION = process.env.NEXT_PUBLIC_S3_REGION;
+const S3_STAGE = process.env.NEXT_PUBLIC_S3_STAGE || "dev";
 
-// Check if s3Key is a profile image (public)
-const isProfileImage = (s3Key: string): boolean => {
-  return /^users\/\d+\/profile\.\w+$/.test(s3Key);
-};
-
-// Generate direct public S3 URL (no presigning needed)
-const getPublicS3Url = (s3Key: string): string => {
-  return `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/${S3_STAGE}/${s3Key}`;
-};
-
-// Cache for presigned URLs (to avoid API calls for private content)
+// Cache for presigned URLs
 // Key: s3Key, Value: { url: string, expiresAt: number }
 const presignedUrlCache = new Map<string, { url: string; expiresAt: number }>();
 
-// Presigned URL cache duration: 50 minutes
+// Presigned URL cache duration: 50 minutes (URLs typically expire in 1 hour)
 const PRESIGNED_CACHE_DURATION_MS = 50 * 60 * 1000;
 
 // Get cached presigned URL if still valid
@@ -74,36 +64,32 @@ const S3Image = ({
 }: Props) => {
   const [hasError, setHasError] = useState(false);
 
-  // For profile images, use direct public URL (no presigning needed)
-  const isPublic = s3Key ? isProfileImage(s3Key) : false;
-  const publicUrl = s3Key && isPublic ? getPublicS3Url(s3Key) : null;
-
-  // For private content, check cache first
-  const cachedPresignedUrl = s3Key && !isPublic ? getCachedPresignedUrl(s3Key) : null;
-  const shouldFetchPresigned = !isPublic && !cachedPresignedUrl && !!s3Key;
+  // Check cache first
+  const cachedPresignedUrl = s3Key ? getCachedPresignedUrl(s3Key) : null;
+  const shouldFetchPresigned = !cachedPresignedUrl && !!s3Key;
   
   const { data, isLoading, error } = useGetPresignedUrlQuery(s3Key!, {
     skip: !shouldFetchPresigned,
     refetchOnMountOrArgChange: version,
   });
 
-  // Cache presigned URL when received (for private content only)
+  // Cache presigned URL when received
   useEffect(() => {
-    if (data?.url && s3Key && !isPublic) {
+    if (data?.url && s3Key) {
       setCachedPresignedUrl(s3Key, data.url);
     }
-  }, [data?.url, s3Key, isPublic]);
+  }, [data?.url, s3Key]);
 
-  // Handle version change (cache bust for private content)
+  // Handle version change (cache bust)
   useEffect(() => {
-    if (version > 0 && s3Key && !isPublic) {
+    if (version > 0 && s3Key) {
       presignedUrlCache.delete(s3Key);
       setHasError(false);
     }
-  }, [version, s3Key, isPublic]);
+  }, [version, s3Key]);
 
   // Determine the final URL to use
-  const imageUrl = publicUrl || data?.url || cachedPresignedUrl;
+  const imageUrl = data?.url || cachedPresignedUrl;
 
   // Choose appropriate fallback icon based on type
   const getFallbackIcon = () => {
@@ -122,8 +108,8 @@ const S3Image = ({
     }
   };
 
-  // Show fallback if no s3Key, loading (for private content), no URL, error, or image load error
-  const showFallback = !s3Key || (!isPublic && isLoading && !cachedPresignedUrl) || !imageUrl || error || hasError;
+  // Show fallback if no s3Key, loading, no URL, error, or image load error
+  const showFallback = !s3Key || (isLoading && !cachedPresignedUrl) || !imageUrl || error || hasError;
 
   if (showFallback) {
     const isLargeContainer = width > 100 || height > 100;
