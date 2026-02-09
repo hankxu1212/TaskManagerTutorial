@@ -2,7 +2,7 @@
 
 import { useAppDispatch, useAppSelector } from "@/app/redux";
 import { setIsDarkMode } from "@/state";
-import { useGetAuthUserQuery, useGetProjectsQuery, useGetSprintsQuery, useGetUnreadCountQuery } from "@/state/api";
+import { useGetAuthUserQuery, useGetProjectsQuery, useGetSprintsQuery, useGetUnreadCountQuery, useUpdateTaskMutation, useAddTaskToSprintMutation } from "@/state/api";
 import { signOut } from "aws-amplify/auth";
 import {
     Bell,
@@ -25,13 +25,15 @@ import {
 import { BiColumns } from "react-icons/bi";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useDrop } from "react-dnd";
 import ModalNewBoard from "@/app/boards/ModalNewBoard";
 import ModalNewSprint from "@/app/sprints/ModalNewSprint";
 import ModalNewTask from "@/components/ModalNewTask";
 import S3Image from "@/components/S3Image";
 import { BOARD_MAIN_COLOR, SPRINT_MAIN_COLOR, APP_ACCENT_LIGHT, APP_ACCENT_DARK } from "@/lib/entityColors";
+import { DND_ITEM_TYPES, DraggedTask } from "@/lib/dndTypes";
 
 const Sidebar = () => {
     const [showBoards, setShowBoards] = useState(true);
@@ -46,9 +48,12 @@ const Sidebar = () => {
     const createMenuRef = useRef<HTMLDivElement>(null);
     const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
     const dispatch = useAppDispatch();
+    const router = useRouter();
 
     const { data: projects } = useGetProjectsQuery();
     const { data: sprints } = useGetSprintsQuery();
+    const [updateTask] = useUpdateTaskMutation();
+    const [addTaskToSprint] = useAddTaskToSprintMutation();
 
     // Filter sprints based on active toggle
     const filteredSprints = sprints?.filter(sprint => 
@@ -92,6 +97,26 @@ const Sidebar = () => {
         if (option === "task") setIsModalNewTaskOpen(true);
         else if (option === "sprint") setIsModalNewSprintOpen(true);
         else if (option === "board") setIsModalNewBoardOpen(true);
+    };
+
+    // Handler for moving task to a different board
+    const handleMoveTaskToBoard = async (taskId: number, projectId: number, currentProjectId: number) => {
+        if (projectId === currentProjectId) return; // Already on this board
+        try {
+            await updateTask({ id: taskId, projectId, userId }).unwrap();
+            router.push(`/boards/${projectId}`);
+        } catch (error) {
+            console.error("Failed to move task to board:", error);
+        }
+    };
+
+    // Handler for adding task to a sprint
+    const handleAddTaskToSprint = async (taskId: number, sprintId: number) => {
+        try {
+            await addTaskToSprint({ sprintId, taskId }).unwrap();
+        } catch (error) {
+            console.error("Failed to add task to sprint:", error);
+        }
     };
 
     if (!currentUser) return null;
@@ -262,12 +287,13 @@ const Sidebar = () => {
                                 className="animate-slide-down opacity-0"
                                 style={{ animationDelay: `${index * 50}ms` }}
                             >
-                                <SidebarSubLink
+                                <DroppableBoardLink
+                                    projectId={project.id}
                                     label={project.name}
                                     href={`/boards/${project.id}`}
                                     isDarkMode={isDarkMode}
                                     isInactive={project.isActive === false}
-                                    category="board"
+                                    onDropTask={handleMoveTaskToBoard}
                                 />
                             </div>
                         ))}
@@ -323,12 +349,13 @@ const Sidebar = () => {
                                 className="animate-slide-down opacity-0"
                                 style={{ animationDelay: `${index * 50}ms` }}
                             >
-                                <SidebarSubLink
+                                <DroppableSprintLink
+                                    sprintId={sprint.id}
                                     label={sprint.title}
                                     href={`/sprints/${sprint.id}`}
                                     isDarkMode={isDarkMode}
                                     isInactive={sprint.isActive === false}
-                                    category="sprint"
+                                    onDropTask={handleAddTaskToSprint}
                                 />
                             </div>
                         ))}
@@ -425,43 +452,113 @@ const SidebarLink = ({ href, icon: Icon, label, isDarkMode, badge }: SidebarLink
     );
 };
 
-interface SidebarSubLinkProps {
+interface DroppableBoardLinkProps {
+    projectId: number;
     href: string;
     label: string;
     isDarkMode: boolean;
     isInactive?: boolean;
-    category?: "board" | "sprint";
+    onDropTask: (taskId: number, projectId: number, currentProjectId: number) => void;
 }
 
-const SidebarSubLink = ({ href, label, isDarkMode, isInactive, category }: SidebarSubLinkProps) => {
+const DroppableBoardLink = ({ projectId, href, label, isDarkMode, isInactive, onDropTask }: DroppableBoardLinkProps) => {
     const pathname = usePathname();
     const isActive = pathname === href;
 
-    // Use category-specific color for active indicator
-    const getActiveColor = () => {
-        if (category === "board") return BOARD_MAIN_COLOR;
-        if (category === "sprint") return SPRINT_MAIN_COLOR;
-        return isDarkMode ? APP_ACCENT_LIGHT : APP_ACCENT_DARK;
-    };
+    const [{ isOver, canDrop }, drop] = useDrop(() => ({
+        accept: DND_ITEM_TYPES.TASK,
+        drop: (item: DraggedTask) => {
+            onDropTask(item.id, projectId, item.projectId);
+        },
+        canDrop: (item: DraggedTask) => item.projectId !== projectId,
+        collect: (monitor) => ({
+            isOver: monitor.isOver(),
+            canDrop: monitor.canDrop(),
+        }),
+    }), [projectId, onDropTask]);
 
     return (
-        <Link href={href} className="w-full">
-            <div
-                className={`relative flex cursor-pointer items-center transition-colors hover:bg-gray-100 dark:hover:bg-dark-tertiary ${
-                    isActive ? "bg-gray-100 dark:bg-dark-tertiary" : ""
-                } justify-start px-6 py-2 pl-10`}
-            >
-                {isActive && (
-                    <div 
-                        className="absolute left-0 top-0 h-[100%] w-[3px]" 
-                        style={{ backgroundColor: getActiveColor() }}
-                    />
-                )}
-                <span className={`text-sm ${isInactive ? "text-gray-400 dark:text-gray-500" : "text-gray-700 dark:text-gray-200"}`}>
-                    {label}
-                </span>
-            </div>
-        </Link>
+        <div
+            ref={(instance) => {
+                drop(instance);
+            }}
+        >
+            <Link href={href} className="w-full">
+                <div
+                    className={`relative flex cursor-pointer items-center transition-colors hover:bg-gray-100 dark:hover:bg-dark-tertiary ${
+                        isActive ? "bg-gray-100 dark:bg-dark-tertiary" : ""
+                    } ${
+                        isOver && canDrop
+                            ? "bg-blue-100 dark:bg-blue-900/30 ring-2 ring-inset ring-blue-400"
+                            : ""
+                    } justify-start px-6 py-2 pl-10`}
+                >
+                    {isActive && (
+                        <div 
+                            className="absolute left-0 top-0 h-[100%] w-[3px]" 
+                            style={{ backgroundColor: BOARD_MAIN_COLOR }}
+                        />
+                    )}
+                    <span className={`text-sm ${isInactive ? "text-gray-400 dark:text-gray-500" : "text-gray-700 dark:text-gray-200"}`}>
+                        {label}
+                    </span>
+                </div>
+            </Link>
+        </div>
+    );
+};
+
+interface DroppableSprintLinkProps {
+    sprintId: number;
+    href: string;
+    label: string;
+    isDarkMode: boolean;
+    isInactive?: boolean;
+    onDropTask: (taskId: number, sprintId: number) => void;
+}
+
+const DroppableSprintLink = ({ sprintId, href, label, isDarkMode, isInactive, onDropTask }: DroppableSprintLinkProps) => {
+    const pathname = usePathname();
+    const isActive = pathname === href;
+
+    const [{ isOver }, drop] = useDrop(() => ({
+        accept: DND_ITEM_TYPES.TASK,
+        drop: (item: DraggedTask) => {
+            onDropTask(item.id, sprintId);
+        },
+        collect: (monitor) => ({
+            isOver: monitor.isOver(),
+        }),
+    }), [sprintId, onDropTask]);
+
+    return (
+        <div
+            ref={(instance) => {
+                drop(instance);
+            }}
+        >
+            <Link href={href} className="w-full">
+                <div
+                    className={`relative flex cursor-pointer items-center transition-colors hover:bg-gray-100 dark:hover:bg-dark-tertiary ${
+                        isActive ? "bg-gray-100 dark:bg-dark-tertiary" : ""
+                    } ${
+                        isOver
+                            ? "bg-purple-100 dark:bg-purple-900/30 ring-2 ring-inset ring-purple-400"
+                            : ""
+                    } justify-start px-6 py-2 pl-10`}
+                >
+                    {isActive && (
+                        <div 
+                            className="absolute left-0 top-0 h-[100%] w-[3px]" 
+                            style={{ backgroundColor: SPRINT_MAIN_COLOR }}
+                        />
+                    )}
+                    <span className={`text-sm ${isInactive ? "text-gray-400 dark:text-gray-500" : "text-gray-700 dark:text-gray-200"}`}>
+                        {label}
+                    </span>
+                </div>
+            </Link>
+        </div>
     );
 };
 

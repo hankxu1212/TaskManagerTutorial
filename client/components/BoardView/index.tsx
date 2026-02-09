@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { DndProvider, useDrag, useDrop } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
+import { useDrag, useDrop } from "react-dnd";
 import { Task as TaskType, useUpdateTaskStatusMutation, useGetAuthUserQuery } from "@/state/api";
 import { Plus } from "lucide-react";
 import type { DropTargetMonitor, DragSourceMonitor } from "react-dnd";
@@ -11,6 +10,7 @@ import TaskCard from "@/components/TaskCard";
 import { applyFilters, applySorting } from "@/lib/filterUtils";
 import { FilterState, SortState, initialSortState } from "@/lib/filterTypes";
 import { STATUS_COLORS_BY_NAME } from "@/lib/statusColors";
+import { DND_ITEM_TYPES, DraggedTask } from "@/lib/dndTypes";
 
 type BoardViewProps = {
   tasks: TaskType[];
@@ -55,12 +55,11 @@ const BoardView = ({ tasks, setIsModalNewTaskOpen, filterState, sortState = init
       await updateTaskStatus({ taskId, status: toStatus, userId }).unwrap();
     } catch (error) {
       console.error("Failed to update task status:", error);
-      // Optionally show an error message to the user
     }
   };
 
   return (
-    <DndProvider backend={HTML5Backend}>
+    <>
       <div className="grid h-full grid-cols-1 gap-4 p-4 md:grid-cols-2 xl:grid-cols-4">
         {taskStatus.map((status) => (
           <TaskColumn
@@ -81,7 +80,7 @@ const BoardView = ({ tasks, setIsModalNewTaskOpen, filterState, sortState = init
         task={selectedTask}
         tasks={tasks}
       />
-    </DndProvider>
+    </>
   );
 };
 
@@ -105,8 +104,8 @@ const TaskColumn = ({
   currentUserId,
 }: TaskColumnProps) => {
   const [{ isOver }, drop] = useDrop(() => ({
-    accept: "task",
-    drop: (item: { id: number }) => moveTask(item.id, status),
+    accept: DND_ITEM_TYPES.TASK,
+    drop: (item: DraggedTask) => moveTask(item.id, status),
     collect: (monitor: DropTargetMonitor) => ({
       isOver: monitor.isOver(),
     }),
@@ -180,8 +179,8 @@ type DraggableTaskProps = {
 
 const DraggableTask = ({ task, onClick, highlighted }: DraggableTaskProps) => {
   const [{ isDragging }, drag] = useDrag(() => ({
-    type: "task",
-    item: { id: task.id },
+    type: DND_ITEM_TYPES.TASK,
+    item: { id: task.id, projectId: task.projectId } as DraggedTask,
     collect: (monitor: DragSourceMonitor) => ({
       isDragging: monitor.isDragging(),
     }),
