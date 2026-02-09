@@ -13,6 +13,7 @@
     "db-gen": "npx prisma generate",
     "db-rs-full": "rm -rf prisma/migrations && prisma migrate reset -f && npx prisma migrate dev --name init && prisma db seed && npx prisma generate",
     "drf": "npm run db-rs-full",
+    "db-rs-prod": "npm run db-rs && npx prisma migrate dev --name init && npx prisma generate",
     
     "aws": "tsx scripts/aws-setup.ts",
 
