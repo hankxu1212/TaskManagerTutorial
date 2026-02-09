@@ -50,8 +50,9 @@ const columns: GridColDef[] = [
     headerName: "Title",
     flex: 1,
     minWidth: 200,
+    maxWidth: 400,
     renderCell: (params: GridRenderCellParams) => (
-      <span className="font-medium text-gray-900 dark:text-white">{params.value}</span>
+      <span className="font-medium text-gray-900 dark:text-white truncate block">{params.value}</span>
     ),
   },
   {
@@ -129,7 +130,7 @@ const UserTableView = ({ userId, filterState }: Props) => {
   if (error || !tasks) return <div className="flex h-96 items-center justify-center text-red-500">An error occurred while fetching tasks</div>;
 
   return (
-    <div className="h-[540px] w-full px-4 pb-8 xl:px-6">
+    <div className="h-[540px] w-full px-4 pt-4 pb-8 xl:px-6">
       <DataGrid
         rows={filteredTasks}
         columns={columns}

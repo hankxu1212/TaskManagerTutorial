@@ -9,6 +9,7 @@ import { APP_ACCENT_LIGHT } from "@/lib/entityColors";
 import { applyFilters, applySorting } from "@/lib/filterUtils";
 import TaskDetailModal from "@/components/TaskDetailModal";
 import UserIcon from "@/components/UserIcon";
+import { Plus } from "lucide-react";
 
 type Props = {
   sprintId: number;
@@ -23,7 +24,7 @@ type Props = {
 
 const statusColors = STATUS_BG_CLASSES;
 
-const TimelineView = ({ tasks, filterState, sortState = initialSortState, sprintStartDate, sprintDueDate, showMyTasks = false }: Props) => {
+const TimelineView = ({ tasks, setIsModalNewTaskOpen, filterState, sortState = initialSortState, sprintStartDate, sprintDueDate, showMyTasks = false }: Props) => {
   const [isTaskDetailModalOpen, setIsTaskDetailModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -278,44 +279,71 @@ const TimelineView = ({ tasks, filterState, sortState = initialSortState, sprint
 
   const selectedTask = tasks?.find((t) => t.id === selectedTaskId) || null;
 
+  // Create Task Button component
+  const CreateTaskButton = () => (
+    <div className="mb-4">
+      <button
+        onClick={() => setIsModalNewTaskOpen(true)}
+        className="flex items-center gap-2 rounded-md border-2 border-dashed border-gray-300 bg-white/50 px-4 py-2 text-gray-500 transition-colors hover:border-gray-400 hover:bg-white hover:text-gray-700 dark:border-stroke-dark dark:bg-dark-secondary/50 dark:text-neutral-500 dark:hover:border-neutral-500 dark:hover:bg-dark-secondary dark:hover:text-neutral-300"
+      >
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-200/70 dark:bg-dark-tertiary/70">
+          <Plus size={14} />
+        </span>
+        <span className="text-sm font-medium">Create Task</span>
+      </button>
+    </div>
+  );
+
   if (!tasks || tasks.length === 0) {
     return (
-      <div className="flex h-96 items-center justify-center px-4 pb-8 xl:px-6">
-        <p className="text-gray-500 dark:text-gray-400">No tasks in this sprint</p>
+      <div className="px-4 pt-4 pb-8 xl:px-6">
+        <CreateTaskButton />
+        <div className="flex h-80 items-center justify-center">
+          <p className="text-gray-500 dark:text-gray-400">No tasks in this sprint</p>
+        </div>
       </div>
     );
   }
 
   if (!sprintStartDate || !sprintDueDate) {
     return (
-      <div className="flex h-96 items-center justify-center px-4 pb-8 xl:px-6">
-        <p className="text-gray-500 dark:text-gray-400">
-          Sprint must have start and due dates to display timeline
-        </p>
+      <div className="px-4 pt-4 pb-8 xl:px-6">
+        <CreateTaskButton />
+        <div className="flex h-80 items-center justify-center">
+          <p className="text-gray-500 dark:text-gray-400">
+            Sprint must have start and due dates to display timeline
+          </p>
+        </div>
       </div>
     );
   }
 
   if (tasksWithDates.length === 0) {
     return (
-      <div className="flex h-96 items-center justify-center px-4 pb-8 xl:px-6">
-        <p className="text-gray-500 dark:text-gray-400">
-          No tasks with start and due dates to display on timeline
-        </p>
+      <div className="px-4 pt-4 pb-8 xl:px-6">
+        <CreateTaskButton />
+        <div className="flex h-80 items-center justify-center">
+          <p className="text-gray-500 dark:text-gray-400">
+            No tasks with start and due dates to display on timeline
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="h-full px-4 pt-4 pb-4 xl:px-6">
+      <CreateTaskButton />
       <div ref={containerRef} style={{ width: "100%" }}>
           {/* Week Headers */}
-          <div className="mb-2 flex border-b border-gray-300 dark:border-gray-600">
+          <div className="mb-2 flex border-t border-b border-gray-300 dark:border-gray-600">
             <div className="relative flex">
               {weekHeaders.map((week, index) => (
                 <div
                   key={index}
-                  className="border-l border-gray-300 px-2 py-2 text-center text-sm font-semibold text-gray-800 dark:border-gray-600 dark:text-gray-200"
+                  className={`border-l border-gray-300 px-2 py-2 text-center text-sm font-semibold text-gray-800 dark:border-gray-600 dark:text-gray-200 ${
+                    index === weekHeaders.length - 1 ? "border-r" : ""
+                  }`}
                   style={{ width: `${week.span * DAY_WIDTH}px` }}
                 >
                   {week.weekLabel}
@@ -329,12 +357,13 @@ const TimelineView = ({ tasks, filterState, sortState = initialSortState, sprint
             <div className="relative flex">
               {dateHeaders.map((date, index) => {
                 const isToday = date.toDateString() === new Date().toDateString();
+                const isLast = index === dateHeaders.length - 1;
                 return (
                   <div
                     key={index}
                     className={`flex-shrink-0 border-l border-gray-200 px-1 py-2 text-center text-xs dark:border-stroke-dark ${
                       isToday ? "bg-blue-50 dark:bg-blue-900/20" : ""
-                    }`}
+                    } ${isLast ? "border-r" : ""}`}
                     style={{ width: `${DAY_WIDTH}px` }}
                   >
                     <div className={`font-medium ${isToday ? "text-blue-600 dark:text-blue-400" : "text-gray-700 dark:text-gray-300"}`}>
@@ -350,7 +379,7 @@ const TimelineView = ({ tasks, filterState, sortState = initialSortState, sprint
           </div>
 
           {/* Task Rows */}
-          <div className="space-y-2">
+          <div className="space-y-2 border-t border-dashed border-gray-300 pt-2 dark:border-gray-700/50">
             {tasksWithDates.map((task) => {
               const taskStartDate = new Date(task.startDate!);
               const taskDueDate = new Date(task.dueDate!);
@@ -398,8 +427,6 @@ const TimelineView = ({ tasks, filterState, sortState = initialSortState, sprint
               const startDate = taskStartDate < minDate ? minDate : taskStartDate;
               const dueDate = taskDueDate > maxDate ? maxDate : taskDueDate;
               
-              const startPos = calculatePosition(startDate);
-              const endPos = calculatePosition(dueDate);
               // Add one day's width so the task bar extends through the end date (not just to its start)
               const oneDayPercent = (1 / totalDays) * 100;
 

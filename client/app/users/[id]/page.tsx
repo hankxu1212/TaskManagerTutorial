@@ -21,6 +21,7 @@ const UserBoardPage = ({ params }: Props) => {
   const [isModalNewTaskOpen, setIsModalNewTaskOpen] = useState(false);
   const [filterState, setFilterState] = useState<FilterState>(initialFilterState);
   const [sortState, setSortState] = useState<SortState>(initialSortState);
+  const [showMyTasks, setShowMyTasks] = useState(false);
 
   const { data: user, isLoading, isError } = useGetUserByIdQuery(userId);
   const { data: tags = [] } = useGetTagsQuery();
@@ -55,6 +56,8 @@ const UserBoardPage = ({ params }: Props) => {
         sortState={sortState}
         onSortChange={handleSortChange}
         isSortActive={isSortActive(sortState)}
+        showMyTasks={showMyTasks}
+        onShowMyTasksChange={setShowMyTasks}
       />
       {activeTab === "Board" && (
         <UserBoardView

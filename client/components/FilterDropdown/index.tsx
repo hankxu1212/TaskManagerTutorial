@@ -157,7 +157,7 @@ const FilterDropdown = ({
   return (
     <div
       ref={dropdownRef}
-      className="absolute right-0 top-full z-50 mt-2 w-64 rounded-lg border border-gray-200 bg-white shadow-lg dark:border-dark-tertiary dark:bg-dark-secondary"
+      className="absolute right-0 top-full z-50 mt-2 w-64 rounded-lg border border-gray-200 bg-white shadow-lg transition-all duration-150 ease-out dark:border-dark-tertiary dark:bg-dark-secondary animate-dropdown"
       role="dialog"
       aria-label="Filter options"
     >

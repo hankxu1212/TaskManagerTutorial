@@ -16,7 +16,8 @@ export function isFilterActive(filterState: FilterState): boolean {
     filterState.selectedTagIds.length > 0 ||
     filterState.selectedPriorities.length > 0 ||
     filterState.selectedDueDateOptions.length > 0 ||
-    filterState.selectedAssigneeIds.length > 0
+    filterState.selectedAssigneeIds.length > 0 ||
+    filterState.searchText.trim().length > 0
   );
 }
 
@@ -232,11 +233,34 @@ export function matchesAssigneeFilter(
   }
 
   // Task must have an assignee that matches one of the selected user IDs
-  if (!task.assignee?.userId) {
+  // Check taskAssignments for multi-assignee support
+  const assigneeIds = task.taskAssignments?.map((ta) => ta.userId) ?? [];
+  if (assigneeIds.length === 0) {
     return false;
   }
 
-  return selectedAssigneeIds.includes(task.assignee.userId);
+  return assigneeIds.some((id) => selectedAssigneeIds.includes(id));
+}
+
+/**
+ * Checks if a task matches the search text filter.
+ * Task passes if its title or description contains the search text (case-insensitive).
+ * If searchText is empty, all tasks pass.
+ *
+ * @param task - The task to check
+ * @param searchText - The search text to match
+ * @returns true if task matches the search text or search is empty
+ */
+export function matchesSearchText(task: Task, searchText: string): boolean {
+  const trimmed = searchText.trim().toLowerCase();
+  if (trimmed.length === 0) {
+    return true;
+  }
+
+  const titleMatch = task.title?.toLowerCase().includes(trimmed) ?? false;
+  const descMatch = task.description?.toLowerCase().includes(trimmed) ?? false;
+  
+  return titleMatch || descMatch;
 }
 
 /**
@@ -267,8 +291,9 @@ export function applyFilters(tasks: Task[], filterState: FilterState): Task[] {
       task,
       filterState.selectedAssigneeIds
     );
+    const passesSearchText = matchesSearchText(task, filterState.searchText);
 
-    return passesTagFilter && passesPriorityFilter && passesDueDateFilter && passesAssigneeFilter;
+    return passesTagFilter && passesPriorityFilter && passesDueDateFilter && passesAssigneeFilter && passesSearchText;
   });
 }
 

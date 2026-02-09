@@ -50,6 +50,8 @@ export interface FilterState {
   selectedDueDateOptions: DueDateOption[];
   /** Array of selected user IDs for filtering tasks by assignee */
   selectedAssigneeIds: number[];
+  /** Text search filter for task title/description */
+  searchText: string;
 }
 
 /**
@@ -61,4 +63,5 @@ export const initialFilterState: FilterState = {
   selectedPriorities: [],
   selectedDueDateOptions: [],
   selectedAssigneeIds: [],
+  searchText: "",
 };

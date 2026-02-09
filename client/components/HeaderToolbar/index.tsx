@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ArrowUpDown, Filter, User, X } from "lucide-react";
+import { ArrowUpDown, Filter, X, Search } from "lucide-react";
 import { FilterState, DueDateOption, SortState, SortField } from "@/lib/filterTypes";
 import { PRIORITY_COLORS } from "@/lib/priorityColors";
 import { APP_ACCENT_LIGHT, APP_ACCENT_DARK } from "@/lib/entityColors";
@@ -19,13 +19,12 @@ type HeaderToolbarProps = {
   isSortActive: boolean;
   showMyTasks: boolean;
   onShowMyTasksChange: (show: boolean) => void;
-  /** Accent color for the user search input focus ring */
   accentColor?: string;
 };
 
 /**
  * Shared toolbar component for Board and Sprint headers.
- * Contains: My Tasks toggle, user search, filter pills, sort dropdown, filter dropdown.
+ * Search input: @user filters by assignee, plain text filters tasks by title/description.
  */
 const HeaderToolbar = ({
   filterState,
@@ -43,18 +42,29 @@ const HeaderToolbar = ({
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
   const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
 
-  // User filter state
-  const [userSearch, setUserSearch] = useState("");
+  // Local search input state
+  const [searchInput, setSearchInput] = useState(filterState.searchText);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
-  const userInputRef = useRef<HTMLInputElement>(null);
-  const userDropdownRef = useRef<HTMLDivElement>(null);
+  const searchDropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Determine if user is typing @mention
+  const isUserSearch = searchInput.startsWith("@");
+  const userSearchTerm = isUserSearch ? searchInput.slice(1) : "";
+  
   const { data: users = [] } = useGetUsersQuery();
+
+  // Sync local input with filter state searchText (for external changes like clear all)
+  useEffect(() => {
+    if (!isUserSearch) {
+      setSearchInput(filterState.searchText);
+    }
+  }, [filterState.searchText, isUserSearch]);
 
   // Close user dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
+      if (searchDropdownRef.current && !searchDropdownRef.current.contains(event.target as Node)) {
         setShowUserDropdown(false);
         setHighlightedIndex(0);
       }
@@ -63,22 +73,34 @@ const HeaderToolbar = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Filter users based on search
+  // Filter users for @mention dropdown
   const filteredUsers = users.filter((user) => {
-    const searchTerm = userSearch.startsWith("@") ? userSearch.slice(1) : userSearch;
-    if (!searchTerm) return true;
+    if (!userSearchTerm) return true;
     return (
-      user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
+      user.username.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+      (user.email?.toLowerCase().includes(userSearchTerm.toLowerCase()) ?? false)
     );
-  });
+  }).slice(0, 8);
 
-  // Reset highlighted index when filtered users change
   useEffect(() => {
     setHighlightedIndex(0);
   }, [filteredUsers.length]);
 
-  // Add user to filter
+  // Handle search input change
+  const handleSearchChange = (value: string) => {
+    setSearchInput(value);
+    
+    if (value.startsWith("@")) {
+      // User search mode - show dropdown
+      setShowUserDropdown(true);
+    } else {
+      // Task search mode - update filter directly
+      setShowUserDropdown(false);
+      onFilterChange({ ...filterState, searchText: value });
+    }
+  };
+
+  // Add user to assignee filter
   const addUserFilter = (user: UserType) => {
     if (user.userId && !filterState.selectedAssigneeIds.includes(user.userId)) {
       onFilterChange({
@@ -86,22 +108,16 @@ const HeaderToolbar = ({
         selectedAssigneeIds: [...filterState.selectedAssigneeIds, user.userId],
       });
     }
-    setUserSearch("");
+    setSearchInput("");
     setShowUserDropdown(false);
     setHighlightedIndex(0);
   };
 
-  // Handle keyboard navigation
-  const handleUserInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!showUserDropdown) {
-      if (e.key === "ArrowDown" || e.key === "@") {
-        setShowUserDropdown(true);
-      }
-      return;
-    }
+  // Keyboard navigation for user dropdown
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showUserDropdown || !isUserSearch) return;
 
-    const maxIndex = Math.min(filteredUsers.length, 8) - 1;
-
+    const maxIndex = filteredUsers.length - 1;
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
@@ -132,12 +148,10 @@ const HeaderToolbar = ({
     });
   };
 
-  // Get user by ID for display
   const getUserById = (userId: number): UserType | undefined => {
     return users.find((u) => u.userId === userId);
   };
 
-  // Sort field labels
   const sortFieldLabels: Record<SortField, string> = {
     none: "None",
     dueDate: "Due Date",
@@ -145,7 +159,6 @@ const HeaderToolbar = ({
     points: "Points",
   };
 
-  // Due date option labels
   const dueDateLabels: Record<DueDateOption, string> = {
     overdue: "Overdue",
     dueToday: "Due Today",
@@ -154,7 +167,6 @@ const HeaderToolbar = ({
     noDueDate: "No Due Date",
   };
 
-  // Remove filters
   const removeTagFilter = (tagId: number) => {
     onFilterChange({
       ...filterState,
@@ -176,33 +188,150 @@ const HeaderToolbar = ({
     });
   };
 
+  const clearSearchText = () => {
+    setSearchInput("");
+    onFilterChange({ ...filterState, searchText: "" });
+  };
+
   return (
     <div className="flex items-center gap-2">
-      {/* User filter input with @mention */}
-      <div className="relative" ref={userDropdownRef}>
+      {/* My Tasks toggle */}
+      <label
+        className={`flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 text-sm transition-colors ${
+          showMyTasks
+            ? "bg-yellow-100 dark:bg-yellow-900/30"
+            : "text-gray-500 hover:bg-gray-100 dark:text-neutral-400 dark:hover:bg-dark-tertiary"
+        }`}
+        style={showMyTasks ? { color: isDarkMode ? APP_ACCENT_LIGHT : APP_ACCENT_DARK } : undefined}
+        title="Highlight my tasks"
+      >
         <input
-          ref={userInputRef}
-          type="text"
-          placeholder="@user"
-          value={userSearch}
-          onChange={(e) => {
-            setUserSearch(e.target.value);
-            setShowUserDropdown(e.target.value.length > 0);
-          }}
-          onFocus={() => {
-            if (userSearch.length > 0) setShowUserDropdown(true);
-          }}
-          onKeyDown={handleUserInputKeyDown}
-          className="w-24 rounded-md border border-gray-200 bg-white px-2 py-1 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 dark:border-dark-tertiary dark:bg-dark-secondary dark:text-white dark:placeholder-gray-500"
-          style={{ 
-            borderColor: userSearch ? accentColor : undefined,
-            boxShadow: userSearch ? `0 0 0 1px ${accentColor}` : undefined 
-          }}
+          type="checkbox"
+          checked={showMyTasks}
+          onChange={(e) => onShowMyTasksChange(e.target.checked)}
+          className="h-3.5 w-3.5 rounded border-gray-300 accent-yellow-500 dark:border-neutral-600"
         />
-        {showUserDropdown && (
-          <div className="absolute left-0 top-full z-20 mt-1 max-h-48 w-56 overflow-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-dark-tertiary dark:bg-dark-secondary">
+        <span className="hidden sm:inline">My Tasks</span>
+      </label>
+
+      {/* Filter button */}
+      <div className="relative">
+        <button
+          className="relative text-gray-500 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-gray-300"
+          onClick={() => {
+            setIsFilterDropdownOpen(!isFilterDropdownOpen);
+            setIsSortDropdownOpen(false);
+          }}
+          aria-label="Toggle filter dropdown"
+          aria-expanded={isFilterDropdownOpen}
+        >
+          <Filter className="h-5 w-5" />
+          {isFilterActive && (
+            <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-blue-600" />
+          )}
+        </button>
+        <FilterDropdown
+          isOpen={isFilterDropdownOpen}
+          onClose={() => setIsFilterDropdownOpen(false)}
+          filterState={filterState}
+          onFilterChange={onFilterChange}
+          tags={tags}
+        />
+      </div>
+
+      {/* Sort button */}
+      <div className="relative">
+        <button
+          className="relative text-gray-500 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-gray-300"
+          onClick={() => {
+            setIsSortDropdownOpen(!isSortDropdownOpen);
+            setIsFilterDropdownOpen(false);
+          }}
+          aria-label="Toggle sort dropdown"
+          aria-expanded={isSortDropdownOpen}
+        >
+          <ArrowUpDown className="h-5 w-5" />
+          {isSortActive && (
+            <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-blue-600" />
+          )}
+        </button>
+        {isSortDropdownOpen && (
+          <div className="absolute right-0 top-full z-20 mt-2 w-48 rounded-lg border border-gray-200 bg-white py-2 shadow-lg animate-dropdown dark:border-dark-tertiary dark:bg-dark-secondary">
+            <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400">
+              Sort by
+            </div>
+            {(["dueDate", "priority", "points"] as SortField[]).map((field) => (
+              <button
+                key={field}
+                onClick={() => {
+                  if (sortState.field === field) {
+                    if (sortState.direction === "asc") {
+                      onSortChange({ field, direction: "desc" });
+                    } else {
+                      onSortChange({ field: "none", direction: "asc" });
+                    }
+                  } else {
+                    onSortChange({ field, direction: "asc" });
+                  }
+                }}
+                className={`flex w-full items-center justify-between px-3 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-dark-tertiary ${
+                  sortState.field === field ? "text-blue-600 dark:text-blue-400" : "text-gray-700 dark:text-gray-200"
+                }`}
+              >
+                <span>{sortFieldLabels[field]}</span>
+                {sortState.field === field && (
+                  <span className="text-xs">{sortState.direction === "asc" ? "↑" : "↓"}</span>
+                )}
+              </button>
+            ))}
+            {isSortActive && (
+              <>
+                <div className="my-1 border-t border-gray-200 dark:border-dark-tertiary" />
+                <button
+                  onClick={() => onSortChange({ field: "none", direction: "asc" })}
+                  className="flex w-full items-center px-3 py-1.5 text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-dark-tertiary"
+                >
+                  Clear sort
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Search input - @user for assignee, plain text for task filter */}
+      <div className="relative" ref={searchDropdownRef}>
+        <div className="relative">
+          <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search or @user"
+            value={searchInput}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className="w-36 rounded-md border border-gray-200 bg-white py-1 pl-7 pr-7 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 dark:border-dark-tertiary dark:bg-dark-secondary dark:text-white dark:placeholder-gray-500 sm:w-44"
+            style={{ 
+              borderColor: searchInput ? accentColor : undefined,
+              boxShadow: searchInput ? `0 0 0 1px ${accentColor}` : undefined 
+            }}
+          />
+          {searchInput && !isUserSearch && (
+            <button
+              onClick={clearSearchText}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+        {/* User dropdown - only for @mentions */}
+        {showUserDropdown && isUserSearch && (
+          <div className="absolute right-0 top-full z-20 mt-1 max-h-48 w-56 overflow-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg animate-dropdown dark:border-dark-tertiary dark:bg-dark-secondary">
+            <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400">
+              Filter by assignee
+            </div>
             {filteredUsers.length > 0 ? (
-              filteredUsers.slice(0, 8).map((user, index) => (
+              filteredUsers.map((user, index) => (
                 <button
                   key={user.userId}
                   onClick={() => addUserFilter(user)}
@@ -227,7 +356,6 @@ const HeaderToolbar = ({
 
       {/* Active filter pills */}
       <div className="flex flex-wrap items-center gap-1.5 max-w-xs">
-        {/* User filter pills */}
         {filterState.selectedAssigneeIds.map((userId) => {
           const user = getUserById(userId);
           if (!user) return null;
@@ -298,102 +426,6 @@ const HeaderToolbar = ({
             </button>
           </span>
         ))}
-      </div>
-
-      {/* Show My Tasks toggle */}
-      <button
-        onClick={() => onShowMyTasksChange(!showMyTasks)}
-        className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-sm transition-colors ${
-          showMyTasks
-            ? "bg-yellow-100 dark:bg-yellow-900/30"
-            : "text-gray-500 hover:bg-gray-100 dark:text-neutral-400 dark:hover:bg-dark-tertiary"
-        }`}
-        style={showMyTasks ? { color: isDarkMode ? APP_ACCENT_LIGHT : APP_ACCENT_DARK } : undefined}
-        title="Highlight my tasks"
-      >
-        <User size={14} />
-        <span className="hidden sm:inline">My Tasks</span>
-      </button>
-
-      {/* Sort button with dropdown */}
-      <div className="relative">
-        <button
-          className="relative text-gray-500 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-gray-300"
-          onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-          aria-label="Toggle sort dropdown"
-          aria-expanded={isSortDropdownOpen}
-        >
-          <ArrowUpDown className="h-5 w-5" />
-          {isSortActive && (
-            <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-blue-600" />
-          )}
-        </button>
-        {isSortDropdownOpen && (
-          <div className="absolute right-0 top-full z-20 mt-2 w-48 rounded-lg border border-gray-200 bg-white py-2 shadow-lg dark:border-dark-tertiary dark:bg-dark-secondary">
-            <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400">
-              Sort by
-            </div>
-            {(["dueDate", "priority", "points"] as SortField[]).map((field) => (
-              <button
-                key={field}
-                onClick={() => {
-                  if (sortState.field === field) {
-                    if (sortState.direction === "asc") {
-                      onSortChange({ field, direction: "desc" });
-                    } else {
-                      onSortChange({ field: "none", direction: "asc" });
-                    }
-                  } else {
-                    onSortChange({ field, direction: "asc" });
-                  }
-                }}
-                className={`flex w-full items-center justify-between px-3 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-dark-tertiary ${
-                  sortState.field === field ? "text-blue-600 dark:text-blue-400" : "text-gray-700 dark:text-gray-200"
-                }`}
-              >
-                <span>{sortFieldLabels[field]}</span>
-                {sortState.field === field && (
-                  <span className="text-xs">
-                    {sortState.direction === "asc" ? "↑" : "↓"}
-                  </span>
-                )}
-              </button>
-            ))}
-            {isSortActive && (
-              <>
-                <div className="my-1 border-t border-gray-200 dark:border-dark-tertiary" />
-                <button
-                  onClick={() => onSortChange({ field: "none", direction: "asc" })}
-                  className="flex w-full items-center px-3 py-1.5 text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-dark-tertiary"
-                >
-                  Clear sort
-                </button>
-              </>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Filter button with dropdown */}
-      <div className="relative">
-        <button
-          className="relative text-gray-500 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-gray-300"
-          onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
-          aria-label="Toggle filter dropdown"
-          aria-expanded={isFilterDropdownOpen}
-        >
-          <Filter className="h-5 w-5" />
-          {isFilterActive && (
-            <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-blue-600" />
-          )}
-        </button>
-        <FilterDropdown
-          isOpen={isFilterDropdownOpen}
-          onClose={() => setIsFilterDropdownOpen(false)}
-          filterState={filterState}
-          onFilterChange={onFilterChange}
-          tags={tags}
-        />
       </div>
     </div>
   );

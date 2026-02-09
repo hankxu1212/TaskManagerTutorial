@@ -7,6 +7,7 @@ import Link from "next/link";
 import React from "react";
 import { FilterState, SortState } from "@/lib/filterTypes";
 import { BOARD_MAIN_COLOR } from "@/lib/entityColors";
+import { TAB_BUTTON_BASE_STYLES, TAB_BUTTON_INDICATOR_STYLES } from "@/lib/styleConstants";
 import { Tag, useArchiveProjectMutation } from "@/state/api";
 import ConfirmationMenu from "@/components/ConfirmationMenu";
 import HeaderToolbar from "@/components/HeaderToolbar";
@@ -117,8 +118,8 @@ const BoardHeader = ({
       </div>
 
       {/* TABS */}
-      <div className="flex flex-wrap gap-2 border-y border-gray-200 pb-[8px] pt-2 dark:border-stroke-dark">
-        <div className="flex flex-1 items-end self-end gap-2 md:gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-1">
+        <div className="relative flex items-end gap-2 md:gap-4 after:absolute after:bottom-0 after:left-0 after:h-px after:w-full after:bg-gray-200 dark:after:bg-stroke-dark">
           <TabButton
             name="Board"
             icon={<BiColumns className="h-5 w-5" />}
@@ -161,11 +162,9 @@ const TabButton = ({ name, icon, setActiveTab, activeTab }: TabButtonProps) => {
 
   return (
     <button
-      className={`relative flex items-center gap-2 px-1 py-2 
-      after:absolute after:-bottom-2.25 after:left-0 after:h-px after:w-full 
-      sm:px-2 lg:px-4 ${
+      className={`${TAB_BUTTON_BASE_STYLES} ${
         isActive 
-          ? "" 
+          ? "font-bold text-gray-900 dark:text-white" 
           : "text-gray-500 hover:text-blue-500 dark:text-neutral-500 dark:hover:text-blue-400"
       }`}
       style={isActive ? { color: BOARD_MAIN_COLOR } : undefined}
@@ -173,7 +172,7 @@ const TabButton = ({ name, icon, setActiveTab, activeTab }: TabButtonProps) => {
     >
       {isActive && (
         <span 
-          className="absolute -bottom-2.25 left-0 h-px w-full" 
+          className={TAB_BUTTON_INDICATOR_STYLES}
           style={{ backgroundColor: BOARD_MAIN_COLOR }}
         />
       )}
