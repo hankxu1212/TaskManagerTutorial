@@ -9,7 +9,8 @@ import ActivityList from "@/components/ActivityList";
 import CollapsibleSection from "@/components/CollapsibleSection";
 import CommentsPanel from "@/components/CommentsPanel";
 import DatePicker from "@/components/DatePicker";
-import { Task, Priority, Status, useUpdateTaskMutation, useDeleteTaskMutation, useCreateTaskMutation, useGetUsersQuery, useGetTagsQuery, useGetAuthUserQuery, useGetProjectsQuery, useGetSprintsQuery, useGetPresignedUploadUrlMutation, useCreateAttachmentMutation, useDeleteAttachmentMutation, getAttachmentS3Key, User as UserType, Project, Sprint } from "@/state/api";
+import { Task, Priority, Status, useUpdateTaskMutation, useDeleteTaskMutation, useCreateTaskMutation, useGetUsersQuery, useGetTagsQuery, useGetProjectsQuery, useGetSprintsQuery, useGetPresignedUploadUrlMutation, useCreateAttachmentMutation, useDeleteAttachmentMutation, getAttachmentS3Key, User as UserType, Project, Sprint } from "@/state/api";
+import { useAuthUser } from "@/lib/useAuthUser";
 import { PRIORITY_BADGE_STYLES } from "@/lib/priorityColors";
 import { STATUS_BADGE_STYLES } from "@/lib/statusColors";
 import { format } from "date-fns";
@@ -126,7 +127,7 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks, onTaskNavigate }: TaskD
   const { data: allTags } = useGetTagsQuery();
   const { data: projects } = useGetProjectsQuery();
   const { data: sprints } = useGetSprintsQuery();
-  const { data: authData } = useGetAuthUserQuery({});
+  const { data: authData } = useAuthUser();
   const [previewAttachmentId, setPreviewAttachmentId] = useState<number | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);

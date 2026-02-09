@@ -1,14 +1,15 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useGetAuthUserQuery, useGetPresignedUploadUrlMutation, useUpdateUserProfilePictureMutation, useUpdateUserProfileMutation } from "@/state/api";
+import { useGetPresignedUploadUrlMutation, useUpdateUserProfilePictureMutation, useUpdateUserProfileMutation } from "@/state/api";
+import { useAuthUser } from "@/lib/useAuthUser";
 import { signOut, updateUserAttributes } from "aws-amplify/auth";
 import { User, Mail, Shield, Camera, Loader2, LogOut, Pencil, Check, X } from "lucide-react";
 import Header from "@/components/Header";
 import S3Image from "@/components/S3Image";
 
 const ProfilePage = () => {
-  const { data: authData, isLoading, refetch } = useGetAuthUserQuery({});
+  const { data: authData, isLoading, refetch } = useAuthUser();
   const [getPresignedUploadUrl] = useGetPresignedUploadUrlMutation();
   const [updateProfilePicture] = useUpdateUserProfilePictureMutation();
   const [updateProfile] = useUpdateUserProfileMutation();

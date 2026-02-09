@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
-import { Task, useUpdateTaskMutation, useGetAuthUserQuery } from "@/state/api";
+import { Task, useUpdateTaskMutation } from "@/state/api";
+import { useAuthUser } from "@/lib/useAuthUser";
 import { FilterState, SortState, initialSortState } from "@/lib/filterTypes";
 import { PRIORITY_COLORS_BY_NAME } from "@/lib/priorityColors";
 import { STATUS_BG_CLASSES } from "@/lib/statusColors";
@@ -36,7 +37,7 @@ const TimelineView = ({ tasks, setIsModalNewTaskOpen, filterState, sortState = i
   const [pendingUpdate, setPendingUpdate] = useState<{ taskId: number; startDate: Date; dueDate: Date } | null>(null);
   
   const [updateTask] = useUpdateTaskMutation();
-  const { data: authData } = useGetAuthUserQuery({});
+  const { data: authData } = useAuthUser();
   const currentUserId = authData?.userDetails?.userId;
 
   // Measure container width

@@ -19,11 +19,11 @@ import {
   useMarkNotificationAsReadMutation,
   useDeleteNotificationMutation,
   useBatchDeleteNotificationsMutation,
-  useGetAuthUserQuery,
   NotificationType,
   NotificationSeverity,
   type Notification,
 } from "@/state/api";
+import { useAuthUser } from "@/lib/useAuthUser";
 
 import Header from "@/components/Header";
 
@@ -175,7 +175,7 @@ const NotificationRow = ({ notification, userId, isSelected, onSelect }: Notific
 const InboxPage = () => {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
-  const { data: currentUser } = useGetAuthUserQuery({});
+  const { data: currentUser } = useAuthUser();
   const userId = currentUser?.userDetails?.userId;
 
   const { data: notifications, isLoading, isError } = useGetNotificationsQuery(userId!, {

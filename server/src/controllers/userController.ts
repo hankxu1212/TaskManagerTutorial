@@ -42,29 +42,30 @@ export const getUser = async (req: Request, res: Response): Promise<void> => {
 
         // Auto-create user if they don't exist (for local dev without Lambda trigger)
         if (!user) {
-            if (process.env.NODE_ENV === 'development') {
-                // Use configured dev account details from environment
-                const devCognitoId = process.env.DEV_COGNITO_ID;
+            if (/^dev(elopment)?$/i.test(process.env.NODE_ENV || '')) {
+                // Use configured dev account details from environment, but use the ACTUAL cognitoId from the request
                 const devUsername = process.env.DEV_ACCOUNT_NAME;
                 const devEmail = process.env.DEV_ACCOUNT_EMAIL;
                 const devFullName = process.env.DEV_FULL_NAME;
                 
-                if (!devCognitoId || !devUsername || !devEmail) {
+                if (!devUsername || !devEmail) {
                     res.status(500).json({ 
-                        message: 'Dev account not configured. Set DEV_COGNITO_ID, DEV_ACCOUNT_NAME and DEV_ACCOUNT_EMAIL in .env' 
+                        message: 'Dev account not configured. Set DEV_ACCOUNT_NAME and DEV_ACCOUNT_EMAIL in .env' 
                     });
                     return;
                 }
                 
+                // Use the cognitoId from the request (the actual logged-in user's sub)
                 user = await getPrismaClient().user.create({
                     data: {
-                        cognitoId: devCognitoId,
+                        cognitoId: cognitoId,
                         username: devUsername,
                         fullName: devFullName || null,
                         email: devEmail,
                         profilePictureExt: "jpg",
                     },
                 });
+                console.log(`[DEV] Created dev user: ${devUsername} (${devEmail}) with cognitoId: ${cognitoId}`);
             } else {
                 res.status(404).json({ message: 'User not found' });
                 return;

@@ -373,18 +373,27 @@ export const api = createApi({
         }),
 
         getAuthUser: build.query({
-            queryFn: async (_, _queryApi, _extraoptions, fetchWithBQ) => {
+            queryFn: async (args: { impersonatedCognitoId: string }, _queryApi, _extraoptions, fetchWithBQ) => {
                 try {
                     const user = await getCurrentUser();
                     const session = await fetchAuthSession();
                     if (!session) throw new Error("No session found");
                     const { userSub } = session;
-                    const { accessToken } = session.tokens ?? {};
 
-                    const userDetailsResponse = await fetchWithBQ(`users/${userSub}`);
+                    // If impersonating (non-empty string), fetch the impersonated user's details
+                    const cognitoIdToFetch = args.impersonatedCognitoId || userSub;
+                    const userDetailsResponse = await fetchWithBQ(`users/${cognitoIdToFetch}`);
                     const userDetails = userDetailsResponse.data as User;
 
-                    return { data: { user, userSub, userDetails } };
+                    return { 
+                        data: { 
+                            user, 
+                            userSub, 
+                            userDetails,
+                            isImpersonating: !!args.impersonatedCognitoId,
+                            realUserSub: userSub,
+                        } 
+                    };
                 } catch (error: any) {
                     return { error: error.message || "Could not fetch user data" };
                 }
@@ -403,6 +412,16 @@ export const api = createApi({
         updateUserProfile: build.mutation<User, { cognitoId: string; fullName?: string }>({
             query: ({ cognitoId, ...body }) => ({
                 url: `users/${cognitoId}/profile`,
+                method: "PATCH",
+                body,
+            }),
+            invalidatesTags: ["Users"],
+        }),
+
+        // admin endpoints
+        adminUpdateUser: build.mutation<User, { userId: number; username?: string; fullName?: string; cognitoId?: string; email?: string }>({
+            query: ({ userId, ...body }) => ({
+                url: `admin/users/${userId}`,
                 method: "PATCH",
                 body,
             }),
@@ -679,6 +698,7 @@ export const {
     useGetAuthUserQuery,
     useUpdateUserProfilePictureMutation,
     useUpdateUserProfileMutation,
+    useAdminUpdateUserMutation,
     useGetTagsQuery,
     useCreateTagMutation,
     useUpdateTagMutation,

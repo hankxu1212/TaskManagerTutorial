@@ -3,14 +3,15 @@
 import Header from "@/components/Header";
 import TaskCard from "@/components/TaskCard";
 import TaskDetailModal from "@/components/TaskDetailModal";
-import { Task, Status, useGetAuthUserQuery, useGetTasksAssignedToUserQuery, useGetTasksAuthoredByUserQuery } from "@/state/api";
+import { Task, Status, useGetTasksAssignedToUserQuery, useGetTasksAuthoredByUserQuery } from "@/state/api";
+import { useAuthUser } from "@/lib/useAuthUser";
 import { useState } from "react";
 import { CheckCircle2, Clock, AlertCircle, UserCheck, FilePlus } from "lucide-react";
 
 type TabType = "assigned" | "created";
 
 const HomePage = () => {
-  const { data: authData, isLoading: authLoading } = useGetAuthUserQuery({});
+  const { data: authData, isLoading: authLoading } = useAuthUser();
   const userId = authData?.userDetails?.userId;
 
   const { data: assignedTasks, isLoading: assignedLoading } = useGetTasksAssignedToUserQuery(

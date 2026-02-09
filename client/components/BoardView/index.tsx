@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useDrag, useDrop } from "react-dnd";
-import { Task as TaskType, useUpdateTaskStatusMutation, useGetAuthUserQuery } from "@/state/api";
+import { Task as TaskType, useUpdateTaskStatusMutation } from "@/state/api";
+import { useAuthUser } from "@/lib/useAuthUser";
 import { Plus } from "lucide-react";
 import type { DropTargetMonitor, DragSourceMonitor } from "react-dnd";
 import TaskDetailModal from "@/components/TaskDetailModal";
@@ -24,7 +25,7 @@ const taskStatus = ["Input Queue", "Work In Progress", "Review", "Done"];
 
 const BoardView = ({ tasks, setIsModalNewTaskOpen, filterState, sortState = initialSortState, showMyTasks = false }: BoardViewProps) => {
   const [updateTaskStatus] = useUpdateTaskStatusMutation();
-  const { data: authData } = useGetAuthUserQuery({});
+  const { data: authData } = useAuthUser();
 
   const currentUserId = authData?.userDetails?.userId;
 

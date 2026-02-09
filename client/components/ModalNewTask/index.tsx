@@ -1,5 +1,6 @@
 import Modal from "@/components/Modal";
-import { Priority, Status, useCreateTaskMutation, useGetTagsQuery, useGetUsersQuery, useGetProjectsQuery, useGetAuthUserQuery, useGetSprintsQuery, User, Project, Sprint } from "@/state/api";
+import { Priority, Status, useCreateTaskMutation, useGetTagsQuery, useGetUsersQuery, useGetProjectsQuery, useGetSprintsQuery, User, Project, Sprint } from "@/state/api";
+import { useAuthUser } from "@/lib/useAuthUser";
 import { useState, useEffect, useRef } from "react";
 import { formatISO, format } from "date-fns";
 import { X, ChevronDown, Zap } from "lucide-react";
@@ -18,7 +19,7 @@ const ModalNewTask = ({ isOpen, onClose, projectId = null, sprintId = null, defa
     const { data: users = [] } = useGetUsersQuery();
     const { data: projects = [] } = useGetProjectsQuery();
     const { data: sprints = [] } = useGetSprintsQuery();
-    const { data: authData } = useGetAuthUserQuery({});
+    const { data: authData } = useAuthUser();
     
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");

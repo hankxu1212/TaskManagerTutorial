@@ -20,11 +20,11 @@ import {
   useMarkNotificationAsReadMutation,
   useDeleteNotificationMutation,
   useBatchDeleteNotificationsMutation,
-  useGetAuthUserQuery,
   NotificationType,
   NotificationSeverity,
   type Notification,
 } from "@/state/api";
+import { useAuthUser } from "@/lib/useAuthUser";
 
 interface NotificationInboxProps {
   isOpen: boolean;
@@ -367,7 +367,7 @@ const NotificationInbox = ({ isOpen, onClose, embedded = false }: NotificationIn
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   // Get current user
-  const { data: currentUser } = useGetAuthUserQuery({});
+  const { data: currentUser } = useAuthUser();
   const userId = currentUser?.userDetails?.userId;
 
   // Fetch notifications for the current user

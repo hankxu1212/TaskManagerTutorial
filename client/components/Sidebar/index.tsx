@@ -1,8 +1,9 @@
 "use client";
 
 import { useAppDispatch, useAppSelector } from "@/app/redux";
-import { setIsDarkMode } from "@/state";
-import { useGetAuthUserQuery, useGetProjectsQuery, useGetSprintsQuery, useGetUnreadCountQuery, useUpdateTaskMutation, useAddTaskToSprintMutation } from "@/state/api";
+import { setIsDarkMode, setImpersonatedUser } from "@/state";
+import { useGetProjectsQuery, useGetSprintsQuery, useGetUnreadCountQuery, useUpdateTaskMutation, useAddTaskToSprintMutation } from "@/state/api";
+import { useAuthUser } from "@/lib/useAuthUser";
 import { signOut } from "aws-amplify/auth";
 import {
     Bell,
@@ -16,11 +17,13 @@ import {
     Moon,
     Plus,
     Search,
+    Settings,
     Sun,
     Tag,
     User,
     Users,
     Zap,
+    LogOut,
 } from "lucide-react";
 import { BiColumns } from "react-icons/bi";
 import Image from "next/image";
@@ -34,6 +37,7 @@ import ModalNewTask from "@/components/ModalNewTask";
 import S3Image from "@/components/S3Image";
 import { BOARD_MAIN_COLOR, SPRINT_MAIN_COLOR, APP_ACCENT_LIGHT, APP_ACCENT_DARK } from "@/lib/entityColors";
 import { DND_ITEM_TYPES, DraggedTask } from "@/lib/dndTypes";
+import { isAdminUser } from "@/lib/adminAllowlist";
 
 const Sidebar = () => {
     const [showBoards, setShowBoards] = useState(true);
@@ -47,6 +51,7 @@ const Sidebar = () => {
     const [isModalNewTaskOpen, setIsModalNewTaskOpen] = useState(false);
     const createMenuRef = useRef<HTMLDivElement>(null);
     const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
+    const impersonatedUser = useAppSelector((state) => state.global.impersonatedUser);
     const dispatch = useAppDispatch();
     const router = useRouter();
 
@@ -65,14 +70,21 @@ const Sidebar = () => {
         showActiveBoardsOnly ? project.isActive !== false : true
     );
 
-    const { data: currentUser } = useGetAuthUserQuery({});
+    const { data: currentUser } = useAuthUser();
     const userId = currentUser?.userDetails?.userId;
+    // For admin check, use the real user's email (not impersonated)
+    const realUserEmail = impersonatedUser ? undefined : currentUser?.userDetails?.email;
+    const isAdmin = isAdminUser(realUserEmail) || !!impersonatedUser; // If impersonating, user is admin
     
     // Fetch unread notification count
     const { data: unreadCountData } = useGetUnreadCountQuery(userId!, {
         skip: !userId,
     });
     const unreadCount = unreadCountData?.count ?? 0;
+
+    const handleStopImpersonating = () => {
+        dispatch(setImpersonatedUser(null));
+    };
     const handleSignOut = async () => {
         try {
             await signOut();
@@ -140,18 +152,34 @@ const Sidebar = () => {
             {/* Main content area */}
             <div className="flex flex-col">
                 {/* TOP LOGO & HEADER */}
-                <div className="sticky top-0 z-50 flex w-full items-center justify-between border-b border-gray-100 bg-white px-6 py-4 dark:border-gray-800 dark:bg-dark-secondary">
-                    <div className="flex items-center gap-3">
-                        <Image
-                            src="/favicon.ico"
-                            alt="Logo"
-                            width={32}
-                            height={32}
-                            className="h-8 w-8 object-contain"
-                        />
-                        <span className="text-xl font-semibold text-gray-900 dark:text-white">
-                            Crest
-                        </span>
+                <div className="sticky top-0 z-50 flex w-full flex-col border-b border-gray-100 bg-white dark:border-gray-800 dark:bg-dark-secondary">
+                    {impersonatedUser && (
+                        <div className="flex items-center justify-between bg-amber-100 px-3 py-1.5 text-xs text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                            <span className="truncate">
+                                Viewing as <strong>{impersonatedUser.username}</strong>
+                            </span>
+                            <button
+                                onClick={handleStopImpersonating}
+                                className="ml-2 flex shrink-0 items-center gap-1 rounded bg-amber-600 px-2 py-0.5 text-white hover:bg-amber-700"
+                                title="Stop impersonating"
+                            >
+                                <LogOut className="h-3 w-3" />
+                            </button>
+                        </div>
+                    )}
+                    <div className="flex items-center justify-between px-6 py-4">
+                        <div className="flex items-center gap-3">
+                            <Image
+                                src="/favicon.ico"
+                                alt="Logo"
+                                width={32}
+                                height={32}
+                                className="h-8 w-8 object-contain"
+                            />
+                            <span className="text-xl font-semibold text-gray-900 dark:text-white">
+                                Crest
+                            </span>
+                        </div>
                     </div>
                 </div>
 
@@ -199,6 +227,9 @@ const Sidebar = () => {
                 <nav className="flex w-full flex-col gap-y-1">
                     <SidebarLink icon={Home} label="Overview" href="/" isDarkMode={isDarkMode} />
                     <SidebarLink icon={Bell} label="Inbox" href="/inbox" isDarkMode={isDarkMode} badge={unreadCount > 0 ? unreadCount : undefined} />
+                    {isAdmin && (
+                        <SidebarLink icon={Settings} label="Admin" href="/admin/users" isDarkMode={isDarkMode} />
+                    )}
                 </nav>
 
                 {/* WORKSPACE HEADER */}
@@ -373,6 +404,7 @@ const Sidebar = () => {
                     >
                         {currentUserDetails?.userId && currentUserDetails?.profilePictureExt ? (
                             <S3Image
+                                key={`profile-${currentUserDetails.userId}`}
                                 s3Key={`users/${currentUserDetails.userId}/profile.${currentUserDetails.profilePictureExt}`}
                                 alt={currentUserDetails?.username || "User Profile Picture"}
                                 width={20}
