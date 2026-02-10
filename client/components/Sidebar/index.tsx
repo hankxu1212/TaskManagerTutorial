@@ -228,7 +228,7 @@ const Sidebar = () => {
                     <SidebarLink icon={Home} label="Overview" href="/" isDarkMode={isDarkMode} />
                     <SidebarLink icon={Bell} label="Inbox" href="/inbox" isDarkMode={isDarkMode} badge={unreadCount > 0 ? unreadCount : undefined} />
                     {isAdmin && (
-                        <SidebarLink icon={Settings} label="Admin" href="/admin/users" isDarkMode={isDarkMode} />
+                        <SidebarLink icon={Settings} label="Admin" href="/admin/users" isDarkMode={isDarkMode} variant="admin" />
                     )}
                 </nav>
 
@@ -447,21 +447,26 @@ interface SidebarLinkProps {
     label: string;
     isDarkMode: boolean;
     badge?: number;
+    variant?: "default" | "admin";
 }
 
-const SidebarLink = ({ href, icon: Icon, label, isDarkMode, badge }: SidebarLinkProps) => {
+const SidebarLink = ({ href, icon: Icon, label, isDarkMode, badge, variant = "default" }: SidebarLinkProps) => {
     const pathname = usePathname();
     const isActive =
         pathname === href || (pathname === "/" && href === "/dashboard");
 
-    const activeColor = isDarkMode ? APP_ACCENT_LIGHT : APP_ACCENT_DARK;
+    const isAdmin = variant === "admin";
+    const activeColor = isAdmin 
+        ? "#dc2626" // red-600
+        : isDarkMode ? APP_ACCENT_LIGHT : APP_ACCENT_DARK;
+    const iconColor = isAdmin ? "#ef4444" : undefined; // red-500 for admin
 
     return (
         <Link href={href} className="w-full">
             <div
                 className={`relative flex cursor-pointer items-center gap-3 transition-colors hover:bg-gray-100 dark:hover:bg-dark-tertiary ${
                     isActive ? "bg-gray-100 text-white dark:bg-dark-tertiary" : ""
-                } justify-start px-6 py-2`}
+                } ${isAdmin ? "hover:bg-red-50 dark:hover:bg-red-900/20" : ""} justify-start px-6 py-2`}
             >
                 {isActive && (
                     <div 
@@ -470,8 +475,13 @@ const SidebarLink = ({ href, icon: Icon, label, isDarkMode, badge }: SidebarLink
                     />
                 )}
 
-                <Icon className="h-5 w-5 text-gray-800 dark:text-gray-100" />
-                <span className={`text-sm font-medium text-gray-800 dark:text-gray-100`}>
+                <Icon 
+                    className="h-5 w-5 text-gray-800 dark:text-gray-100" 
+                    style={iconColor ? { color: iconColor } : undefined}
+                />
+                <span 
+                    className={`text-sm font-medium ${isAdmin ? "text-red-600 dark:text-red-400" : "text-gray-800 dark:text-gray-100"}`}
+                >
                     {label}
                 </span>
                 {badge !== undefined && badge > 0 && (

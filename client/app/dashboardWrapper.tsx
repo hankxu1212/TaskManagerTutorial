@@ -4,6 +4,7 @@ import React, {useEffect} from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import Sidebar from "@/components/Sidebar"
+import AppNotification from "@/components/AppNotification";
 import StoreProvider, {useAppSelector} from "@/app/redux";
 import AuthProvider from "@/app/authProvider";
 
@@ -32,6 +33,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                     <div className="relative z-10 flex h-full flex-col overflow-hidden">
                         {children}
                     </div>
+                    <AppNotification />
                 </main>
             </div>
         </DndProvider>

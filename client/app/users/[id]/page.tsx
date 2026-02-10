@@ -23,9 +23,9 @@ const UserBoardPage = ({ params }: Props) => {
   const [sortState, setSortState] = useState<SortState>(initialSortState);
   const [showMyTasks, setShowMyTasks] = useState(false);
 
-  const { data: user, isLoading, isError } = useGetUserByIdQuery(userId);
+  const { data: user, isLoading, isError, refetch: refetchUser } = useGetUserByIdQuery(userId);
   const { data: tags = [] } = useGetTagsQuery();
-  const { data: tasks = [] } = useGetTasksAssignedToUserQuery(userId);
+  const { data: tasks = [], refetch: refetchTasks } = useGetTasksAssignedToUserQuery(userId);
 
   const totalTasks = tasks.length;
   const totalPoints = tasks.reduce((sum, task) => sum + (task.points || 0), 0);
@@ -58,6 +58,7 @@ const UserBoardPage = ({ params }: Props) => {
         isSortActive={isSortActive(sortState)}
         showMyTasks={showMyTasks}
         onShowMyTasksChange={setShowMyTasks}
+        onRefresh={() => { refetchUser(); refetchTasks(); }}
       />
       <div className="min-h-0 flex-1">
         {activeTab === "Board" && (

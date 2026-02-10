@@ -21,9 +21,9 @@ const BoardPage = ({ params }: Props) => {
     const [sortState, setSortState] = useState<SortState>(initialSortState);
     const [showMyTasks, setShowMyTasks] = useState(false);
     
-    const { data: projects } = useGetProjectsQuery();
+    const { data: projects, refetch: refetchProjects } = useGetProjectsQuery();
     const { data: tags = [] } = useGetTagsQuery();
-    const { data: tasks = [] } = useGetTasksQuery({ projectId: Number(id) });
+    const { data: tasks = [], refetch: refetchTasks } = useGetTasksQuery({ projectId: Number(id) });
     const project = projects?.find((p) => p.id === Number(id));
     
     const totalTasks = tasks.length;
@@ -57,6 +57,7 @@ const BoardPage = ({ params }: Props) => {
                 isSortActive={isSortActive(sortState)}
                 showMyTasks={showMyTasks}
                 onShowMyTasksChange={setShowMyTasks}
+                onRefresh={() => { refetchProjects(); refetchTasks(); }}
             />
             <div className="min-h-0 flex-1">
                 {activeTab === "Board" && (

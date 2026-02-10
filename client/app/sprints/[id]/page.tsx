@@ -21,7 +21,7 @@ const SprintPage = () => {
     const [sortState, setSortState] = useState<SortState>(initialSortState);
     const [showMyTasks, setShowMyTasks] = useState(false);
     
-    const { data: sprint, isLoading, error } = useGetSprintQuery(sprintId);
+    const { data: sprint, isLoading, error, refetch } = useGetSprintQuery(sprintId);
     const { data: tags = [] } = useGetTagsQuery();
     
     const sprintTasks = sprint?.tasks || [];
@@ -75,6 +75,7 @@ const SprintPage = () => {
                 isSortActive={isSortActive(sortState)}
                 showMyTasks={showMyTasks}
                 onShowMyTasksChange={setShowMyTasks}
+                onRefresh={refetch}
             />
             <div className="flex-1 overflow-auto">
                 {activeTab === "Board" && (

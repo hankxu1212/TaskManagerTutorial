@@ -1,15 +1,15 @@
 "use client";
 
-import { Table } from "lucide-react";
+import { ArrowLeft, Table, User as UserIcon } from "lucide-react";
 import { BiColumns } from "react-icons/bi";
 import Link from "next/link";
 import React from "react";
-import { ArrowLeft, User as UserIcon } from "lucide-react";
 import { FilterState, SortState } from "@/lib/filterTypes";
 import { USER_MAIN_COLOR } from "@/lib/entityColors";
 import { TAB_BUTTON_BASE_STYLES, TAB_BUTTON_INDICATOR_STYLES } from "@/lib/styleConstants";
 import { Tag, User } from "@/state/api";
 import HeaderToolbar from "@/components/HeaderToolbar";
+import RefreshButton from "@/components/RefreshButton";
 import S3Image from "@/components/S3Image";
 
 type Props = {
@@ -27,6 +27,7 @@ type Props = {
   isSortActive: boolean;
   showMyTasks: boolean;
   onShowMyTasksChange: (show: boolean) => void;
+  onRefresh: () => void;
 };
 
 const UserHeader = ({
@@ -44,6 +45,7 @@ const UserHeader = ({
   isSortActive,
   showMyTasks,
   onShowMyTasksChange,
+  onRefresh,
 }: Props) => {
   return (
     <div className="px-4 xl:px-6">
@@ -80,6 +82,7 @@ const UserHeader = ({
               <span className="inline-block rounded-full bg-gray-200 px-2 py-1 text-sm font-medium text-gray-700 dark:bg-dark-tertiary dark:text-white">
                 {totalTasks} tasks · {totalPoints} pts
               </span>
+              <RefreshButton onRefresh={onRefresh} label="User" />
             </div>
             {user.email && (
               <p className="text-sm text-gray-500 dark:text-neutral-400">

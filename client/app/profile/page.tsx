@@ -3,13 +3,16 @@
 import { useState, useRef, useEffect } from "react";
 import { useGetPresignedUploadUrlMutation, useUpdateUserProfilePictureMutation, useUpdateUserProfileMutation } from "@/state/api";
 import { useAuthUser } from "@/lib/useAuthUser";
+import { useAppDispatch } from "@/app/redux";
+import { showNotification } from "@/state";
 import { signOut, updateUserAttributes } from "aws-amplify/auth";
-import { User, Mail, Shield, Camera, Loader2, LogOut, Pencil, Check, X } from "lucide-react";
+import { User, Mail, Camera, Loader2, LogOut, Pencil, Check, X } from "lucide-react";
 import Header from "@/components/Header";
 import S3Image from "@/components/S3Image";
 
 const ProfilePage = () => {
   const { data: authData, isLoading, refetch } = useAuthUser();
+  const dispatch = useAppDispatch();
   const [getPresignedUploadUrl] = useGetPresignedUploadUrlMutation();
   const [updateProfilePicture] = useUpdateUserProfilePictureMutation();
   const [updateProfile] = useUpdateUserProfileMutation();
@@ -125,9 +128,11 @@ const ProfilePage = () => {
 
       refetch();
       setIsEditing(false);
+      dispatch(showNotification({ message: "Profile updated", type: "success" }));
     } catch (error: any) {
       console.error("Save error:", error);
       setSaveError(error.data?.message || error.message || "Failed to save profile");
+      dispatch(showNotification({ message: "Failed to update profile", type: "error" }));
     } finally {
       setIsSaving(false);
     }
@@ -305,17 +310,6 @@ const ProfilePage = () => {
                   <p className="text-xs text-gray-500 dark:text-neutral-400">Email</p>
                   <p className="truncate text-sm font-medium text-gray-900 dark:text-white">
                     {userDetails?.email || "—"}
-                  </p>
-                </div>
-              </div>
-
-              {/* User ID - read-only */}
-              <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-4 dark:bg-dark-tertiary">
-                <Shield className="h-5 w-5 shrink-0 text-gray-500 dark:text-neutral-400" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs text-gray-500 dark:text-neutral-400">User ID</p>
-                  <p className="truncate text-sm font-medium text-gray-900 dark:text-white">
-                    {userDetails?.userId || "—"}
                   </p>
                 </div>
               </div>

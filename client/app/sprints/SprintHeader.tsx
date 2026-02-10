@@ -12,6 +12,7 @@ import { TAB_BUTTON_BASE_STYLES, TAB_BUTTON_INDICATOR_STYLES } from "@/lib/style
 import { Tag, useDuplicateSprintMutation, useArchiveSprintMutation } from "@/state/api";
 import ConfirmationMenu from "@/components/ConfirmationMenu";
 import HeaderToolbar from "@/components/HeaderToolbar";
+import RefreshButton from "@/components/RefreshButton";
 
 type Props = {
   activeTab: "Board" | "Table" | "Timeline";
@@ -32,6 +33,7 @@ type Props = {
   isSortActive: boolean;
   showMyTasks: boolean;
   onShowMyTasksChange: (show: boolean) => void;
+  onRefresh: () => void;
 };
 
 const SprintHeader = ({
@@ -53,6 +55,7 @@ const SprintHeader = ({
   isSortActive,
   showMyTasks,
   onShowMyTasksChange,
+  onRefresh,
 }: Props) => {
   const router = useRouter();
   const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false);
@@ -179,6 +182,7 @@ const SprintHeader = ({
               isLoading={isArchiving}
               variant="warning"
             />
+            <RefreshButton onRefresh={onRefresh} label="Sprint" />
             <Link
               href={`/sprints/${sprintId}/settings`}
               className="text-gray-500 hover:text-gray-700 dark:text-neutral-400 dark:hover:text-neutral-200"

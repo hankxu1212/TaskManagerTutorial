@@ -12,7 +12,6 @@ import {
   Edit,
   UserPlus,
   Trash2,
-  RefreshCw,
 } from "lucide-react";
 import {
   useGetNotificationsQuery,
@@ -27,6 +26,7 @@ import {
 import { useAuthUser } from "@/lib/useAuthUser";
 
 import Header from "@/components/Header";
+import RefreshButton from "@/components/RefreshButton";
 
 // Helper function to get relative time string
 const getRelativeTime = (dateString: string): string => {
@@ -383,6 +383,7 @@ const InboxPage = () => {
         name={
           <div className="flex items-center gap-3">
             <span>Inbox</span>
+            <RefreshButton onRefresh={refetch} label="Inbox" />
             {unreadCount > 0 && (
               <span className="rounded-full bg-gray-200 px-2.5 py-0.5 text-sm font-medium text-gray-700 dark:bg-white/10 dark:text-white">
                 {unreadCount} unread
@@ -392,13 +393,6 @@ const InboxPage = () => {
         }
         buttonComponent={
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => refetch()}
-              className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-dark-tertiary dark:text-gray-200 dark:hover:bg-gray-700"
-              title="Refresh"
-            >
-              <RefreshCw className="h-4 w-4" />
-            </button>
             {selectedCount > 0 && (
               <button
                 onClick={handleBatchDelete}

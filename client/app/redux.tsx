@@ -47,12 +47,35 @@ const persistConfig = {
     key: "root",
     storage,
     whitelist: ["global"],
+    blacklist: [],
 };
+
+// Migration to handle adding new fields to persisted state
+const migrateState = (state: any) => {
+    if (state && state.global && !state.global.notifications) {
+        return {
+            ...state,
+            global: {
+                ...state.global,
+                notifications: [],
+            },
+        };
+    }
+    return state;
+};
+
 const rootReducer = combineReducers({
     global: globalReducer,
     [api.reducerPath]: api.reducer,
 });
-const persistedReducer = persistReducer(persistConfig, rootReducer);
+
+const persistedReducer = persistReducer(
+    {
+        ...persistConfig,
+        migrate: (state) => Promise.resolve(migrateState(state)),
+    },
+    rootReducer
+);
 
 /* REDUX STORE */
 export const makeStore = () => {
