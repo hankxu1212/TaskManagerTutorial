@@ -38,6 +38,15 @@ export const initialSortState: SortState = {
 };
 
 /**
+ * Interface representing a time range filter.
+ * Used to filter tasks where startDate or dueDate falls within the range.
+ */
+export interface TimeRange {
+  startDate: string | null; // ISO date string (YYYY-MM-DD)
+  endDate: string | null; // ISO date string (YYYY-MM-DD)
+}
+
+/**
  * Interface representing the current state of all active filters.
  * Used to track user selections across tag, priority, due date, and assignee filters.
  */
@@ -52,6 +61,8 @@ export interface FilterState {
   selectedAssigneeIds: number[];
   /** Text search filter for task title/description */
   searchText: string;
+  /** Time range filter for tasks with startDate or dueDate in range */
+  timeRange?: TimeRange;
 }
 
 /**

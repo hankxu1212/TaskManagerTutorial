@@ -12,6 +12,7 @@ import {
 import { useAuthUser } from "@/lib/useAuthUser";
 import { signOut } from "aws-amplify/auth";
 import {
+  BarChart3,
   Bell,
   ChevronDown,
   ClipboardList,
@@ -51,6 +52,7 @@ import { DND_ITEM_TYPES, DraggedTask } from "@/lib/dndTypes";
 import { isAdminUser } from "@/lib/adminAllowlist";
 
 const Sidebar = () => {
+  const [showOverview, setShowOverview] = useState(true);
   const [showBoards, setShowBoards] = useState(true);
   const [showSprints, setShowSprints] = useState(true);
   const [showWorkspace, setShowWorkspace] = useState(true);
@@ -67,16 +69,25 @@ const Sidebar = () => {
   );
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const pathname = usePathname();
 
   const { data: projects } = useGetProjectsQuery();
   const { data: sprints } = useGetSprintsQuery();
   const [updateTask] = useUpdateTaskMutation();
   const [addTaskToSprint] = useAddTaskToSprintMutation();
 
-  // Filter sprints based on active toggle
-  const filteredSprints = sprints?.filter((sprint) =>
-    showActiveSprintsOnly ? sprint.isActive !== false : true,
-  );
+  // Filter sprints based on active toggle and sort by end date (dueDate)
+  const filteredSprints = sprints
+    ?.filter((sprint) =>
+      showActiveSprintsOnly ? sprint.isActive !== false : true,
+    )
+    .sort((a, b) => {
+      // Sort by dueDate descending (most recent first)
+      if (!a.dueDate && !b.dueDate) return 0;
+      if (!a.dueDate) return 1;
+      if (!b.dueDate) return -1;
+      return new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime();
+    });
 
   // Filter boards based on active toggle
   const filteredBoards = projects?.filter((project) =>
@@ -157,7 +168,7 @@ const Sidebar = () => {
   const currentUserDetails = currentUser?.userDetails;
 
   return (
-    <div className="dark:bg-dark-secondary fixed z-20 flex h-full w-64 flex-col justify-between overflow-y-auto bg-white shadow-xl transition-all duration-300">
+    <div className="dark:bg-dark-secondary fixed z-20 flex h-full w-64 flex-col bg-white shadow-xl">
       <ModalNewBoard
         isOpen={isModalNewBoardOpen}
         onClose={() => setIsModalNewBoardOpen(false)}
@@ -171,110 +182,133 @@ const Sidebar = () => {
         onClose={() => setIsModalNewTaskOpen(false)}
       />
 
-      {/* Main content area */}
-      <div className="flex flex-col">
-        {/* TOP LOGO & HEADER */}
-        <div className="dark:bg-dark-secondary sticky top-0 z-50 flex w-full flex-col border-b border-gray-100 bg-white dark:border-gray-800">
-          {impersonatedUser && (
-            <div className="flex items-center justify-between bg-amber-100 px-3 py-1.5 text-xs text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
-              <span className="truncate">
-                Viewing as <strong>{impersonatedUser.username}</strong>
-              </span>
-              <button
-                onClick={handleStopImpersonating}
-                className="ml-2 flex shrink-0 items-center gap-1 rounded bg-amber-600 px-2 py-0.5 text-white hover:bg-amber-700"
-                title="Stop impersonating"
-              >
-                <LogOut className="h-3 w-3" />
-              </button>
-            </div>
-          )}
-          <div className="flex items-center justify-between px-6 py-4">
-            <div className="flex items-center gap-3">
-              <Image
-                src="/favicon.ico"
-                alt="Logo"
-                width={32}
-                height={32}
-                className="h-8 w-8 object-contain"
-              />
-              <span className="text-xl font-semibold text-gray-900 dark:text-white">
-                Crest
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* CREATE BUTTON */}
-        <div className="relative px-6 py-3" ref={createMenuRef}>
+      {/* Impersonation banner - fixed at top */}
+      {impersonatedUser && (
+        <div className="shrink-0 flex items-center justify-between bg-amber-100 px-3 py-1.5 text-xs text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+          <span className="truncate">
+            Viewing as <strong>{impersonatedUser.username}</strong>
+          </span>
           <button
-            onClick={() => setShowCreateMenu((prev) => !prev)}
-            className="flex w-full items-center justify-center gap-2 rounded-lg px-4 py-1.5 text-sm font-medium transition-colors hover:opacity-90"
-            style={{
-              backgroundColor: isDarkMode ? APP_ACCENT_LIGHT : APP_ACCENT_DARK,
-              color: isDarkMode ? "#1f2937" : "#ffffff",
-            }}
+            onClick={handleStopImpersonating}
+            className="ml-2 flex shrink-0 items-center gap-1 rounded bg-amber-600 px-2 py-0.5 text-white hover:bg-amber-700"
+            title="Stop impersonating"
           >
-            <Plus className="h-4 w-4" />
-            Create
+            <LogOut className="h-3 w-3" />
           </button>
-          {showCreateMenu && (
-            <div className="dark:bg-dark-tertiary absolute top-full right-6 left-6 z-50 mt-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700">
-              <button
-                onClick={() => handleCreateOption("task")}
-                className="dark:hover:bg-dark-secondary flex w-full items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200"
-              >
-                <ClipboardList className="h-4 w-4" />
-                Task
-              </button>
-              <button
-                onClick={() => handleCreateOption("sprint")}
-                className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 dark:text-gray-200 dark:hover:bg-purple-900/20"
-              >
-                <Zap className="h-4 w-4" style={{ color: SPRINT_MAIN_COLOR }} />
-                Sprint
-              </button>
-              <button
-                onClick={() => handleCreateOption("board")}
-                className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 dark:text-gray-200 dark:hover:bg-blue-900/20"
-              >
-                <BiColumns
-                  className="h-4 w-4"
-                  style={{ color: BOARD_MAIN_COLOR }}
-                />
-                Board
-              </button>
-            </div>
-          )}
         </div>
+      )}
 
-        {/* NAVBAR LINKS */}
-        <nav className="flex w-full flex-col gap-y-1">
+      {/* LOGO & TITLE - fixed at top */}
+      <div className="shrink-0 flex items-center gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-800">
+        <Image
+          src="/favicon.ico"
+          alt="Logo"
+          width={32}
+          height={32}
+          className="h-8 w-8 object-contain"
+        />
+        <span className="text-xl font-semibold text-gray-900 dark:text-white">
+          Crest
+        </span>
+      </div>
+
+      {/* CREATE BUTTON - fixed at top */}
+      <div className="shrink-0 relative px-6 py-3" ref={createMenuRef}>
+        <button
+          onClick={() => setShowCreateMenu((prev) => !prev)}
+          className="flex w-full items-center justify-center gap-2 rounded-lg px-4 py-1.5 text-sm font-medium transition-colors hover:opacity-90"
+          style={{
+            backgroundColor: isDarkMode ? APP_ACCENT_LIGHT : APP_ACCENT_DARK,
+            color: isDarkMode ? "#1f2937" : "#ffffff",
+          }}
+        >
+          <Plus className="h-4 w-4" />
+          Create
+        </button>
+        {showCreateMenu && (
+          <div className="dark:bg-dark-tertiary absolute top-full right-6 left-6 z-50 mt-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700">
+            <button
+              onClick={() => handleCreateOption("task")}
+              className="dark:hover:bg-dark-secondary flex w-full items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200"
+            >
+              <ClipboardList className="h-4 w-4" />
+              Task
+            </button>
+            <button
+              onClick={() => handleCreateOption("sprint")}
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 dark:text-gray-200 dark:hover:bg-purple-900/20"
+            >
+              <Zap className="h-4 w-4" style={{ color: SPRINT_MAIN_COLOR }} />
+              Sprint
+            </button>
+            <button
+              onClick={() => handleCreateOption("board")}
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 dark:text-gray-200 dark:hover:bg-blue-900/20"
+            >
+              <BiColumns
+                className="h-4 w-4"
+                style={{ color: BOARD_MAIN_COLOR }}
+              />
+              Board
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* OVERVIEW - fixed */}
+      <div className="shrink-0">
+        {/* ADMIN LINK - Above Overview */}
+        {isAdmin && (
           <SidebarLink
-            icon={Home}
-            label="Overview"
-            href="/"
+            icon={Settings}
+            label="Admin"
+            href="/admin/users"
             isDarkMode={isDarkMode}
+            variant="admin"
           />
-          <SidebarLink
-            icon={Bell}
-            label="Inbox"
-            href="/inbox"
-            isDarkMode={isDarkMode}
-            badge={unreadCount > 0 ? unreadCount : undefined}
+        )}
+        {/* OVERVIEW HEADER */}
+        <button
+          onClick={() => setShowOverview((prev) => !prev)}
+          className="flex w-full items-center justify-between px-6 py-2 text-gray-500 transition-colors hover:text-gray-700 dark:hover:text-gray-300"
+        >
+          <div className="flex items-center gap-2">
+            <Home className="h-4 w-4" />
+            <span>Overview</span>
+          </div>
+          <ChevronDown
+            className={`h-5 w-5 transition-transform duration-300 ${showOverview ? "rotate-180" : "rotate-0"}`}
           />
-          {isAdmin && (
-            <SidebarLink
-              icon={Settings}
-              label="Admin"
-              href="/admin/users"
+        </button>
+        {/* OVERVIEW LIST */}
+        {showOverview && (
+          <div className="overflow-hidden">
+            <SidebarSubLinkWithIcon
+              icon={BarChart3}
+              label="Dashboard"
+              href="/dashboard"
               isDarkMode={isDarkMode}
-              variant="admin"
             />
-          )}
-        </nav>
+            <SidebarSubLinkWithIcon
+              icon={User}
+              label="My Tasks"
+              href={userId ? `/users/${userId}` : "/users"}
+              isDarkMode={isDarkMode}
+              isActiveOverride={userId ? pathname === `/users/${userId}` : false}
+            />
+            <SidebarSubLinkWithIcon
+              icon={Bell}
+              label="Inbox"
+              href="/inbox"
+              isDarkMode={isDarkMode}
+              badge={unreadCount}
+            />
+          </div>
+        )}
+      </div>
 
-        {/* WORKSPACE HEADER */}
+      {/* WORKSPACE - fixed */}
+      <div className="shrink-0">
         <button
           onClick={() => setShowWorkspace((prev) => !prev)}
           className="flex w-full items-center justify-between px-6 py-2 text-gray-500 transition-colors hover:text-gray-700 dark:hover:text-gray-300"
@@ -310,79 +344,86 @@ const Sidebar = () => {
             />
           </div>
         )}
+      </div>
 
-        {/* BOARDS HEADER */}
-        <button
-          onClick={() => setShowBoards((prev) => !prev)}
-          className="flex w-full items-center justify-between px-6 py-2 text-gray-500 transition-colors hover:text-gray-700 dark:hover:text-gray-300"
-        >
-          <div className="flex items-center gap-2">
-            <BiColumns
-              className="h-4 w-4"
-              style={{ color: BOARD_MAIN_COLOR }}
-            />
-            <span>Boards</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <span
-              role="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowActiveBoardsOnly((prev) => !prev);
-              }}
-              className="dark:hover:bg-dark-tertiary rounded p-0.5 transition-all duration-200 hover:scale-110 hover:bg-gray-200 active:scale-95"
-              title={
-                showActiveBoardsOnly ? "Show all boards" : "Show active only"
-              }
-            >
-              {showActiveBoardsOnly ? (
-                <Eye className="h-4 w-4" />
-              ) : (
-                <EyeOff className="h-4 w-4" />
-              )}
-            </span>
-            <span
-              role="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsModalNewBoardOpen(true);
-              }}
-              className="dark:hover:bg-dark-tertiary rounded p-0.5 transition-all duration-200 hover:scale-110 hover:bg-gray-200 active:scale-95"
-            >
-              <Plus className="h-4 w-4" />
-            </span>
-            <ChevronDown
-              className={`h-5 w-5 transition-transform duration-300 ${showBoards ? "rotate-180" : "rotate-0"}`}
-            />
-          </div>
-        </button>
-        {/* BOARDS LIST */}
-        {showBoards && (
-          <div className="overflow-hidden">
-            {filteredBoards?.map((project, index) => (
-              <div
-                key={project.id}
-                className="animate-slide-down opacity-0"
-                style={{ animationDelay: `${index * 50}ms` }}
+      {/* BOARDS & SPRINTS - each with restricted height */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        {/* BOARDS SECTION */}
+        <div className="flex min-h-0 flex-col" style={{ maxHeight: showBoards ? "50%" : "auto" }}>
+          {/* BOARDS HEADER */}
+          <button
+            onClick={() => setShowBoards((prev) => !prev)}
+            className="shrink-0 flex w-full items-center justify-between bg-white px-6 py-2 text-gray-500 transition-colors hover:text-gray-700 dark:bg-dark-secondary dark:hover:text-gray-300"
+          >
+            <div className="flex items-center gap-2">
+              <BiColumns
+                className="h-4 w-4"
+                style={{ color: BOARD_MAIN_COLOR }}
+              />
+              <span>Boards</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span
+                role="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowActiveBoardsOnly((prev) => !prev);
+                }}
+                className="dark:hover:bg-dark-tertiary rounded p-0.5 transition-all duration-200 hover:scale-110 hover:bg-gray-200 active:scale-95"
+                title={
+                  showActiveBoardsOnly ? "Show all boards" : "Show active only"
+                }
               >
-                <DroppableBoardLink
-                  projectId={project.id}
-                  label={project.name}
-                  href={`/boards/${project.id}`}
-                  isDarkMode={isDarkMode}
-                  isInactive={project.isActive === false}
-                  onDropTask={handleMoveTaskToBoard}
-                />
-              </div>
-            ))}
-          </div>
-        )}
+                {showActiveBoardsOnly ? (
+                  <Eye className="h-4 w-4" />
+                ) : (
+                  <EyeOff className="h-4 w-4" />
+                )}
+              </span>
+              <span
+                role="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsModalNewBoardOpen(true);
+                }}
+                className="dark:hover:bg-dark-tertiary rounded p-0.5 transition-all duration-200 hover:scale-110 hover:bg-gray-200 active:scale-95"
+              >
+                <Plus className="h-4 w-4" />
+              </span>
+              <ChevronDown
+                className={`h-5 w-5 transition-transform duration-300 ${showBoards ? "rotate-180" : "rotate-0"}`}
+              />
+            </div>
+          </button>
+          {/* BOARDS LIST */}
+          {showBoards && (
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+              {filteredBoards?.map((project, index) => (
+                <div
+                  key={project.id}
+                  className="animate-slide-down opacity-0"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <DroppableBoardLink
+                    projectId={project.id}
+                    label={project.name}
+                    href={`/boards/${project.id}`}
+                    isInactive={project.isActive === false}
+                    onDropTask={handleMoveTaskToBoard}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-        {/* SPRINTS HEADER */}
-        <button
-          onClick={() => setShowSprints((prev) => !prev)}
-          className="flex w-full items-center justify-between px-6 py-2 text-gray-500 transition-colors hover:text-gray-700 dark:hover:text-gray-300"
-        >
+        {/* SPRINTS SECTION */}
+        <div className="flex min-h-0 flex-col" style={{ maxHeight: showSprints ? "50%" : "auto" }}>
+          {/* SPRINTS HEADER */}
+          <button
+            onClick={() => setShowSprints((prev) => !prev)}
+            className="shrink-0 flex w-full items-center justify-between bg-white px-6 py-2 text-gray-500 transition-colors hover:text-gray-700 dark:bg-dark-secondary dark:hover:text-gray-300"
+          >
           <div className="flex items-center gap-2">
             <Zap className="h-4 w-4" style={{ color: SPRINT_MAIN_COLOR }} />
             <span>Sprints</span>
@@ -420,31 +461,31 @@ const Sidebar = () => {
             />
           </div>
         </button>
-        {/* SPRINTS LIST */}
-        {showSprints && (
-          <div className="overflow-hidden">
-            {filteredSprints?.map((sprint, index) => (
-              <div
-                key={sprint.id}
-                className="animate-slide-down opacity-0"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <DroppableSprintLink
-                  sprintId={sprint.id}
-                  label={sprint.title}
-                  href={`/sprints/${sprint.id}`}
-                  isDarkMode={isDarkMode}
-                  isInactive={sprint.isActive === false}
-                  onDropTask={handleAddTaskToSprint}
-                />
-              </div>
-            ))}
-          </div>
-        )}
+          {/* SPRINTS LIST */}
+          {showSprints && (
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+              {filteredSprints?.map((sprint, index) => (
+                <div
+                  key={sprint.id}
+                  className="animate-slide-down opacity-0"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <DroppableSprintLink
+                    sprintId={sprint.id}
+                    label={sprint.title}
+                    href={`/sprints/${sprint.id}`}
+                    isInactive={sprint.isActive === false}
+                    onDropTask={handleAddTaskToSprint}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* BOTTOM SECTION - User, Dark Mode, Sign Out */}
-      <div className="dark:bg-dark-secondary border-t border-gray-100 bg-white px-4 py-4 dark:border-gray-800">
+      {/* BOTTOM SECTION - User, Dark Mode, Sign Out - fixed at bottom */}
+      <div className="dark:bg-dark-secondary shrink-0 border-t border-gray-100 bg-white px-4 py-4 dark:border-gray-800">
         <div className="flex items-center gap-1">
           {/* User icon */}
           <Link
@@ -557,7 +598,6 @@ interface DroppableBoardLinkProps {
   projectId: number;
   href: string;
   label: string;
-  isDarkMode: boolean;
   isInactive?: boolean;
   onDropTask: (
     taskId: number,
@@ -570,7 +610,6 @@ const DroppableBoardLink = ({
   projectId,
   href,
   label,
-  isDarkMode,
   isInactive,
   onDropTask,
 }: DroppableBoardLinkProps) => {
@@ -629,7 +668,6 @@ interface DroppableSprintLinkProps {
   sprintId: number;
   href: string;
   label: string;
-  isDarkMode: boolean;
   isInactive?: boolean;
   onDropTask: (taskId: number, sprintId: number) => void;
 }
@@ -638,7 +676,6 @@ const DroppableSprintLink = ({
   sprintId,
   href,
   label,
-  isDarkMode,
   isInactive,
   onDropTask,
 }: DroppableSprintLinkProps) => {
@@ -696,6 +733,9 @@ interface SidebarSubLinkWithIconProps {
   label: string;
   icon: LucideIcon;
   isDarkMode: boolean;
+  badge?: number;
+  /** Optional custom active check - if provided, overrides default pathname === href check */
+  isActiveOverride?: boolean;
 }
 
 const SidebarSubLinkWithIcon = ({
@@ -703,9 +743,12 @@ const SidebarSubLinkWithIcon = ({
   label,
   icon: Icon,
   isDarkMode,
+  badge,
+  isActiveOverride,
 }: SidebarSubLinkWithIconProps) => {
   const pathname = usePathname();
-  const isActive = pathname === href;
+  // Use override if provided, otherwise fall back to default href comparison
+  const isActive = isActiveOverride !== undefined ? isActiveOverride : pathname === href;
 
   const activeColor = isDarkMode ? APP_ACCENT_LIGHT : APP_ACCENT_DARK;
 
@@ -726,6 +769,11 @@ const SidebarSubLinkWithIcon = ({
         <span className="text-sm text-gray-700 dark:text-gray-200">
           {label}
         </span>
+        {badge !== undefined && badge > 0 && (
+          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-bold text-white">
+            {badge > 99 ? "99+" : badge}
+          </span>
+        )}
       </div>
     </Link>
   );

@@ -206,20 +206,14 @@ const SprintHeader = ({
             </Link>
           </h1>
           {/* Date display with calendar icon */}
-          <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-            {sprintStartDate && (
-              <div className="flex items-center gap-1.5">
-                <Calendar className="h-4 w-4" />
-                <span>Start: {formatDate(sprintStartDate)}</span>
-              </div>
-            )}
-            {sprintDueDate && (
-              <div className="flex items-center gap-1.5">
-                <Calendar className="h-4 w-4" />
-                <span>Due: {formatDate(sprintDueDate)}</span>
-              </div>
-            )}
-          </div>
+          {(sprintStartDate || sprintDueDate) && (
+            <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+              <Calendar className="h-4 w-4" />
+              <span>
+                {sprintStartDate ? formatDate(sprintStartDate) : "—"} – {sprintDueDate ? formatDate(sprintDueDate) : "—"}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 

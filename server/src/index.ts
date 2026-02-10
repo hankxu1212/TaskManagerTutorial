@@ -22,6 +22,7 @@ import activityRoutes from "./routes/activityRoutes.ts";
 import attachmentRoutes from "./routes/attachmentRoutes.ts";
 import notificationRoutes from "./routes/notificationRoutes.ts";
 import adminRoutes from "./routes/adminRoutes.ts";
+import analyticsRoutes from "./routes/analyticsRoutes.ts";
 import { postUser } from "./controllers/userController.ts";
 
 const app = express();
@@ -52,6 +53,7 @@ app.use("/activities", activityRoutes);
 app.use("/attachments", attachmentRoutes);
 app.use("/notifications", notificationRoutes);
 app.use("/admin", adminRoutes);
+app.use("/analytics", analyticsRoutes);
 app.post("/create-user", postUser);
 
 const port = Number(process.env.PORT) || 3000;

@@ -41,6 +41,7 @@ async function resetSequences() {
         { table: "Comment", column: "id" },
         { table: "Sprint", column: "id" },
         { table: "SprintTask", column: "id" },
+        { table: "Activity", column: "id" },
     ];
 
     for (const { table, column } of sequences) {
@@ -69,6 +70,7 @@ async function main() {
         "comment.json",
         "taskAssignment.json",
         "taskTag.json",
+        "activity.json",
     ];
 
     await deleteAllData(orderedFileNames);

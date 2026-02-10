@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ArrowUpDown, Filter, X, Search } from "lucide-react";
+import { ArrowUpDown, Filter, X, Search, Calendar } from "lucide-react";
+import { format } from "date-fns";
 import {
   FilterState,
   DueDateOption,
@@ -12,7 +13,9 @@ import { PRIORITY_COLORS } from "@/lib/priorityColors";
 import { APP_ACCENT_LIGHT, APP_ACCENT_DARK } from "@/lib/entityColors";
 import { Tag, Priority, useGetUsersQuery, User as UserType } from "@/state/api";
 import FilterDropdown from "@/components/FilterDropdown";
+import DatePicker from "@/components/DatePicker";
 import { useAppSelector } from "@/app/redux";
+import { parseLocalDate } from "@/lib/dateUtils";
 
 type HeaderToolbarProps = {
   filterState: FilterState;
@@ -25,6 +28,7 @@ type HeaderToolbarProps = {
   showMyTasks: boolean;
   onShowMyTasksChange: (show: boolean) => void;
   accentColor?: string;
+  hideMyTasks?: boolean;
 };
 
 /**
@@ -42,10 +46,15 @@ const HeaderToolbar = ({
   showMyTasks,
   onShowMyTasksChange,
   accentColor = "#3b82f6",
+  hideMyTasks = false,
 }: HeaderToolbarProps) => {
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
+  const startDateRef = useRef<HTMLDivElement>(null);
+  const endDateRef = useRef<HTMLDivElement>(null);
 
   // Local search input state
   const [searchInput, setSearchInput] = useState(filterState.searchText);
@@ -210,30 +219,149 @@ const HeaderToolbar = ({
     onFilterChange({ ...filterState, searchText: "" });
   };
 
+  // Time range handlers
+  const handleStartDateChange = (date: string | undefined) => {
+    onFilterChange({
+      ...filterState,
+      timeRange: {
+        startDate: date || null,
+        endDate: filterState.timeRange?.endDate || null,
+      },
+    });
+  };
+
+  const handleEndDateChange = (date: string | undefined) => {
+    onFilterChange({
+      ...filterState,
+      timeRange: {
+        startDate: filterState.timeRange?.startDate || null,
+        endDate: date || null,
+      },
+    });
+  };
+
+  const clearTimeRange = () => {
+    onFilterChange({
+      ...filterState,
+      timeRange: undefined,
+    });
+  };
+
+  const hasTimeRange =
+    filterState.timeRange?.startDate || filterState.timeRange?.endDate;
+
+  const formatDateDisplay = (dateStr: string | null | undefined) => {
+    if (!dateStr) return null;
+    return format(parseLocalDate(dateStr), "MMM d");
+  };
+
   return (
     <div className="flex items-center gap-2">
       {/* My Tasks toggle */}
-      <label
-        className={`flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 text-sm transition-colors ${
-          showMyTasks
-            ? "bg-yellow-100 dark:bg-yellow-900/30"
-            : "dark:hover:bg-dark-tertiary text-gray-500 hover:bg-gray-100 dark:text-neutral-400"
-        }`}
-        style={
-          showMyTasks
-            ? { color: isDarkMode ? APP_ACCENT_LIGHT : APP_ACCENT_DARK }
-            : undefined
-        }
-        title="Highlight my tasks"
-      >
-        <input
-          type="checkbox"
-          checked={showMyTasks}
-          onChange={(e) => onShowMyTasksChange(e.target.checked)}
-          className="h-3.5 w-3.5 rounded border-gray-300 accent-yellow-500 dark:border-neutral-600"
-        />
-        <span className="hidden sm:inline">My Tasks</span>
-      </label>
+      {!hideMyTasks && (
+        <label
+          className={`flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 text-sm transition-colors ${
+            showMyTasks
+              ? "bg-yellow-100 dark:bg-yellow-900/30"
+              : "dark:hover:bg-dark-tertiary text-gray-500 hover:bg-gray-100 dark:text-neutral-400"
+          }`}
+          style={
+            showMyTasks
+              ? { color: isDarkMode ? APP_ACCENT_LIGHT : APP_ACCENT_DARK }
+              : undefined
+          }
+          title="Highlight my tasks"
+        >
+          <input
+            type="checkbox"
+            checked={showMyTasks}
+            onChange={(e) => onShowMyTasksChange(e.target.checked)}
+            className="h-3.5 w-3.5 rounded border-gray-300 accent-yellow-500 dark:border-neutral-600"
+          />
+          <span className="hidden sm:inline">My Tasks</span>
+        </label>
+      )}
+
+      {/* Time Range Selector - shown when hideMyTasks is true (user page) */}
+      {hideMyTasks && (
+        <div className="flex items-center gap-1">
+          {/* Start Date */}
+          <div className="relative" ref={startDateRef}>
+            <button
+              onClick={() => {
+                setShowStartDatePicker(!showStartDatePicker);
+                setShowEndDatePicker(false);
+              }}
+              className={`flex items-center gap-1 rounded-md border px-2 py-1 text-sm transition-colors ${
+                filterState.timeRange?.startDate
+                  ? "border-blue-400 bg-blue-50 text-blue-700 dark:border-blue-600 dark:bg-blue-900/30 dark:text-blue-300"
+                  : "dark:border-dark-tertiary dark:hover:bg-dark-tertiary border-gray-200 text-gray-500 hover:bg-gray-100 dark:text-neutral-400"
+              }`}
+            >
+              <Calendar className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">
+                {filterState.timeRange?.startDate
+                  ? formatDateDisplay(filterState.timeRange.startDate)
+                  : "From"}
+              </span>
+            </button>
+            {showStartDatePicker && (
+              <div className="absolute top-full left-0 z-30 mt-1">
+                <DatePicker
+                  value={filterState.timeRange?.startDate || undefined}
+                  onChange={handleStartDateChange}
+                  onClose={() => setShowStartDatePicker(false)}
+                />
+              </div>
+            )}
+          </div>
+
+          <span className="text-gray-400 dark:text-gray-500">–</span>
+
+          {/* End Date */}
+          <div className="relative" ref={endDateRef}>
+            <button
+              onClick={() => {
+                setShowEndDatePicker(!showEndDatePicker);
+                setShowStartDatePicker(false);
+              }}
+              className={`flex items-center gap-1 rounded-md border px-2 py-1 text-sm transition-colors ${
+                filterState.timeRange?.endDate
+                  ? "border-blue-400 bg-blue-50 text-blue-700 dark:border-blue-600 dark:bg-blue-900/30 dark:text-blue-300"
+                  : "dark:border-dark-tertiary dark:hover:bg-dark-tertiary border-gray-200 text-gray-500 hover:bg-gray-100 dark:text-neutral-400"
+              }`}
+            >
+              <Calendar className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">
+                {filterState.timeRange?.endDate
+                  ? formatDateDisplay(filterState.timeRange.endDate)
+                  : "To"}
+              </span>
+            </button>
+            {showEndDatePicker && (
+              <div className="absolute top-full left-0 z-30 mt-1">
+                <DatePicker
+                  value={filterState.timeRange?.endDate || undefined}
+                  onChange={handleEndDateChange}
+                  onClose={() => setShowEndDatePicker(false)}
+                  minDate={filterState.timeRange?.startDate || undefined}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Clear time range */}
+          {hasTimeRange && (
+            <button
+              onClick={clearTimeRange}
+              className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-dark-tertiary"
+              title="Clear time range"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Filter button */}
       <div className="relative">

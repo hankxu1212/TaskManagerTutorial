@@ -224,6 +224,19 @@ export interface Sprint {
   _count?: { sprintTasks: number };
 }
 
+export interface PointsDataPoint {
+  date: string;
+  points: number;
+  label: string;
+}
+
+export interface PointsAnalyticsParams {
+  userId: number;
+  groupBy: "week" | "month" | "year";
+  startDate: string;
+  endDate: string;
+}
+
 export const api = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
@@ -245,6 +258,7 @@ export const api = createApi({
     "Sprints",
     "Activities",
     "Notifications",
+    "Analytics",
   ],
   endpoints: (build) => ({
     // projects
@@ -435,6 +449,9 @@ export const api = createApi({
           return { error: error.message || "Could not fetch user data" };
         }
       },
+      providesTags: (_result, _error, args) => [
+        { type: "Users", id: `AUTH-${args.impersonatedCognitoId || "self"}` },
+      ],
     }),
 
     updateUserProfilePicture: build.mutation<
@@ -750,6 +767,13 @@ export const api = createApi({
       invalidatesTags: ["Notifications"],
     }),
 
+    // analytics
+    getPointsAnalytics: build.query<PointsDataPoint[], PointsAnalyticsParams>({
+      query: ({ userId, groupBy, startDate, endDate }) =>
+        `analytics/points?userId=${userId}&groupBy=${groupBy}&startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`,
+      providesTags: ["Analytics"],
+    }),
+
     // attachments
     createAttachment: build.mutation<
       Attachment,
@@ -826,6 +850,7 @@ export const {
   useMarkAllNotificationsAsReadMutation,
   useDeleteNotificationMutation,
   useBatchDeleteNotificationsMutation,
+  useGetPointsAnalyticsQuery,
   useCreateAttachmentMutation,
   useDeleteAttachmentMutation,
 } = api;

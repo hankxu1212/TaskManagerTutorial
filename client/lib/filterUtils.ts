@@ -1,5 +1,6 @@
 import { Task, Priority } from "@/state/api";
 import { FilterState, DueDateOption } from "@/lib/filterTypes";
+import { parseLocalDate } from "@/lib/dateUtils";
 
 /**
  * Checks if any filters are currently active.
@@ -10,7 +11,8 @@ export function isFilterActive(filterState: FilterState): boolean {
     filterState.selectedPriorities.length > 0 ||
     filterState.selectedDueDateOptions.length > 0 ||
     filterState.selectedAssigneeIds.length > 0 ||
-    filterState.searchText.trim().length > 0
+    filterState.searchText.trim().length > 0 ||
+    !!(filterState.timeRange?.startDate || filterState.timeRange?.endDate)
   );
 }
 
@@ -213,6 +215,69 @@ export function matchesSearchText(task: Task, searchText: string): boolean {
 }
 
 /**
+ * Checks if a task matches the time range filter.
+ * Task passes if its startDate OR dueDate falls within the specified range.
+ * If no time range is set, all tasks pass.
+ * If startDate is null, assumes distant past (no lower bound).
+ * If endDate is null, assumes distant future (no upper bound).
+ *
+ * @param task - The task to check
+ * @param timeRange - The time range filter (startDate and/or endDate)
+ * @returns true if task matches the time range or no range is set
+ */
+export function matchesTimeRange(
+  task: Task,
+  timeRange: FilterState["timeRange"],
+): boolean {
+  // If no time range set at all, all tasks pass
+  if (!timeRange || (!timeRange.startDate && !timeRange.endDate)) {
+    return true;
+  }
+
+  // Parse filter dates using parseLocalDate (YYYY-MM-DD format)
+  // Default to extreme dates if null (effectively no bound)
+  const rangeStart = timeRange.startDate
+    ? parseLocalDate(timeRange.startDate)
+    : new Date(1900, 0, 1); // Jan 1, 1900 - distant past
+  const rangeEnd = timeRange.endDate
+    ? parseLocalDate(timeRange.endDate)
+    : new Date(2999, 11, 31); // Dec 31, 2999 - distant future
+
+  // Set range dates to appropriate times for comparison
+  rangeStart.setHours(0, 0, 0, 0);
+  rangeEnd.setHours(23, 59, 59, 999);
+
+  // Helper to parse task dates (can be ISO string or YYYY-MM-DD)
+  const parseTaskDate = (dateStr: string): Date => {
+    // If it's an ISO string with T, use Date constructor
+    if (dateStr.includes("T")) {
+      return new Date(dateStr);
+    }
+    // Otherwise use parseLocalDate for YYYY-MM-DD
+    return parseLocalDate(dateStr);
+  };
+
+  // Check if task's startDate falls in range
+  if (task.startDate) {
+    const taskStart = parseTaskDate(task.startDate);
+    if (taskStart >= rangeStart && taskStart <= rangeEnd) {
+      return true;
+    }
+  }
+
+  // Check if task's dueDate falls in range
+  if (task.dueDate) {
+    const taskDue = parseTaskDate(task.dueDate);
+    if (taskDue >= rangeStart && taskDue <= rangeEnd) {
+      return true;
+    }
+  }
+
+  // If task has neither startDate nor dueDate, it doesn't match a time range filter
+  return false;
+}
+
+/**
  * Applies all active filters to an array of tasks.
  * Uses AND logic between categories, OR logic within categories.
  */
@@ -233,13 +298,15 @@ export function applyFilters(tasks: Task[], filterState: FilterState): Task[] {
       filterState.selectedAssigneeIds,
     );
     const passesSearchText = matchesSearchText(task, filterState.searchText);
+    const passesTimeRange = matchesTimeRange(task, filterState.timeRange);
 
     return (
       passesTagFilter &&
       passesPriorityFilter &&
       passesDueDateFilter &&
       passesAssigneeFilter &&
-      passesSearchText
+      passesSearchText &&
+      passesTimeRange
     );
   });
 }
