@@ -6,7 +6,35 @@ import { useAppDispatch, useAppSelector } from "@/app/redux";
 import { setImpersonatedUser } from "@/state";
 import { isAdminUser } from "@/lib/adminAllowlist";
 import Header from "@/components/Header";
-import { Save, X, Pencil, Loader2, UserCheck, LogOut } from "lucide-react";
+import { Save, X, Pencil, Loader2, UserCheck, LogOut, Copy, Check } from "lucide-react";
+
+const CopyableCell = ({ value, className = "" }: { value: string | number | undefined | null; className?: string }) => {
+  const [copied, setCopied] = useState(false);
+  const displayValue = value ?? "—";
+  const hasValue = value != null && value !== "";
+
+  const handleCopy = async () => {
+    if (!hasValue) return;
+    await navigator.clipboard.writeText(String(value));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  return (
+    <div className="group flex items-center gap-1.5">
+      <span className={className}>{displayValue}</span>
+      {hasValue && (
+        <button
+          onClick={handleCopy}
+          className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          title="Copy"
+        >
+          {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+        </button>
+      )}
+    </div>
+  );
+};
 
 const AdminUsersPage = () => {
   const dispatch = useAppDispatch();
@@ -132,7 +160,9 @@ const AdminUsersPage = () => {
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {users?.map((user) => (
               <tr key={user.userId} className="hover:bg-gray-50 dark:hover:bg-dark-tertiary">
-                <td className="px-4 py-3 text-gray-900 dark:text-white">{user.userId}</td>
+                <td className="px-4 py-3">
+                  <CopyableCell value={user.userId} className="text-gray-900 dark:text-white" />
+                </td>
                 
                 {editingUserId === user.userId ? (
                   <>
@@ -190,11 +220,20 @@ const AdminUsersPage = () => {
                   </>
                 ) : (
                   <>
-                    <td className="px-4 py-3 text-gray-900 dark:text-white">{user.username}</td>
-                    <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{user.fullName || "—"}</td>
-                    <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{user.email || "—"}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-gray-500 dark:text-gray-500">
-                      {user.cognitoId ? `${user.cognitoId.slice(0, 8)}...` : "—"}
+                    <td className="px-4 py-3">
+                      <CopyableCell value={user.username} className="text-gray-900 dark:text-white" />
+                    </td>
+                    <td className="px-4 py-3">
+                      <CopyableCell value={user.fullName} className="text-gray-600 dark:text-gray-400" />
+                    </td>
+                    <td className="px-4 py-3">
+                      <CopyableCell value={user.email} className="text-gray-600 dark:text-gray-400" />
+                    </td>
+                    <td className="px-4 py-3">
+                      <CopyableCell 
+                        value={user.cognitoId} 
+                        className="font-mono text-xs text-gray-500 dark:text-gray-500" 
+                      />
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2">

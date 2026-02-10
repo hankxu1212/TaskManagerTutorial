@@ -1,7 +1,7 @@
 "use client";
 
 import { use } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useGetTaskByIdQuery } from "@/state/api";
 import TaskDetailModal from "@/components/TaskDetailModal";
 
@@ -12,6 +12,8 @@ type Props = {
 const TaskPage = ({ params }: Props) => {
   const { id } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams.get("returnUrl");
   const taskId = parseInt(id, 10);
   const { data: task, isLoading, error } = useGetTaskByIdQuery(taskId, {
     skip: isNaN(taskId),
@@ -42,12 +44,21 @@ const TaskPage = ({ params }: Props) => {
   }
 
   const handleClose = () => {
-    // Redirect to the board this task belongs to
-    if (task.projectId) {
+    if (returnUrl) {
+      router.push(returnUrl);
+    } else if (task.projectId) {
       router.push(`/boards/${task.projectId}`);
     } else {
       router.push("/");
     }
+  };
+
+  const handleTaskNavigate = (newTaskId: number) => {
+    // Preserve returnUrl when navigating between tasks
+    const url = returnUrl 
+      ? `/tasks/${newTaskId}?returnUrl=${encodeURIComponent(returnUrl)}`
+      : `/tasks/${newTaskId}`;
+    router.push(url);
   };
 
   return (
@@ -55,7 +66,7 @@ const TaskPage = ({ params }: Props) => {
       isOpen={true}
       onClose={handleClose}
       task={task}
-      onTaskNavigate={(taskId) => router.push(`/tasks/${taskId}`)}
+      onTaskNavigate={handleTaskNavigate}
     />
   );
 };

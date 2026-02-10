@@ -129,7 +129,7 @@ const TableView = ({
         <div className="mb-4">
           <button
             onClick={() => setIsModalNewTaskOpen(true)}
-            className="flex items-center gap-2 rounded-md border-2 border-dashed border-gray-300 bg-white/50 px-4 py-2 text-gray-500 transition-colors hover:border-gray-400 hover:bg-white hover:text-gray-700 dark:border-stroke-dark dark:bg-dark-secondary/50 dark:text-neutral-500 dark:hover:border-neutral-500 dark:hover:bg-dark-secondary dark:hover:text-neutral-300"
+            className="flex cursor-pointer items-center gap-2 rounded-md border-2 border-dashed border-gray-300 bg-white/50 px-4 py-2 text-gray-500 transition-colors hover:border-gray-400 hover:bg-white hover:text-gray-700 dark:border-stroke-dark dark:bg-dark-secondary/50 dark:text-neutral-500 dark:hover:border-neutral-500 dark:hover:bg-dark-secondary dark:hover:text-neutral-300"
           >
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-200/70 dark:bg-dark-tertiary/70">
               <Plus size={14} />

@@ -1,9 +1,14 @@
 import Modal from "@/components/Modal";
+import DatePicker from "@/components/DatePicker";
+import ProjectSelector from "@/components/ProjectSelector";
 import { Priority, Status, useCreateTaskMutation, useGetTagsQuery, useGetUsersQuery, useGetProjectsQuery, useGetSprintsQuery, User, Project, Sprint } from "@/state/api";
 import { useAuthUser } from "@/lib/useAuthUser";
+import { PRIORITY_BADGE_STYLES } from "@/lib/priorityColors";
+import { STATUS_BADGE_STYLES } from "@/lib/statusColors";
+import { parseLocalDate } from "@/lib/dateUtils";
 import { useState, useEffect, useRef } from "react";
 import { formatISO, format } from "date-fns";
-import { X, ChevronDown, Zap } from "lucide-react";
+import { X, Zap, Flag, Award, Tag, Calendar } from "lucide-react";
 
 type Props = {
     isOpen: boolean;
@@ -33,17 +38,17 @@ const ModalNewTask = ({ isOpen, onClose, projectId = null, sprintId = null, defa
     const [assigneeSearch, setAssigneeSearch] = useState("");
     const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-    const [projectSearch, setProjectSearch] = useState("");
-    const [showProjectDropdown, setShowProjectDropdown] = useState(false);
     const [selectedSprints, setSelectedSprints] = useState<Sprint[]>([]);
     const [sprintSearch, setSprintSearch] = useState("");
     const [showSprintDropdown, setShowSprintDropdown] = useState(false);
+    const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+    const [showDueDatePicker, setShowDueDatePicker] = useState(false);
     
     const assigneeInputRef = useRef<HTMLInputElement>(null);
-    const projectInputRef = useRef<HTMLInputElement>(null);
     const assigneeDropdownRef = useRef<HTMLDivElement>(null);
-    const projectDropdownRef = useRef<HTMLDivElement>(null);
     const sprintDropdownRef = useRef<HTMLDivElement>(null);
+    const startDateRef = useRef<HTMLDivElement>(null);
+    const dueDateRef = useRef<HTMLDivElement>(null);
 
     // Set defaults when modal opens
     useEffect(() => {
@@ -59,7 +64,6 @@ const ModalNewTask = ({ isOpen, onClose, projectId = null, sprintId = null, defa
             setSelectedTagIds([]);
             setDueDate("");
             setAssigneeSearch("");
-            setProjectSearch("");
             setSprintSearch("");
             
             // Pre-fill assignee if defaultAssigneeId is provided
@@ -109,9 +113,6 @@ const ModalNewTask = ({ isOpen, onClose, projectId = null, sprintId = null, defa
             if (assigneeDropdownRef.current && !assigneeDropdownRef.current.contains(event.target as Node)) {
                 setShowAssigneeDropdown(false);
             }
-            if (projectDropdownRef.current && !projectDropdownRef.current.contains(event.target as Node)) {
-                setShowProjectDropdown(false);
-            }
             if (sprintDropdownRef.current && !sprintDropdownRef.current.contains(event.target as Node)) {
                 setShowSprintDropdown(false);
             }
@@ -134,11 +135,6 @@ const ModalNewTask = ({ isOpen, onClose, projectId = null, sprintId = null, defa
         return matchesSearch && notAlreadySelected;
     });
 
-    const filteredProjects = projects.filter(project => {
-        const searchLower = projectSearch.toLowerCase();
-        return project.name.toLowerCase().includes(searchLower);
-    });
-
     const filteredSprints = sprints.filter(sprint => {
         const searchLower = sprintSearch.toLowerCase();
         const matchesSearch = sprint.title.toLowerCase().includes(searchLower);
@@ -154,12 +150,6 @@ const ModalNewTask = ({ isOpen, onClose, projectId = null, sprintId = null, defa
 
     const removeAssignee = (userId: number | undefined) => {
         setSelectedAssignees(prev => prev.filter(a => a.userId !== userId));
-    };
-
-    const selectProject = (project: Project) => {
-        setSelectedProject(project);
-        setProjectSearch("");
-        setShowProjectDropdown(false);
     };
 
     const addSprint = (sprint: Sprint) => {
@@ -238,55 +228,72 @@ const ModalNewTask = ({ isOpen, onClose, projectId = null, sprintId = null, defa
                 {/* Status */}
                 <div>
                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-neutral-300">
-                        Status
+                        <span className="flex items-center gap-1.5">
+                            <Award size={14} />
+                            Status
+                        </span>
                     </label>
-                    <div className="flex flex-wrap gap-2">
-                        {Object.values(Status).map((s) => (
-                            <button
-                                key={s}
-                                type="button"
-                                onClick={() => setStatus(s)}
-                                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                                    status === s
-                                        ? "bg-gray-800 text-white dark:bg-white dark:text-gray-800"
-                                        : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-dark-tertiary dark:text-neutral-300 dark:hover:bg-dark-surface"
-                                }`}
-                            >
-                                {s}
-                            </button>
-                        ))}
+                    <div className="flex flex-wrap gap-1.5">
+                        {Object.values(Status).map((s) => {
+                            const isSelected = status === s;
+                            const colors = STATUS_BADGE_STYLES[s] || STATUS_BADGE_STYLES["Input Queue"];
+                            return (
+                                <button
+                                    key={s}
+                                    type="button"
+                                    onClick={() => setStatus(s)}
+                                    className={`rounded-full px-2.5 py-1 text-xs font-semibold transition-all ${colors.bg} ${colors.text} ${colors.darkBg} ${colors.darkText} ${
+                                        isSelected
+                                            ? "ring-2 ring-offset-1 ring-gray-800 dark:ring-white dark:ring-offset-dark-bg"
+                                            : "opacity-50 hover:opacity-75"
+                                    }`}
+                                >
+                                    {s}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 
                 {/* Priority */}
                 <div>
                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-neutral-300">
-                        Priority
+                        <span className="flex items-center gap-1.5">
+                            <Flag size={14} />
+                            Priority
+                        </span>
                     </label>
-                    <div className="flex flex-wrap gap-2">
-                        {Object.values(Priority).map((p) => (
-                            <button
-                                key={p}
-                                type="button"
-                                onClick={() => setPriority(p)}
-                                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                                    priority === p
-                                        ? "bg-gray-800 text-white dark:bg-white dark:text-gray-800"
-                                        : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-dark-tertiary dark:text-neutral-300 dark:hover:bg-dark-surface"
-                                }`}
-                            >
-                                {p}
-                            </button>
-                        ))}
+                    <div className="flex flex-wrap gap-1.5">
+                        {Object.values(Priority).map((p) => {
+                            const isSelected = priority === p;
+                            const colors = PRIORITY_BADGE_STYLES[p] || PRIORITY_BADGE_STYLES.Backlog;
+                            return (
+                                <button
+                                    key={p}
+                                    type="button"
+                                    onClick={() => setPriority(p)}
+                                    className={`rounded-full px-2.5 py-1 text-xs font-semibold transition-all ${colors.bg} ${colors.text} ${colors.darkBg} ${colors.darkText} ${
+                                        isSelected
+                                            ? "ring-2 ring-offset-1 ring-gray-800 dark:ring-white dark:ring-offset-dark-bg"
+                                            : "opacity-50 hover:opacity-75"
+                                    }`}
+                                >
+                                    {p}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 
                 {/* Tags */}
                 <div>
                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-neutral-300">
-                        Tags
+                        <span className="flex items-center gap-1.5">
+                            <Tag size={14} />
+                            Tags
+                        </span>
                     </label>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5">
                         {availableTags?.map((tag) => {
                             const isSelected = selectedTagIds.includes(tag.id);
                             return (
@@ -294,11 +301,14 @@ const ModalNewTask = ({ isOpen, onClose, projectId = null, sprintId = null, defa
                                     key={tag.id}
                                     type="button"
                                     onClick={() => toggleTag(tag.id)}
-                                    className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                                    className={`rounded-full px-2.5 py-1 text-xs font-semibold text-white transition-all ${
                                         isSelected
-                                            ? "bg-gray-800 text-white dark:bg-white dark:text-gray-800"
-                                            : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-dark-tertiary dark:text-neutral-300 dark:hover:bg-dark-surface"
+                                            ? "ring-2 ring-offset-1 ring-gray-800 dark:ring-white dark:ring-offset-dark-bg"
+                                            : "opacity-40 hover:opacity-70"
                                     }`}
+                                    style={{
+                                        backgroundColor: tag.color || '#3b82f6',
+                                    }}
                                 >
                                     {tag.name}
                                 </button>
@@ -372,30 +382,69 @@ const ModalNewTask = ({ isOpen, onClose, projectId = null, sprintId = null, defa
                 </div>
 
                 {/* Dates */}
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-2">
-                    <div>
-                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-neutral-300">
-                            Start Date
-                        </label>
-                        <input
-                            type="date"
-                            className={inputStyles}
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                        />
+                <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
+                        <span className="text-sm text-gray-600 dark:text-neutral-400">Start:</span>
+                        <div ref={startDateRef} className="relative">
+                            <button
+                                type="button"
+                                onClick={() => setShowStartDatePicker(!showStartDatePicker)}
+                                className="rounded border border-gray-300 px-3 py-1.5 text-sm text-left min-w-[130px] dark:border-dark-tertiary dark:bg-dark-tertiary dark:text-white"
+                            >
+                                {startDate ? format(parseLocalDate(startDate), "MMM d, yyyy") : "Select date"}
+                            </button>
+                            {showStartDatePicker && (
+                                <div className="absolute z-20 mt-1">
+                                    <DatePicker
+                                        value={startDate || undefined}
+                                        onChange={(date) => {
+                                            setStartDate(date || "");
+                                            if (date && dueDate && parseLocalDate(date) > parseLocalDate(dueDate)) {
+                                                setDueDate("");
+                                            }
+                                            setShowStartDatePicker(false);
+                                        }}
+                                        onClose={() => setShowStartDatePicker(false)}
+                                    />
+                                </div>
+                            )}
+                        </div>
                     </div>
-                    <div>
-                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-neutral-300">
-                            Due Date
-                        </label>
-                        <input
-                            type="date"
-                            className={inputStyles}
-                            value={dueDate}
-                            onChange={(e) => setDueDate(e.target.value)}
-                        />
+                    <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-gray-500 dark:text-neutral-500" />
+                        <span className="text-sm text-gray-600 dark:text-neutral-400">Due:</span>
+                        <div ref={dueDateRef} className="relative">
+                            <button
+                                type="button"
+                                onClick={() => setShowDueDatePicker(!showDueDatePicker)}
+                                className="rounded border border-gray-300 px-3 py-1.5 text-sm text-left min-w-[130px] dark:border-dark-tertiary dark:bg-dark-tertiary dark:text-white"
+                            >
+                                {dueDate ? format(parseLocalDate(dueDate), "MMM d, yyyy") : "Select date"}
+                            </button>
+                            {showDueDatePicker && (
+                                <div className="absolute z-20 mt-1">
+                                    <DatePicker
+                                        value={dueDate || undefined}
+                                        onChange={(date) => {
+                                            if (date && startDate && parseLocalDate(date) < parseLocalDate(startDate)) {
+                                                return;
+                                            }
+                                            setDueDate(date || "");
+                                            setShowDueDatePicker(false);
+                                        }}
+                                        onClose={() => setShowDueDatePicker(false)}
+                                        minDate={startDate || undefined}
+                                    />
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
+                {/* Date validation message */}
+                {startDate && dueDate && parseLocalDate(dueDate) < parseLocalDate(startDate) && (
+                    <p className="text-xs text-red-500 dark:text-red-400">Due date must be after start date</p>
+                )}
 
                 {/* Author (read-only, auto-filled) */}
                 <div>
@@ -469,75 +518,15 @@ const ModalNewTask = ({ isOpen, onClose, projectId = null, sprintId = null, defa
                 </div>
 
                 {/* Project selection */}
-                <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-neutral-300">
-                        Project
-                    </label>
-                    <div className="relative" ref={projectDropdownRef}>
-                        {selectedProject ? (
-                            <div className={`${inputStyles} flex items-center justify-between`}>
-                                <span>{selectedProject.name}</span>
-                                <button
-                                    type="button"
-                                    onClick={() => setSelectedProject(null)}
-                                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-                                >
-                                    <X size={16} />
-                                </button>
-                            </div>
-                        ) : (
-                            <>
-                                <div className="relative">
-                                    <input
-                                        ref={projectInputRef}
-                                        type="text"
-                                        className={inputStyles}
-                                        placeholder="Search projects..."
-                                        value={projectSearch}
-                                        onChange={(e) => {
-                                            setProjectSearch(e.target.value);
-                                            setShowProjectDropdown(true);
-                                        }}
-                                        onFocus={() => setShowProjectDropdown(true)}
-                                    />
-                                    <ChevronDown
-                                        size={16}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-                                    />
-                                </div>
-                                {showProjectDropdown && (
-                                    <div
-                                        className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg dark:border-dark-tertiary dark:bg-dark-secondary"
-                                    >
-                                        {filteredProjects.length > 0 ? (
-                                            filteredProjects.map((project) => (
-                                                <button
-                                                    key={project.id}
-                                                    type="button"
-                                                    onClick={() => selectProject(project)}
-                                                    className="flex w-full flex-col px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-dark-tertiary"
-                                                >
-                                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                                        {project.name}
-                                                    </span>
-                                                    {project.description && (
-                                                        <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                                            {project.description}
-                                                        </span>
-                                                    )}
-                                                </button>
-                                            ))
-                                        ) : (
-                                            <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
-                                                No projects found
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </>
-                        )}
-                    </div>
-                </div>
+                <ProjectSelector
+                  projects={projects}
+                  selectedProject={selectedProject}
+                  onSelect={setSelectedProject}
+                  label="Project"
+                  placeholder="Search projects..."
+                  inputClassName={inputStyles}
+                  showIcon={false}
+                />
 
                 <button
                     type="submit"

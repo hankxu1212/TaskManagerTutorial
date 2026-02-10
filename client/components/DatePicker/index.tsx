@@ -1,5 +1,6 @@
 "use client";
 
+import { parseLocalDate } from "@/lib/dateUtils";
 import { useState, useRef, useEffect } from "react";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday, parse, isValid } from "date-fns";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
@@ -10,28 +11,37 @@ type DatePickerProps = {
   onClose?: () => void;
   placeholder?: string;
   className?: string;
+  minDate?: string; // ISO date string - dates before this will be disabled
 };
 
 const DAYS_OF_WEEK = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
-const DatePicker = ({ value, onChange, onClose, placeholder = "Select date", className = "" }: DatePickerProps) => {
-  const [isOpen, setIsOpen] = useState(true);
+const DatePicker = ({ value, onChange, onClose, className = "", minDate }: DatePickerProps) => {
+  const [isReady, setIsReady] = useState(false);
   const [viewDate, setViewDate] = useState(() => {
-    return value ? new Date(value) : new Date();
+    return value ? parseLocalDate(value) : new Date();
   });
   const [inputValue, setInputValue] = useState(() => {
-    return value ? format(new Date(value), "MM/dd/yyyy") : "";
+    return value ? format(parseLocalDate(value), "MM/dd/yyyy") : "";
   });
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const selectedDate = value ? new Date(value) : null;
+  const selectedDate = value ? parseLocalDate(value) : null;
+
+  // Delay visibility until after first render to prevent position flicker
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      setIsReady(true);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   // Update input value when value prop changes
   useEffect(() => {
     if (value) {
-      setInputValue(format(new Date(value), "MM/dd/yyyy"));
-      setViewDate(new Date(value));
+      setInputValue(format(parseLocalDate(value), "MM/dd/yyyy"));
+      setViewDate(parseLocalDate(value));
     } else {
       setInputValue("");
     }
@@ -49,7 +59,6 @@ const DatePicker = ({ value, onChange, onClose, placeholder = "Select date", cla
   const handleDateSelect = (date: Date) => {
     const isoDate = format(date, "yyyy-MM-dd");
     onChange(isoDate);
-    setIsOpen(false);
     onClose?.();
   };
 
@@ -72,7 +81,6 @@ const DatePicker = ({ value, onChange, onClose, placeholder = "Select date", cla
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      setIsOpen(false);
       onClose?.();
     }
   };
@@ -81,7 +89,6 @@ const DatePicker = ({ value, onChange, onClose, placeholder = "Select date", cla
     e.stopPropagation();
     onChange(undefined);
     setInputValue("");
-    setIsOpen(false);
     onClose?.();
   };
 
@@ -98,7 +105,6 @@ const DatePicker = ({ value, onChange, onClose, placeholder = "Select date", cla
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
         onClose?.();
       }
     };
@@ -106,12 +112,10 @@ const DatePicker = ({ value, onChange, onClose, placeholder = "Select date", cla
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
 
-  if (!isOpen) return null;
-
   return (
     <div
       ref={containerRef}
-      className={`w-64 rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-dark-tertiary dark:bg-dark-secondary ${className}`}
+      className={`w-64 rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-dark-tertiary dark:bg-dark-secondary transition-opacity duration-75 ${isReady ? "opacity-100" : "opacity-0"} ${className}`}
       onClick={(e) => e.stopPropagation()}
     >
       {/* Manual input field */}
@@ -165,13 +169,18 @@ const DatePicker = ({ value, onChange, onClose, placeholder = "Select date", cla
           const isSelected = selectedDate && isSameDay(day, selectedDate);
           const isCurrentMonth = isSameMonth(day, viewDate);
           const isTodayDate = isToday(day);
+          const isBeforeMinDate = minDate ? day < parseLocalDate(minDate) : false;
+          const isDisabled = isBeforeMinDate;
 
           return (
             <button
               key={day.toISOString()}
-              onClick={() => handleDateSelect(day)}
+              onClick={() => !isDisabled && handleDateSelect(day)}
+              disabled={isDisabled}
               className={`h-7 w-7 rounded text-xs transition-colors ${
-                isSelected
+                isDisabled
+                  ? "cursor-not-allowed text-gray-300 dark:text-gray-600"
+                  : isSelected
                   ? "bg-blue-600 text-white"
                   : isTodayDate
                   ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"

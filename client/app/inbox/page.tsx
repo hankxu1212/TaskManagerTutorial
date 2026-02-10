@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Bell,
@@ -12,6 +12,7 @@ import {
   Edit,
   UserPlus,
   Trash2,
+  RefreshCw,
 } from "lucide-react";
 import {
   useGetNotificationsQuery,
@@ -77,7 +78,15 @@ interface NotificationRowProps {
 const NotificationRow = ({ notification, userId, isSelected, onSelect }: NotificationRowProps) => {
   const router = useRouter();
   const [markAsRead] = useMarkNotificationAsReadMutation();
-  const [deleteNotification, { isLoading: isDeleting }] = useDeleteNotificationMutation();
+  const [deleteNotification] = useDeleteNotificationMutation();
+  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const rowRef = useRef<HTMLDivElement>(null);
+  const [isRemoving, setIsRemoving] = useState(false);
+  const [dragX, setDragX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartX = useRef(0);
+  const wasDraggingRef = useRef(false);
+  const SWIPE_THRESHOLD = 150;
 
   const severityColors = getSeverityColors(notification.severity);
   const typeLabel = getNotificationTypeLabel(notification.type);
@@ -94,7 +103,7 @@ const NotificationRow = ({ notification, userId, isSelected, onSelect }: Notific
     }
   };
 
-  const handleClick = async () => {
+  const handleSingleClick = async () => {
     if (!notification.isRead) {
       try {
         await markAsRead({ notificationId: notification.id, userId });
@@ -103,71 +112,211 @@ const NotificationRow = ({ notification, userId, isSelected, onSelect }: Notific
       }
     }
     if (notification.taskId) {
-      router.push(`/tasks/${notification.taskId}`);
+      router.push(`/tasks/${notification.taskId}?returnUrl=${encodeURIComponent("/inbox")}`);
     }
+  };
+
+  const handleClick = () => {
+    if (wasDraggingRef.current) {
+      wasDraggingRef.current = false;
+      return;
+    }
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+      return;
+    }
+    clickTimeoutRef.current = setTimeout(() => {
+      clickTimeoutRef.current = null;
+      handleSingleClick();
+    }, 200);
+  };
+
+  const performDelete = async () => {
+    if (rowRef.current) {
+      const row = rowRef.current;
+      const height = row.offsetHeight;
+      row.style.height = `${height}px`;
+      row.style.transition = "none";
+      row.offsetHeight;
+      row.style.transition = "height 250ms ease-out, opacity 200ms ease-out";
+      requestAnimationFrame(() => {
+        row.style.height = "0px";
+        row.style.opacity = "0";
+        row.style.paddingTop = "0px";
+        row.style.paddingBottom = "0px";
+      });
+    }
+    setIsRemoving(true);
+    setTimeout(async () => {
+      try {
+        await deleteNotification({ notificationId: notification.id, userId });
+      } catch (error) {
+        console.error("Failed to delete:", error);
+        setIsRemoving(false);
+        if (rowRef.current) {
+          rowRef.current.style.height = "";
+          rowRef.current.style.opacity = "";
+          rowRef.current.style.paddingTop = "";
+          rowRef.current.style.paddingBottom = "";
+        }
+      }
+    }, 300);
+  };
+
+  const handleDoubleClick = async () => {
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+    }
+    performDelete();
   };
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    try {
-      await deleteNotification({ notificationId: notification.id, userId });
-    } catch (error) {
-      console.error("Failed to delete:", error);
+    performDelete();
+  };
+
+  // Drag handlers
+  const handleDragStart = (clientX: number) => {
+    dragStartX.current = clientX;
+    setIsDragging(true);
+  };
+
+  const handleDragMove = (clientX: number) => {
+    if (!isDragging) return;
+    const diff = clientX - dragStartX.current;
+    setDragX(Math.max(0, diff));
+  };
+
+  const handleDragEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    if (dragX > 5) {
+      wasDraggingRef.current = true;
+    }
+    if (dragX >= SWIPE_THRESHOLD) {
+      setDragX(window.innerWidth);
+      setTimeout(() => performDelete(), 150);
+    } else {
+      setDragX(0);
     }
   };
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('input[type="checkbox"]') || 
+        (e.target as HTMLElement).closest('button')) return;
+    handleDragStart(e.clientX);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    handleDragMove(e.clientX);
+  };
+
+  const handleMouseUp = () => {
+    handleDragEnd();
+  };
+
+  const handleMouseLeave = () => {
+    if (isDragging) handleDragEnd();
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if ((e.target as HTMLElement).closest('input[type="checkbox"]') || 
+        (e.target as HTMLElement).closest('button')) return;
+    handleDragStart(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    handleDragMove(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    handleDragEnd();
+  };
+
+  const swipeProgress = Math.min(dragX / SWIPE_THRESHOLD, 1);
+
   return (
     <div
-      className={`group flex items-center gap-4 px-6 py-4 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-dark-tertiary ${
-        !notification.isRead ? "bg-blue-50/50 dark:bg-blue-900/10" : ""
-      } ${severityColors.border}`}
-      onClick={handleClick}
+      ref={rowRef}
+      className={`relative overflow-hidden ${severityColors.border}`}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseLeave}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
-      {/* Checkbox */}
-      <div onClick={(e) => e.stopPropagation()}>
-        <input
-          type="checkbox"
-          checked={isSelected}
-          onChange={(e) => onSelect(notification.id, e.target.checked)}
-          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-dark-tertiary"
-        />
-      </div>
-
-      {/* Unread indicator */}
-      <div className="w-2">
-        {!notification.isRead && (
-          <div className="h-2 w-2 rounded-full bg-blue-500" />
-        )}
-      </div>
-
-      {/* Icon */}
-      <div className={`flex-shrink-0 ${severityColors.icon}`}>
-        {renderIcon()}
-      </div>
-
-      {/* Content */}
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-          {notification.task?.title || "Notification"}
-        </p>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          {notification.message || typeLabel}
-        </p>
-      </div>
-
-      {/* Timestamp */}
-      <div className="flex-shrink-0 text-sm text-gray-500 dark:text-gray-400">
-        {getRelativeTime(notification.createdAt)}
-      </div>
-
-      {/* Delete button */}
-      <button
-        onClick={handleDelete}
-        disabled={isDeleting}
-        className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded-full text-gray-400 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400"
+      {/* Delete background */}
+      <div 
+        className="absolute inset-0 flex items-center bg-red-500 px-6"
+        style={{ opacity: swipeProgress }}
       >
-        {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-      </button>
+        <Trash2 className="h-5 w-5 text-white" />
+        <span className="ml-2 text-sm font-medium text-white">Delete</span>
+      </div>
+      
+      {/* Main content */}
+      <div
+        className={`group relative flex items-center gap-4 px-6 py-2 cursor-pointer bg-white dark:bg-dark-secondary hover:bg-gray-50 dark:hover:bg-dark-tertiary ${
+          !notification.isRead ? "bg-gray-100/50 dark:bg-white/5" : "opacity-60"
+        }`}
+        style={{ 
+          transform: `translateX(${dragX}px)`,
+          transition: isDragging ? "none" : "transform 200ms ease-out"
+        }}
+        onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
+      >
+        {/* Checkbox */}
+        <div onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={(e) => onSelect(notification.id, e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 bg-white text-accent focus:ring-accent focus:ring-offset-0 dark:border-gray-500 dark:bg-dark-tertiary dark:checked:bg-white dark:checked:text-accent"
+          />
+        </div>
+
+        {/* Unread indicator */}
+        <div className="w-2">
+          {!notification.isRead && (
+            <div className="h-2 w-2 rounded-full bg-accent dark:bg-white" />
+          )}
+        </div>
+
+        {/* Icon */}
+        <div className={`flex-shrink-0 ${severityColors.icon}`}>
+          {renderIcon()}
+        </div>
+
+        {/* Content */}
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+            {typeLabel}
+          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+            {notification.task?.title || notification.message || "Notification"}
+          </p>
+        </div>
+
+        {/* Timestamp */}
+        <div className="flex-shrink-0 text-sm text-gray-500 dark:text-gray-400">
+          {getRelativeTime(notification.createdAt)}
+        </div>
+
+        {/* Delete button */}
+        <button
+          onClick={handleDelete}
+          disabled={isRemoving}
+          className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded-full text-gray-400 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400"
+          title="Delete (or double-click row)"
+        >
+          {isRemoving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+        </button>
+      </div>
     </div>
   );
 };
@@ -178,7 +327,7 @@ const InboxPage = () => {
   const { data: currentUser } = useAuthUser();
   const userId = currentUser?.userDetails?.userId;
 
-  const { data: notifications, isLoading, isError } = useGetNotificationsQuery(userId!, {
+  const { data: notifications, isLoading, isError, refetch } = useGetNotificationsQuery(userId!, {
     skip: !userId,
   });
 
@@ -235,7 +384,7 @@ const InboxPage = () => {
           <div className="flex items-center gap-3">
             <span>Inbox</span>
             {unreadCount > 0 && (
-              <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-sm font-medium text-blue-600 dark:bg-blue-900 dark:text-blue-300">
+              <span className="rounded-full bg-gray-200 px-2.5 py-0.5 text-sm font-medium text-gray-700 dark:bg-white/10 dark:text-white">
                 {unreadCount} unread
               </span>
             )}
@@ -243,6 +392,13 @@ const InboxPage = () => {
         }
         buttonComponent={
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => refetch()}
+              className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-dark-tertiary dark:text-gray-200 dark:hover:bg-gray-700"
+              title="Refresh"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </button>
             {selectedCount > 0 && (
               <button
                 onClick={handleBatchDelete}
@@ -274,7 +430,7 @@ const InboxPage = () => {
             type="checkbox"
             checked={isAllSelected}
             onChange={handleSelectAll}
-            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-dark-tertiary"
+            className="h-4 w-4 rounded border-gray-300 bg-white text-accent focus:ring-accent focus:ring-offset-0 dark:border-gray-500 dark:bg-dark-tertiary dark:checked:bg-white dark:checked:text-accent"
           />
           <span className="text-sm text-gray-600 dark:text-gray-400">
             {selectedCount > 0 ? `${selectedCount} selected` : "Select all"}

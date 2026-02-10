@@ -1,5 +1,5 @@
 import { User } from "@/state/api";
-import { User as UserIcon, Mail } from "lucide-react";
+import { User as UserIcon } from "lucide-react";
 import S3Image from "@/components/S3Image";
 import Link from "next/link";
 
@@ -26,13 +26,12 @@ const UserCard = ({ user }: Props) => {
         )}
         <div className="min-w-0 flex-1">
           <h3 className="font-semibold text-gray-900 dark:text-white">
-            {user.username}
+            {user.fullName || user.username}
           </h3>
           {user.email && (
-            <div className="mt-1 flex items-center gap-1.5 text-sm text-gray-500 dark:text-neutral-400">
-              <Mail className="h-3.5 w-3.5" />
-              <span className="truncate">{user.email}</span>
-            </div>
+            <p className="mt-1 truncate text-sm text-gray-500 dark:text-neutral-400">
+              {user.email}
+            </p>
           )}
         </div>
       </div>

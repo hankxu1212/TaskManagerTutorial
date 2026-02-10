@@ -9,10 +9,12 @@ import ActivityList from "@/components/ActivityList";
 import CollapsibleSection from "@/components/CollapsibleSection";
 import CommentsPanel from "@/components/CommentsPanel";
 import DatePicker from "@/components/DatePicker";
+import ProjectSelector from "@/components/ProjectSelector";
 import { Task, Priority, Status, useUpdateTaskMutation, useDeleteTaskMutation, useCreateTaskMutation, useGetUsersQuery, useGetTagsQuery, useGetProjectsQuery, useGetSprintsQuery, useGetPresignedUploadUrlMutation, useCreateAttachmentMutation, useDeleteAttachmentMutation, getAttachmentS3Key, User as UserType, Project, Sprint } from "@/state/api";
 import { useAuthUser } from "@/lib/useAuthUser";
 import { PRIORITY_BADGE_STYLES } from "@/lib/priorityColors";
 import { STATUS_BADGE_STYLES } from "@/lib/statusColors";
+import { parseLocalDate } from "@/lib/dateUtils";
 import { format } from "date-fns";
 import { Calendar, User, Users, Tag, Award, Pencil, X, Plus, Zap, Flag, Trash2, ChevronDown, ChevronRight, Copy, Check, ArrowLeft, Link2, Paperclip, Upload } from "lucide-react";
 import { validateFile, FILE_INPUT_ACCEPT, MAX_FILE_SIZE_MB } from "@/lib/attachmentUtils";
@@ -191,8 +193,6 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks, onTaskNavigate }: TaskD
   const [assigneeSearch, setAssigneeSearch] = useState("");
   const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [projectSearch, setProjectSearch] = useState("");
-  const [showProjectDropdown, setShowProjectDropdown] = useState(false);
   const [selectedSprints, setSelectedSprints] = useState<Sprint[]>([]);
   const [sprintSearch, setSprintSearch] = useState("");
   const [showSprintDropdown, setShowSprintDropdown] = useState(false);
@@ -204,7 +204,6 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks, onTaskNavigate }: TaskD
 
   // Dropdown refs
   const assigneeDropdownRef = useRef<HTMLDivElement>(null);
-  const projectDropdownRef = useRef<HTMLDivElement>(null);
   const sprintDropdownRef = useRef<HTMLDivElement>(null);
   const startDateRef = useRef<HTMLDivElement>(null);
   const dueDateRef = useRef<HTMLDivElement>(null);
@@ -223,9 +222,6 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks, onTaskNavigate }: TaskD
     const handleClickOutside = (event: MouseEvent) => {
       if (assigneeDropdownRef.current && !assigneeDropdownRef.current.contains(event.target as Node)) {
         setShowAssigneeDropdown(false);
-      }
-      if (projectDropdownRef.current && !projectDropdownRef.current.contains(event.target as Node)) {
-        setShowProjectDropdown(false);
       }
       if (sprintDropdownRef.current && !sprintDropdownRef.current.contains(event.target as Node)) {
         setShowSprintDropdown(false);
@@ -298,7 +294,6 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks, onTaskNavigate }: TaskD
     
     const project = projects?.find(p => p.id === currentTask.projectId);
     setSelectedProject(project || null);
-    setProjectSearch("");
     
     const taskSprints = currentTask.sprints?.map(s => sprints?.find(sp => sp.id === s.id)).filter(Boolean) as Sprint[] || [];
     setSelectedSprints(taskSprints);
@@ -350,11 +345,6 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks, onTaskNavigate }: TaskD
       (user.email?.toLowerCase().includes(searchLower) ?? false);
   }) || [];
 
-  const filteredProjects = projects?.filter(project => {
-    const searchLower = projectSearch.toLowerCase();
-    return project.name.toLowerCase().includes(searchLower);
-  }) || [];
-
   const filteredSprints = sprints?.filter(sprint => {
     const searchLower = sprintSearch.toLowerCase();
     const matchesSearch = sprint.title.toLowerCase().includes(searchLower);
@@ -369,12 +359,6 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks, onTaskNavigate }: TaskD
     }
     setAssigneeSearch("");
     setShowAssigneeDropdown(false);
-  };
-
-  const selectProject = (project: Project) => {
-    setSelectedProject(project);
-    setProjectSearch("");
-    setShowProjectDropdown(false);
   };
 
   const addSprint = (sprint: Sprint) => {
@@ -587,76 +571,12 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks, onTaskNavigate }: TaskD
       </div>
 
       {/* Board/Project Autofill */}
-      <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-neutral-300">
-          <span className="flex items-center gap-1.5">
-            <BiColumns className="h-4 w-4" />
-            Board
-          </span>
-        </label>
-        <div className="relative" ref={projectDropdownRef}>
-          <div className="relative">
-            <input
-              type="text"
-              className={inputClass}
-              placeholder="Search boards..."
-              value={projectSearch || selectedProject?.name || ""}
-              onChange={(e) => {
-                setProjectSearch(e.target.value);
-                if (selectedProject && e.target.value !== selectedProject.name) {
-                  setSelectedProject(null);
-                }
-                setShowProjectDropdown(true);
-              }}
-              onFocus={() => setShowProjectDropdown(true)}
-            />
-            {selectedProject ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedProject(null);
-                  setProjectSearch("");
-                }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-              >
-                <X size={16} />
-              </button>
-            ) : (
-              <ChevronDown
-                size={16}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-              />
-            )}
-          </div>
-          {showProjectDropdown && (
-            <div className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg dark:border-dark-tertiary dark:bg-dark-secondary">
-              {filteredProjects.length > 0 ? (
-                filteredProjects.map((project) => (
-                  <button
-                    key={project.id}
-                    type="button"
-                    onClick={() => selectProject(project)}
-                    className="flex w-full flex-col px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-dark-tertiary"
-                  >
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">
-                      {project.name}
-                    </span>
-                    {project.description && (
-                      <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                        {project.description}
-                      </span>
-                    )}
-                  </button>
-                ))
-              ) : (
-                <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
-                  No boards found
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
+      <ProjectSelector
+        projects={projects || []}
+        selectedProject={selectedProject}
+        onSelect={setSelectedProject}
+        inputClassName={inputClass}
+      />
 
       {/* Assignee Autofill - Multi-select */}
       <div>
@@ -1225,7 +1145,7 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks, onTaskNavigate }: TaskD
                     onClick={() => setShowStartDatePicker(!showStartDatePicker)}
                     className={`${selectClass} min-w-[120px] text-left`}
                   >
-                    {editStartDate ? format(new Date(editStartDate), "MMM d, yyyy") : "Select date"}
+                    {editStartDate ? format(parseLocalDate(editStartDate), "MMM d, yyyy") : "Select date"}
                   </button>
                   <DropdownPortal anchorRef={startDateRef} isOpen={showStartDatePicker}>
                     <DatePicker
@@ -1233,7 +1153,7 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks, onTaskNavigate }: TaskD
                       onChange={(date) => {
                         setEditStartDate(date || "");
                         // If due date exists and is before new start date, clear it
-                        if (date && editDueDate && new Date(date) > new Date(editDueDate)) {
+                        if (date && editDueDate && parseLocalDate(date) > parseLocalDate(editDueDate)) {
                           setEditDueDate("");
                         }
                         setShowStartDatePicker(false);
@@ -1256,14 +1176,14 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks, onTaskNavigate }: TaskD
                     onClick={() => setShowDueDatePicker(!showDueDatePicker)}
                     className={`${selectClass} min-w-[120px] text-left`}
                   >
-                    {editDueDate ? format(new Date(editDueDate), "MMM d, yyyy") : "Select date"}
+                    {editDueDate ? format(parseLocalDate(editDueDate), "MMM d, yyyy") : "Select date"}
                   </button>
                   <DropdownPortal anchorRef={dueDateRef} isOpen={showDueDatePicker}>
                     <DatePicker
                       value={editDueDate || undefined}
                       onChange={(date) => {
                         // Validate: due date must be after start date
-                        if (date && editStartDate && new Date(date) < new Date(editStartDate)) {
+                        if (date && editStartDate && parseLocalDate(date) < parseLocalDate(editStartDate)) {
                           // Don't allow setting due date before start date
                           return;
                         }
@@ -1271,6 +1191,7 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks, onTaskNavigate }: TaskD
                         setShowDueDatePicker(false);
                       }}
                       onClose={() => setShowDueDatePicker(false)}
+                      minDate={editStartDate || undefined}
                     />
                   </DropdownPortal>
                 </div>
@@ -1280,7 +1201,7 @@ const TaskDetailModal = ({ isOpen, onClose, task, tasks, onTaskNavigate }: TaskD
             </div>
           </div>
           {/* Date validation message */}
-          {isEditing && editStartDate && editDueDate && new Date(editDueDate) < new Date(editStartDate) && (
+          {isEditing && editStartDate && editDueDate && parseLocalDate(editDueDate) < parseLocalDate(editStartDate) && (
             <p className="text-xs text-red-500 dark:text-red-400">Due date must be after start date</p>
           )}
         </div>
