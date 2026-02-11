@@ -6,8 +6,9 @@ import { useAuthUser } from "@/lib/useAuthUser";
 import { FilterState, SortState, initialSortState } from "@/lib/filterTypes";
 import { PRIORITY_COLORS_BY_NAME } from "@/lib/priorityColors";
 import { STATUS_BG_CLASSES } from "@/lib/statusColors";
-import { APP_ACCENT_LIGHT } from "@/lib/entityColors";
+import { APP_ACCENT_LIGHT, SPRINT_MAIN_COLOR } from "@/lib/entityColors";
 import { applyFilters, applySorting } from "@/lib/filterUtils";
+import { parseLocalDate } from "@/lib/dateUtils";
 import TaskDetailModal from "@/components/TaskDetailModal";
 import UserIcon from "@/components/UserIcon";
 import { Plus } from "lucide-react";
@@ -95,8 +96,8 @@ const TimelineView = ({
       };
     }
 
-    const min = new Date(sprintStartDate);
-    const max = new Date(sprintDueDate);
+    const min = parseLocalDate(sprintStartDate);
+    const max = parseLocalDate(sprintDueDate);
 
     const days = Math.ceil(
       (max.getTime() - min.getTime()) / (1000 * 60 * 60 * 24),
@@ -198,8 +199,8 @@ const TimelineView = ({
 
       const task = tasksWithDates.find((t) => t.id === taskId);
       if (task) {
-        const startDate = new Date(task.startDate!);
-        const dueDate = new Date(task.dueDate!);
+        const startDate = parseLocalDate(task.startDate!);
+        const dueDate = parseLocalDate(task.dueDate!);
         const taskDuration = Math.round(
           (dueDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
         );
@@ -420,12 +421,13 @@ const TimelineView = ({
                 <div
                   key={index}
                   className={`dark:border-stroke-dark flex-shrink-0 border-l border-gray-200 px-1 py-2 text-center text-xs ${
-                    isToday ? "bg-blue-50 dark:bg-blue-900/20" : ""
+                    isToday ? "" : ""
                   } ${isLast ? "border-r" : ""}`}
-                  style={{ width: `${DAY_WIDTH}px` }}
+                  style={isToday ? { backgroundColor: `${SPRINT_MAIN_COLOR}10`, width: `${DAY_WIDTH}px` } : { width: `${DAY_WIDTH}px` }}
                 >
                   <div
-                    className={`font-medium ${isToday ? "text-blue-600 dark:text-blue-400" : "text-gray-700 dark:text-gray-300"}`}
+                    className={`font-medium ${isToday ? "font-bold" : "text-gray-700 dark:text-gray-300"}`}
+                    style={isToday ? { color: SPRINT_MAIN_COLOR } : undefined}
                   >
                     {date.toLocaleDateString("en-US", {
                       month: "short",
@@ -433,7 +435,8 @@ const TimelineView = ({
                     })}
                   </div>
                   <div
-                    className={`${isToday ? "text-blue-500 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"}`}
+                    className={`${isToday ? "font-bold" : "text-gray-500 dark:text-gray-400"}`}
+                    style={isToday ? { color: SPRINT_MAIN_COLOR } : undefined}
                   >
                     {date.toLocaleDateString("en-US", { weekday: "short" })}
                   </div>
@@ -446,8 +449,8 @@ const TimelineView = ({
         {/* Task Rows */}
         <div className="space-y-2 border-t border-dashed border-gray-300 pt-2 dark:border-gray-700/50">
           {tasksWithDates.map((task) => {
-            const taskStartDate = new Date(task.startDate!);
-            const taskDueDate = new Date(task.dueDate!);
+            const taskStartDate = parseLocalDate(task.startDate!);
+            const taskDueDate = parseLocalDate(task.dueDate!);
 
             // Check if task is assigned to current user (for highlighting)
             const isMyTask =
@@ -559,8 +562,9 @@ const TimelineView = ({
                     {/* Today indicator */}
                     {todayPosition !== null && (
                       <div
-                        className="absolute top-0 z-10 h-full w-0.5 bg-blue-500 dark:bg-blue-400"
+                        className="absolute top-0 z-10 h-full w-0.5"
                         style={{
+                          backgroundColor: SPRINT_MAIN_COLOR,
                           left: `${(todayPosition / 100) * totalDays * DAY_WIDTH}px`,
                         }}
                       />

@@ -42,6 +42,7 @@ import AssigneeAvatarGroup from "@/components/AssigneeAvatarGroup";
 import S3Image from "@/components/S3Image";
 import { BiColumns } from "react-icons/bi";
 import ConfirmationMenu from "@/components/ConfirmationMenu";
+import Markdown from "react-markdown";
 
 // Floating action button component
 type FloatingButtonVariant = "default" | "success" | "danger";
@@ -509,13 +510,15 @@ const TaskDetailModal = ({
         <div className="animate-fade-in-up space-y-4 dark:text-white">
           {/* Description */}
           <div>
-            <p className="break-words whitespace-pre-wrap text-gray-600 dark:text-neutral-400">
-              {currentTask.description ? (
-                <LinkifiedText text={currentTask.description} />
-              ) : (
-                "No description provided"
-              )}
-            </p>
+            {currentTask.description ? (
+              <div className="prose prose-sm max-w-none break-words text-gray-600 prose-headings:text-gray-800 prose-a:text-blue-600 prose-strong:text-gray-700 prose-code:rounded prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:text-gray-800 prose-pre:bg-gray-100 dark:text-neutral-400 dark:prose-headings:text-neutral-200 dark:prose-a:text-blue-400 dark:prose-strong:text-neutral-300 dark:prose-code:bg-dark-tertiary dark:prose-code:text-neutral-200 dark:prose-pre:bg-dark-tertiary">
+                <Markdown>{currentTask.description}</Markdown>
+              </div>
+            ) : (
+              <p className="text-gray-600 dark:text-neutral-400">
+                No description provided
+              </p>
+            )}
           </div>
 
           {/* Schedule - Start Date & Due Date */}
